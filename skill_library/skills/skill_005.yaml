@@ -1,0 +1,33 @@
+---
+id: skill_005
+name: Push an object along its support
+description: Move an object horizontally across the annotated surface beneath it by
+  a requested displacement.
+inputs:
+  object: MovableObject
+  displacement_xy: Vector2
+requires:
+- The gripper is free to make contact with the object.
+- The object rests on an annotated support surface.
+- The requested displacement has nonzero length.
+- A reachable push or drag approach can be found at execution time.
+achieves:
+- The object moves in the requested direction along its support.
+outcomes:
+  success: The object has measurably moved in the requested direction.
+  failure: No approach is reachable, or the object does not move sufficiently.
+executor:
+  callable: zeno_skills.skills.push
+  invocation: Resolve the current support beneath object; normalize displacement_xy
+    to direction and distance; call push(rig, object, support, direction, distance).
+verifier:
+  available: internal_simulator_check
+  evidence: Push measures displacement after each push leg and raises SkillFailure
+    if the object does not move.
+connections:
+- to:
+  - skill_004
+  when: An independently requested push creates a graspable position for the same
+    object, confirmed by observation. Do not add this step solely for a flat object;
+    pick already handles its own edge-push strategy.
+  basis: internal_pick_strategy

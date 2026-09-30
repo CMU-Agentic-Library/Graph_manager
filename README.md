@@ -4,7 +4,7 @@ Graph Manager focuses on task-conditioned skill graphs and the VLM interface aro
 
 ## Skill Library v1
 
-The initial [Skill Library](skill_library/README.md) defines model-facing contracts for the currently implemented ZenoBench capabilities, conditional composition hints, and separate execution-side bindings. The full public catalog is small enough to provide to the model at once. Contracts describe reusable capabilities; the model will still propose a new Skill DAG for each task. The current library is a documented interface and does not yet include a graph runner or independent visual verifiers.
+The initial [Skill Library](skill_library/README.md) keeps one full Contract per Skill and generates one [complete public library](skill_library/skill_library.yaml) for the model. The public library includes all currently documented capabilities and conditional composition hints without implementation paths. Contracts describe reusable capabilities; the model will still propose a new Skill DAG for each task. The current library is a documented interface and does not yet include a graph runner or independent visual verifiers.
 
 ## Goal wording baseline
 

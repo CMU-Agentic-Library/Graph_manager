@@ -1,0 +1,33 @@
+---
+id: skill_004
+name: Pick up an object
+description: Grasp and lift an annotated movable object. The skill selects an available
+  grasp strategy internally, including an edge grasp for suitable flat objects.
+inputs:
+  object: MovableObject
+requires:
+- The gripper is empty.
+- The object exists in the current scene and has a feasible grasp annotation.
+- Any door or drawer blocking access to the object is open.
+- A reachable grasp can be found at execution time.
+achieves:
+- The robot holds the specified object.
+outcomes:
+  success: The specified object is held after lifting.
+  failure: No feasible grasp or approach is found, or the object slips from the gripper.
+executor:
+  callable: zeno_skills.skills.pick
+  invocation: pick(rig, object)
+verifier:
+  available: internal_simulator_check
+  evidence: Pick checks the grasp after lifting; check_held detects later slip during
+    carry.
+connections:
+- to:
+  - skill_006
+  when: The picked object is the object to put inside the container.
+  basis: scripted_policy
+- to:
+  - skill_007
+  when: The picked object is the object to put on the surface.
+  basis: scripted_policy

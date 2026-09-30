@@ -1,0 +1,30 @@
+---
+id: skill_003
+name: Close a door or drawer
+description: Close an annotated articulated door or drawer after access or to satisfy
+  a closed-state goal.
+inputs:
+  part: ArticulatedPart
+requires:
+- The named part has an annotated handle and closed joint target.
+- The gripper is free for handle manipulation.
+- A collision-free pose for reaching and moving the handle can be found at execution
+  time.
+achieves:
+- The named part is closed.
+outcomes:
+  success: The part reaches its annotated closed joint target within the skill's tolerance.
+  failure: The handle cannot be reached or grasped, or the part does not reach the
+    closed target.
+executor:
+  callable: zeno_skills.skills.close_articulated
+  invocation: close_articulated(rig, part)
+verifier:
+  available: internal_simulator_check
+  evidence: The function checks the measured joint value against the annotated closed
+    target.
+connections:
+- to:
+  - skill_008
+  when: The part is the microwave door and configured food is inside the cavity.
+  basis: scripted_policy

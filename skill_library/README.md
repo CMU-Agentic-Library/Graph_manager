@@ -1,28 +1,21 @@
 # Skill Library v1
 
-This directory contains the first model-facing capability library for the skills currently implemented in ZenoBench. It is a contract catalog, not a collection of task plans. ZenoBench already has executable functions, scene annotations, a scripted task policy, and evaluation rules; it does not supply this contract catalog or reusable task-conditioned Skill DAGs.
+## Which file is the library?
 
-## Files and boundaries
+[`skill_library.yaml`](skill_library.yaml) is the **complete model-facing Skill Library** for v1. Give this one file to the model together with the current observation and task goal. It contains all nine public skills, their shared input types, and conditional composition hints. A task DAG is a separate output proposed by the model for one task.
 
-- `catalog.yaml` is the complete public catalog supplied to the model in v1. `id` is an opaque stable identifier. `name` and `description` carry the capability semantics. A future second implementation of `pick` can have a different `id` and a similar `name` without changing the graph schema.
-- `connections.yaml` supplies conditional composition hints to the model. A hint identifies a possible transition between capability types. It does not assert that every scene permits the transition or prescribe a task DAG.
-- `runtime_bindings.yaml` records the corresponding ZenoBench executor and currently available simulator-side result check. It stays outside the model prompt. The full conceptual Contract is the public entry plus the runtime binding with the same `id`.
+[`skills/`](skills/) contains **one authoritative Contract YAML per Skill**. Edit these files when a capability changes. Each has `id`, `name`, `description`, `inputs`, `requires`, `achieves`, `outcomes`, `executor`, and `verifier`, plus optional outgoing `connections`. The opaque `id` identifies the exact Skill; `name` and `description` convey its meaning. Two future implementations can share a similar name and have different IDs.
 
-The model proposes a task graph with node IDs, referenced Skill IDs, concrete arguments, and dependencies. The future graph runner will validate references, parameter shapes, and acyclicity; check the current preconditions before each call; invoke the bound executor; then observe the result. The model supplies the semantic dependency edges. No programmatic proof of why an edge makes sense is assumed here.
+The [`build.rb`](build.rb) generator reads the per-Skill Contracts and the shared [`types.yaml`](types.yaml) glossary, then writes `skill_library.yaml`. Run `ruby skill_library/build.rb` after editing a Contract. It removes `executor`, `verifier`, and evidence labels from the model-facing file, so the model receives the complete **public capability catalog** without code paths. The source Contracts remain the full internal library.
 
-## Scope and evidence
+## What a connection means
 
-The catalog covers the public navigation, articulated-part, pick, push, and placement functions, plus the two microwave-specific functions used by the current scripted policy. `place` into a container and `place_on` a surface have separate public Contracts because they expose different goals and checks. `pick_flat` and `place_flat` remain internal execution strategies. Most manipulation skills navigate to a working pose internally; an explicit navigation node is therefore optional.
+A `connections` entry is a conditional hint between Skill types, not an existing task graph. ZenoBench already has executable functions and a scripted task policy, but it does not have a reusable Contract library or a model-produced DAG. We use the policy and implementation to document useful compositions; we do not copy its trajectories into fixed task graphs. The model chooses nodes and dependencies for the current task. The future graph runner will check references, input shapes, and cycles, then check real preconditions and outcomes during execution. It does not need to prove the model's semantic reason for each edge.
 
-The conditions in the public entries come from `zeno_skills/skills.py`, `zeno_skills/task_policy.py`, and scene/asset annotations. Some are checked directly by the existing functions. Others, such as a free gripper before handle manipulation or a door being open before accessing an enclosed object, are enforced by the scripted policy or must be checked by a future graph runner. They are not claimed to be implemented preflight checks in this repository.
+The source Contract's `basis` records where a hint came from: `scripted_policy` for a composition used by the current policy, `internal_pick_strategy` for the flat-object push within pick, and `implementation` for optional explicit navigation. A documented hint does not guarantee success in every scene. In particular, `pick` already handles its own edge-push strategy, so an extra `push` node should only appear when a separate repositioning step is intended.
 
-`connections.yaml` uses `basis: scripted_policy` when the current policy actually uses the composition, `basis: internal_pick_strategy` for the push inside flat-object picking, and `basis: implementation` for optional explicit navigation. These labels describe source evidence, not a runtime success guarantee. No existing ZenoBench task trajectory is copied as a reusable graph.
+## Current limits
 
-Current verifiers use privileged simulator state and annotations. An independent visual or real-robot verifier and a graph runner are outside this v1 library. In particular, starting microwave heating does not by itself establish a target food temperature, and the microwave door-cycle implementation contains a fixed inspection pose that needs generalization before deployment to arbitrary scenes.
+The public requirements are grounded in ZenoBench `zeno_skills/skills.py`, `zeno_skills/task_policy.py`, and scene/asset annotations. Some are checked inside a Skill; others are currently enforced by the scripted policy and still need graph-runner preflight checks. Existing result checks use privileged simulator state and annotations. An independent visual verifier and graph runner are not part of this library. Starting microwave heating does not establish the final food temperature. The microwave inspection Skill also uses a fixed pose and needs generalization for arbitrary scenes.
 
-## Source references
-
-- ZenoBench `zeno_skills/skills.py`: implementations and internal result checks.
-- ZenoBench `zeno_skills/task_policy.py`: actual task-level skill compositions and access handling.
-- ZenoBench `zeno_skills/annotations.py` and `tasks/*/annotation.json`: supported object, surface, and articulated-part metadata.
-- ZenoBench `tools/run_skills.py`: directly exposed generic CLI operations.
+Run `ruby tests/test_skill_library.rb` to check that the generated public file stays in sync with the source Contracts and contains no executor code paths.

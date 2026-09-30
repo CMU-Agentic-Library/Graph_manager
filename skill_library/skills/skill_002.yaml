@@ -1,0 +1,37 @@
+---
+id: skill_002
+name: Open a door or drawer
+description: Open an annotated articulated door or drawer so its interior can be accessed.
+inputs:
+  part: ArticulatedPart
+requires:
+- The named part has an annotated handle and open joint target.
+- The gripper is free for handle manipulation.
+- A collision-free pose for reaching and moving the handle can be found at execution
+  time.
+achieves:
+- The named part is open.
+outcomes:
+  success: The part reaches its annotated open joint target within the skill's tolerance.
+  failure: The handle cannot be reached or grasped, or the part does not reach the
+    open target.
+executor:
+  callable: zeno_skills.skills.open_articulated
+  invocation: open_articulated(rig, part)
+verifier:
+  available: internal_simulator_check
+  evidence: The function checks the measured joint value against the annotated open
+    target.
+connections:
+- to:
+  - skill_004
+  when: The chosen object is behind the opened door or drawer.
+  basis: scripted_policy
+- to:
+  - skill_007
+  when: The target surface is inside the opened appliance or furniture.
+  basis: scripted_policy
+- to:
+  - skill_003
+  when: Access is finished and the same part should be closed.
+  basis: scripted_policy

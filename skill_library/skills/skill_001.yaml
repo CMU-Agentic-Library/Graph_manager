@@ -1,0 +1,35 @@
+---
+id: skill_001
+name: Navigate the robot to a target pose
+description: Move the mobile robot to a specified planar pose, including while carrying
+  an object.
+inputs:
+  target_pose: RobotPose2D
+requires:
+- A target pose is specified in the current scene.
+- A collision-free base route and a safe arm posture are available at execution time.
+achieves:
+- The robot reaches the target pose.
+outcomes:
+  success: The robot arrives at the requested pose; a carried object remains held.
+  failure: No route or safe arm posture is found, or the carried object is dropped.
+executor:
+  callable: zeno_skills.skills.navigate
+  invocation: navigate(rig, (target_pose.x, target_pose.y, target_pose.yaw_deg))
+verifier:
+  available: partial_internal_simulator_check
+  evidence: The function raises SkillFailure when route planning fails and checks
+    a carried object for dropping; final pose needs a separate graph-runner check.
+connections:
+- to:
+  - skill_002
+  - skill_003
+  - skill_004
+  - skill_005
+  - skill_006
+  - skill_007
+  - skill_008
+  - skill_009
+  when: Explicit repositioning is useful. Manipulation skills may navigate internally,
+    so this edge is optional.
+  basis: implementation
