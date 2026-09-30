@@ -6,6 +6,8 @@ Graph Manager focuses on task-conditioned skill graphs and the VLM interface aro
 
 The initial [Skill Library](skill_library/README.md) keeps one full Contract per Skill and generates one [complete public library](skill_library/skill_library.yaml) for the model. The public library includes all currently documented capabilities and conditional composition hints without implementation paths. Contracts describe reusable capabilities; the model will still propose a new Skill DAG for each task. The current library is a documented interface and does not yet include a graph runner or independent visual verifiers.
 
+Run `python3 skill_library/viewer/server.py` and open `http://127.0.0.1:8765` to browse the current library as a local, searchable Wiki-style page.
+
 ## Goal wording baseline
 
 The five tasks below provide paired goal descriptions for a future comparison. **Original instruction** preserves the English task instruction from ZenoBench verbatim. **Detailed goal** makes the existing success conditions and permitted alternatives explicit. It describes the desired result without prescribing a skill, execution sequence, or object location in a particular scene variant.
