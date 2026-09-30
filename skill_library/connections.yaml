@@ -1,0 +1,43 @@
+version: 1
+description: Conditional composition hints for the model. These are reusable capability relations, not a task DAG or a guarantee of runtime success.
+connections:
+  - from: skill_001
+    to: [skill_002, skill_003, skill_004, skill_005, skill_006, skill_007, skill_008, skill_009]
+    when: Explicit repositioning is useful. Manipulation skills may navigate internally, so this edge is optional.
+    basis: implementation
+  - from: skill_002
+    to: [skill_004]
+    when: The chosen object is behind the opened door or drawer.
+    basis: scripted_policy
+  - from: skill_002
+    to: [skill_007]
+    when: The target surface is inside the opened appliance or furniture.
+    basis: scripted_policy
+  - from: skill_002
+    to: [skill_003]
+    when: Access is finished and the same part should be closed.
+    basis: scripted_policy
+  - from: skill_004
+    to: [skill_006]
+    when: The picked object is the object to put inside the container.
+    basis: scripted_policy
+  - from: skill_004
+    to: [skill_007]
+    when: The picked object is the object to put on the surface.
+    basis: scripted_policy
+  - from: skill_005
+    to: [skill_004]
+    when: An independently requested push creates a graspable position for the same object, confirmed by observation. Do not add this step solely for a flat object; pick already handles its own edge-push strategy.
+    basis: internal_pick_strategy
+  - from: skill_007
+    to: [skill_003]
+    when: The object was placed behind the same opened door and the door must be closed.
+    basis: scripted_policy
+  - from: skill_003
+    to: [skill_008]
+    when: The part is the microwave door and configured food is inside the cavity.
+    basis: scripted_policy
+  - from: skill_009
+    to: [skill_008]
+    when: The prepared food is already in the microwave and the inspection door cycle has finished.
+    basis: scripted_policy
