@@ -8,6 +8,8 @@ The initial [Skill Library](skill_library/README.md) keeps one full Contract per
 
 Run `python3 skill_library/viewer/server.py` and open `http://127.0.0.1:8765` to browse the current library as a local, searchable Wiki-style page.
 
+The [ZenoBench `skills.py` function inventory](docs/zenobench-skills-function-inventory.md) lists all source functions and explains which ones correspond to the nine model-facing Contracts.
+
 ## Goal wording baseline
 
 The five tasks below provide paired goal descriptions for a future comparison. **Original instruction** preserves the English task instruction from ZenoBench verbatim. **Detailed goal** makes the existing success conditions and permitted alternatives explicit. It describes the desired result without prescribing a skill, execution sequence, or object location in a particular scene variant.

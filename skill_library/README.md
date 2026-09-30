@@ -31,3 +31,5 @@ python3 skill_library/viewer/server.py
 Open `http://127.0.0.1:8765` in a browser. The local page shows a searchable Skill index, each Contract's public fields, a type glossary, and clickable conditional connections. It reads `skill_library.yaml` on every refresh and checks for source Contract changes before serving it. The page polls every five seconds and also has a manual Refresh button. The viewer uses Python and Ruby standard libraries and does not send the library to an external service.
 
 The nine Contracts cover the current task-level public capabilities in ZenoBench `zeno_skills/skills.py`, including the two microwave-specific actions used by the scripted policy. They are not an inventory of every helper function: `pick_flat` and `place_flat` are internal strategies, and the two placement Contracts describe different public goals over the existing placement functions. No standalone Skill currently represents waiting until food reaches a target temperature.
+
+For the complete function-by-function inventory of `skills.py`, including internal and nested functions, see [ZenoBench function inventory](../docs/zenobench-skills-function-inventory.md).
