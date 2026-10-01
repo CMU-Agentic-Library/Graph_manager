@@ -1,17 +1,12 @@
-"""Local, dependency-free viewer for the generated Skill Library YAML."""
+"""Local, dependency-free viewer for the generated Skill Library JSON."""
 
 import argparse
 import json
 import subprocess
+import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
-
-
-RUBY_TO_JSON = (
-    "require 'yaml'; require 'json'; "
-    "print JSON.generate(YAML.safe_load(File.read(ARGV.fetch(0))))"
-)
 
 
 def make_server(library_path, page_path, host="127.0.0.1", port=8765, builder_path=None):
@@ -44,43 +39,44 @@ def make_server(library_path, page_path, host="127.0.0.1", port=8765, builder_pa
                 return
 
             if builder_path:
-                sources = [builder_path, builder_path.parent / "types.yaml"]
-                sources.extend((builder_path.parent / "skills").glob("*.yaml"))
+                sources = [builder_path, builder_path.parent / "types.json"]
+                contract_files = sorted((builder_path.parent / "skills").glob("skill_*.json"))
+                sources.extend(contract_files)
                 try:
                     needs_build = not library_path.exists() or any(
                         source.stat().st_mtime_ns > library_path.stat().st_mtime_ns for source in sources
                     )
+                    if not needs_build:
+                        saved = json.loads(library_path.read_text(encoding="utf-8"))
+                        saved_ids = {skill["id"] for skill in saved["skills"]}
+                        source_ids = {json.loads(path.read_text(encoding="utf-8"))["id"] for path in contract_files}
+                        needs_build = saved_ids != source_ids
+                except (ValueError, KeyError, TypeError):
+                    needs_build = True
                 except OSError:
                     self.send_error_json(422, "Skill source files could not be read.")
                     return
                 if needs_build:
                     try:
-                        build = subprocess.run(["ruby", str(builder_path)], capture_output=True, text=True, timeout=10)
+                        build = subprocess.run([sys.executable, str(builder_path)], capture_output=True, text=True, timeout=10)
                     except (OSError, subprocess.TimeoutExpired):
-                        self.send_error_json(422, "Skill Library could not be rebuilt. Check the local Ruby command.")
+                        self.send_error_json(422, "Skill Library could not be rebuilt. Check the local Python command.")
                         return
                     if build.returncode:
                         self.send_error_json(422, "Skill Library could not be rebuilt. Check the source Contracts.")
                         return
 
             if not library_path.exists():
-                self.send_error_json(404, "Skill Library YAML file is missing.")
+                self.send_error_json(404, "Skill Library JSON file is missing.")
                 return
             try:
-                converted = subprocess.run(
-                    ["ruby", "-e", RUBY_TO_JSON, str(library_path)],
-                    capture_output=True, text=True, timeout=10, check=False
-                )
-                if converted.returncode:
-                    self.send_error_json(422, "Skill Library YAML could not be parsed. Check its syntax.")
-                    return
-                library = json.loads(converted.stdout)
+                library = json.loads(library_path.read_text(encoding="utf-8"))
                 if not isinstance(library, dict) or not isinstance(library.get("skills"), list):
-                    self.send_error_json(422, "Skill Library YAML must contain a skills list.")
+                    self.send_error_json(422, "Skill Library JSON must contain a skills list.")
                     return
-                self.send_data(200, json.dumps(library).encode(), "application/json; charset=utf-8")
-            except (OSError, subprocess.TimeoutExpired, json.JSONDecodeError):
-                self.send_error_json(422, "Skill Library YAML could not be read.")
+                self.send_data(200, json.dumps(library, ensure_ascii=False).encode(), "application/json; charset=utf-8")
+            except (OSError, json.JSONDecodeError):
+                self.send_error_json(422, "Skill Library JSON could not be read.")
 
         def log_message(self, format_string, *args):
             return
@@ -94,8 +90,8 @@ def main():
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
     server = make_server(
-        root / "skill_library.yaml", Path(__file__).with_name("index.html"),
-        port=args.port, builder_path=root / "build.rb"
+        root / "skill_library.json", Path(__file__).with_name("index.html"),
+        port=args.port, builder_path=root / "build.py"
     )
     print(f"Skill Library viewer: http://127.0.0.1:{server.server_address[1]}", flush=True)
     try:

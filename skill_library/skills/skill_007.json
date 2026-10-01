@@ -1,0 +1,46 @@
+{
+  "id": "skill_007",
+  "name": "Place a held object on a surface",
+  "description": "Find a free spot on an annotated support surface and place a held object there.",
+  "inputs": {
+    "object": "MovableObject",
+    "support": "SupportSurface",
+    "hint_xy": "OptionalVector2"
+  },
+  "requires": [
+    "The robot holds the specified object.",
+    "The support exists in the current scene.",
+    "A free and reachable placement spot is available at execution time.",
+    "Any door or drawer blocking the target surface is open."
+  ],
+  "achieves": [
+    "The specified object is on the support.",
+    "The gripper is empty."
+  ],
+  "outcomes": {
+    "success": "The released object is measured on the support.",
+    "failure": "No free reachable spot is found, or the released object is not on the support."
+  },
+  "executor": {
+    "callable": "zeno_skills.skills.place_on",
+    "invocation": "place_on(rig, object, support, hint=hint_xy)"
+  },
+  "verifier": {
+    "available": "internal_simulator_check",
+    "evidence": "Place or place_flat checks geometry.on on simulator state after release."
+  },
+  "connections": [
+    {
+      "to": [
+        "skill_003"
+      ],
+      "when": "The object was placed behind the same opened door and the door must be closed.",
+      "basis": "scripted_policy"
+    }
+  ],
+  "source_function": {
+    "file": "zeno_skills/skills.py",
+    "qualname": "place_on",
+    "line": 981
+  }
+}

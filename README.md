@@ -4,11 +4,11 @@ Graph Manager focuses on task-conditioned skill graphs and the VLM interface aro
 
 ## Skill Library v1
 
-The initial [Skill Library](skill_library/README.md) keeps one full Contract per Skill and generates one [complete public library](skill_library/skill_library.yaml) for the model. The public library includes all currently documented capabilities and conditional composition hints without implementation paths. Contracts describe reusable capabilities; the model will still propose a new Skill DAG for each task. The current library is a documented interface and does not yet include a graph runner or independent visual verifiers.
+The [Skill Library](skill_library/README.md) keeps one JSON Contract per task-level ZenoBench capability and generates one [complete public catalog](skill_library/skill_library.json). Its nine Skills are available for the model to select in a graph. The generated catalog includes conditional composition hints without implementation paths. The model will propose a new Skill DAG for each task. The current library is a documented interface and does not yet include a graph runner or independent visual verifiers.
 
-Run `python3 skill_library/viewer/server.py` and open `http://127.0.0.1:8765` to browse the current library as a local, searchable Wiki-style page.
+Run `python3 skill_library/viewer/server.py` and open `http://127.0.0.1:8765` to browse the current library as a local, searchable Wiki-style page. Its overview draws all nine Skills and the 17 directed links represented by 10 documented connection groups. These are conditional composition hints, not an exhaustive transition graph or a runtime task DAG.
 
-The [ZenoBench `skills.py` function inventory](docs/zenobench-skills-function-inventory.md) lists all source functions and explains which ones correspond to the nine model-facing Contracts.
+The [ZenoBench `skills.py` function inventory](docs/zenobench-skills-function-inventory.md) lists all 44 source callables and identifies the nine represented by task-level Skill Contracts. The other 35 are implementation details, not graph nodes.
 
 ## Goal wording baseline
 

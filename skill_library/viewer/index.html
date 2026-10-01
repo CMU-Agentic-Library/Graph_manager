@@ -22,7 +22,7 @@
     }
     * { box-sizing: border-box; }
     body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    button, input { font: inherit; }
+    button, input, select { font: inherit; }
     button { cursor: pointer; }
     .app { min-height: 100vh; display: grid; grid-template-columns: 278px minmax(0, 1fr); }
     .sidebar { background: var(--sidebar); border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 100vh; position: sticky; top: 0; height: 100vh; }
@@ -92,17 +92,35 @@
     .relation small { display: block; color: var(--muted); line-height: 1.4; }
     .relation .arrow { color: var(--accent); margin-right: 5px; }
     .empty { color: var(--muted); font-size: 12px; }
-    .map-card { margin-top: 18px; padding: 20px 24px 10px; }
+    .map-card { margin-bottom: 18px; padding: 20px 24px; }
     .map-head { display: flex; justify-content: space-between; align-items: start; gap: 15px; }
     .map-head h3 { margin: 0 0 4px; font-size: 15px; }
     .map-head p { margin: 0; color: var(--muted); font-size: 12px; }
-    .map-scroll { overflow-x: auto; }
-    #map { width: 100%; min-width: 640px; display: block; }
+    .map-scroll { overflow-x: auto; margin-top: 18px; border: 1px solid var(--line); border-radius: 11px; background: radial-gradient(circle at 50% 48%, #252033, #191622 75%); }
+    #map { width: 100%; min-width: 980px; display: block; }
     .map-node { cursor: pointer; }
-    .map-node rect { fill: #30283d; stroke: #685580; stroke-width: 1; }
-    .map-node:hover rect { fill: #463558; stroke: var(--accent); }
-    .map-node.center rect { fill: #6a4a97; stroke: #bb9bea; }
-    .map-node text { fill: var(--text); font: 11px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; pointer-events: none; }
+    .map-node rect { fill: #30283d; stroke: #685580; stroke-width: 1.5; }
+    .map-node:hover rect, .map-node:focus-visible rect { fill: #463558; stroke: var(--accent); }
+    .map-node.selected rect { fill: #6a4a97; stroke: #d6bbff; stroke-width: 2; }
+    .map-node text { fill: var(--text); font: 12px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; pointer-events: none; }
+    .map-node .node-id { fill: #c7b7dd; font: 10px ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .map-edge { cursor: pointer; }
+    .map-edge .line { fill: none; stroke: #75658b; stroke-width: 1.8; opacity: .72; }
+    .map-edge .hit { fill: none; stroke: transparent; stroke-width: 18; }
+    .map-edge:hover .line, .map-edge:focus-visible .line, .map-edge.selected .line { stroke: #d4adff; stroke-width: 3; opacity: 1; }
+    .map-edge:focus-visible, .map-node:focus-visible { outline: none; }
+    .map-edge .line.from-nav { stroke-dasharray: 5 5; opacity: .56; }
+    .edge-detail { margin-top: 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel-2); padding: 12px 14px; min-height: 76px; }
+    .edge-detail strong { display: block; font-size: 12px; margin-bottom: 4px; }
+    .edge-detail p { margin: 0; color: var(--muted); font-size: 12px; }
+    .edge-detail .condition { color: var(--text); white-space: pre-wrap; }
+    .edge-index { margin-top: 18px; }
+    .edge-index h4 { margin: 0 0 10px; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+    .edge-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(245px, 1fr)); gap: 8px; }
+    .edge-choice { border: 1px solid var(--line); border-radius: 9px; background: var(--panel-2); color: var(--text); padding: 9px 11px; text-align: left; line-height: 1.4; }
+    .edge-choice:hover, .edge-choice:focus-visible, .edge-choice.selected { border-color: var(--accent); background: var(--accent-soft); }
+    .edge-choice code { display: block; color: #d4c5f4; font-size: 11px; }
+    .edge-choice span { display: block; color: var(--muted); font-size: 11px; }
     .glossary { margin-top: 18px; padding: 20px 24px; }
     .glossary h3 { margin: 0 0 13px; font-size: 15px; }
     .type-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 20px; }
@@ -119,24 +137,24 @@
     <aside class="sidebar" aria-label="Skill index">
       <div class="brand"><span class="eyebrow">Graph Manager</span><h1>Skill Library</h1><p>Capability wiki · ZenoBench</p></div>
       <div class="search-wrap"><input id="search" class="search" type="search" placeholder="Search skills, IDs, conditions…" aria-label="Search skills"></div>
-      <div class="nav-label"><span>All skills</span><span id="nav-count">0</span></div>
+      <div class="nav-label"><span>Matching entries</span><span id="nav-count">0</span></div>
       <nav id="skill-list" class="skill-list"></nav>
-      <div class="sidebar-foot">Source: skill_library.yaml<br>Refreshes when the library changes.</div>
+      <div class="sidebar-foot">Source: skill_library.json<br>Refreshes when the library changes.</div>
     </aside>
     <main class="main">
-      <div class="toolbar"><div class="crumb">Library <span aria-hidden="true">/</span> <strong id="crumb-name">Loading…</strong></div><div class="toolbar-actions"><div class="status"><span id="status-dot" class="dot"></span><span id="status">Loading YAML…</span></div><button id="reload" class="reload" type="button">↻ Refresh</button></div></div>
+      <div class="toolbar"><div class="crumb">Library <span aria-hidden="true">/</span> <strong id="crumb-name">Loading…</strong></div><div class="toolbar-actions"><div class="status"><span id="status-dot" class="dot"></span><span id="status">Loading JSON…</span></div><button id="reload" class="reload" type="button">↻ Refresh</button></div></div>
       <div class="workspace">
         <div id="error" class="error-box" role="alert"></div>
-        <div class="intro"><div><span class="eyebrow">Model-facing catalog</span><h2>Explore capabilities</h2><p>Browse the current Skill Contracts and their possible connections. This library describes reusable abilities; it is not a task-specific DAG.</p></div><div class="summary"><span><strong id="skill-count">—</strong> skills</span><span><strong id="link-count">—</strong> connection rules</span><span>v<strong id="version">—</strong></span></div></div>
+        <div class="intro"><div><span class="eyebrow">Skill catalog</span><h2>Explore capabilities</h2><p>This graph shows documented ways to combine library skills. Each edge is conditional; a task plan still needs current observations and verification.</p></div><div class="summary"><span><strong id="skill-count">—</strong> skills</span><span><strong id="link-count">—</strong> directed links</span><span>v<strong id="version">—</strong></span></div></div>
+        <section class="card map-card"><div class="map-head"><div><h3>Skill Library graph</h3><p>All library skills and documented links. Select a node for its Contract or a link for its exact condition. Scroll the graph horizontally on narrow screens.</p></div><span class="tag">Conditional links</span></div><div class="map-scroll"><svg id="map" role="group" aria-label="Skill Library graph with selectable skill nodes and directed conditional links"></svg></div><div id="edge-detail" class="edge-detail" aria-live="polite"></div><div class="edge-index"><h4>Documented links</h4><div id="edge-grid" class="edge-grid"></div></div></section>
         <div class="layout"><article id="detail" class="card" aria-live="polite"></article><aside class="card side-card"><div class="side-section"><h4>Linked skills</h4><p>Choose a related skill to follow the wiki links.</p><div id="relations"></div></div><div class="side-section"><h4>How to read this</h4><p><strong>Requires</strong> describes conditions to check before execution. <strong>Achieves</strong> describes expected state changes. A connection is conditional and still needs observation at runtime.</p><span class="tag">ID = exact skill reference</span></div></aside></div>
-        <section class="card map-card"><div class="map-head"><div><h3>Local connection map</h3><p>Incoming skills on the left; possible next skills on the right. Click a node to open it.</p></div><span class="tag">Conditional links</span></div><div class="map-scroll"><svg id="map" role="img" aria-label="Connections for selected skill"></svg></div></section>
         <section class="card glossary"><h3>Input type glossary</h3><div id="types" class="type-grid"></div></section>
       </div>
     </main>
   </div>
   <script>
     'use strict';
-    const state = { library: null, selected: null, fingerprint: null };
+    const state = { library: null, selected: null, selectedEdge: null, fingerprint: null };
     const byId = id => document.getElementById(id);
     const svgNS = 'http://www.w3.org/2000/svg';
     const node = (tag, className, value) => {
@@ -152,20 +170,26 @@
     };
     const skills = () => state.library?.skills || [];
     const skillById = id => skills().find(skill => skill.id === id);
-    const edges = () => (state.library?.connections || []).flatMap(link => (link.to || []).map(to => ({ from: link.from, to, when: link.when })));
+    const edges = () => (state.library?.connections || []).flatMap((link, ruleIndex) =>
+      (link.to || []).map((to, targetIndex) => ({ key: `${ruleIndex}:${targetIndex}`, from: link.from, to, when: link.when })));
+    const visibleSkills = () => {
+      const query = byId('search').value.toLowerCase().trim();
+      return skills().filter(skill =>
+        [skill.id, skill.name, skill.description, ...(skill.requires || [])].join(' ').toLowerCase().includes(query));
+    };
 
     function choose(id) {
       if (!skillById(id)) return;
       state.selected = id;
+      state.selectedEdge = null;
       history.replaceState(null, '', '#' + encodeURIComponent(id));
       render();
     }
 
     function renderIndex() {
-      const query = byId('search').value.toLowerCase().trim();
       const list = byId('skill-list');
       list.replaceChildren();
-      const shown = skills().filter(skill => [skill.id, skill.name, skill.description, ...(skill.requires || [])].join(' ').toLowerCase().includes(query));
+      const shown = visibleSkills();
       byId('nav-count').textContent = `${shown.length}/${skills().length}`;
       shown.forEach(skill => {
         const button = node('button', 'skill-link' + (skill.id === state.selected ? ' active' : ''));
@@ -252,41 +276,132 @@
       });
     }
 
-    function mapNode(id, x, y, center = false) {
-      const skill = skillById(id);
-      const group = svg('g', { class: 'map-node' + (center ? ' center' : ''), tabindex: 0, role: 'button', 'aria-label': skill.name });
-      group.append(svg('rect', { x, y, width: 190, height: 42, rx: 9 }));
-      const label = svg('text', { x: x + 11, y: y + 25 });
-      label.textContent = skill.name.length > 27 ? skill.name.slice(0, 26) + '…' : skill.name;
-      group.append(label);
-      group.addEventListener('click', () => choose(id));
-      group.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); choose(id); } });
+    function graphPositions() {
+      const preset = {
+        skill_001: [34, 235], skill_002: [298, 42], skill_003: [562, 42],
+        skill_004: [562, 235], skill_005: [298, 235], skill_006: [826, 235],
+        skill_007: [562, 428], skill_008: [826, 428], skill_009: [298, 428]
+      };
+      const usePreset = skills().length === 9 && skills().every(skill => preset[skill.id]);
+      return Object.fromEntries(skills().map((skill, index) => [skill.id,
+        usePreset ? { x: preset[skill.id][0], y: preset[skill.id][1] } :
+          { x: 34 + (index % 4) * 264, y: 42 + Math.floor(index / 4) * 193 }]));
+    }
+
+    function nodeLines(name) {
+      const words = name.split(' '), lines = [''];
+      words.forEach(word => {
+        const current = lines[lines.length - 1];
+        if (current && `${current} ${word}`.length > 28 && lines.length < 2) lines.push(word);
+        else lines[lines.length - 1] = current ? `${current} ${word}` : word;
+      });
+      if (lines[1]?.length > 30) lines[1] = lines[1].slice(0, 29) + '…';
+      return lines;
+    }
+
+    function mapNode(skill, position) {
+      const { x, y } = position;
+      const group = svg('g', { class: 'map-node' + (skill.id === state.selected ? ' selected' : ''),
+        tabindex: 0, role: 'button', 'aria-label': `Open ${skill.name} (${skill.id})` });
+      group.append(svg('title'));
+      group.lastChild.textContent = `${skill.id}: ${skill.name}`;
+      group.append(svg('rect', { x, y, width: 210, height: 66, rx: 10 }));
+      const id = svg('text', { class: 'node-id', x: x + 11, y: y + 17 });
+      id.textContent = skill.id;
+      group.append(id);
+      nodeLines(skill.name).forEach((line, index) => {
+        const label = svg('text', { x: x + 11, y: y + 37 + index * 16 });
+        label.textContent = line;
+        group.append(label);
+      });
+      group.addEventListener('click', () => choose(skill.id));
+      group.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); choose(skill.id); }
+      });
+      return group;
+    }
+
+    function edgePath(from, to) {
+      const startX = from.x + 210, startY = from.y + 33;
+      const endY = to.y + 33;
+      if (to.x > from.x) {
+        const endX = to.x - 8, bend = startX + (endX - startX) / 2;
+        return `M ${startX} ${startY} C ${bend} ${startY}, ${bend} ${endY}, ${endX} ${endY}`;
+      }
+      const endX = to.x + 218, bend = from.x + 238;
+      return `M ${startX} ${startY} C ${bend} ${startY}, ${bend} ${endY}, ${endX} ${endY}`;
+    }
+
+    function mapEdge(edge, positions) {
+      const source = skillById(edge.from), target = skillById(edge.to);
+      if (!source || !target) return null;
+      const path = edgePath(positions[edge.from], positions[edge.to]);
+      const group = svg('g', { class: 'map-edge' + (edge.key === state.selectedEdge ? ' selected' : ''),
+        tabindex: 0, role: 'button',
+        'aria-label': `${source.name} to ${target.name}. Condition: ${edge.when}` });
+      const title = svg('title');
+      title.textContent = `${source.name} → ${target.name}: ${edge.when}`;
+      group.append(title,
+        svg('path', { class: 'line' + (edge.from === 'skill_001' ? ' from-nav' : ''), d: path, 'marker-end': 'url(#graph-arrow)' }),
+        svg('path', { class: 'hit', d: path }));
+      const select = () => selectEdge(edge.key);
+      group.addEventListener('click', select);
+      group.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); select(); }
+      });
       return group;
     }
 
     function renderMap() {
-      const map = byId('map');
+      const map = byId('map'), positions = graphPositions();
       map.replaceChildren();
-      const incoming = [...new Set(edges().filter(edge => edge.to === state.selected).map(edge => edge.from))];
-      const outgoing = [...new Set(edges().filter(edge => edge.from === state.selected).map(edge => edge.to))];
-      const count = Math.max(1, incoming.length, outgoing.length);
-      const height = Math.max(170, count * 55 + 50);
-      map.setAttribute('viewBox', `0 0 720 ${height}`);
+      const height = Math.max(600, ...Object.values(positions).map(position => position.y + 95));
+      map.setAttribute('viewBox', `0 0 1070 ${height}`);
       map.setAttribute('height', String(height));
-      const centerY = height / 2 - 21;
-      const positions = ids => ids.map((id, index) => ({ id, y: height / 2 - ids.length * 27.5 + index * 55 + 6.5 }));
-      const left = positions(incoming), right = positions(outgoing);
-      left.forEach(item => map.append(svg('path', {
-        d: `M 218 ${item.y + 21} C 240 ${item.y + 21}, 242 ${centerY + 21}, 265 ${centerY + 21}`,
-        fill: 'none', stroke: '#695581', 'stroke-width': 1.5
-      })));
-      right.forEach(item => map.append(svg('path', {
-        d: `M 455 ${centerY + 21} C 477 ${centerY + 21}, 478 ${item.y + 21}, 500 ${item.y + 21}`,
-        fill: 'none', stroke: '#695581', 'stroke-width': 1.5
-      })));
-      left.forEach(item => map.append(mapNode(item.id, 28, item.y)));
-      right.forEach(item => map.append(mapNode(item.id, 500, item.y)));
-      map.append(mapNode(state.selected, 265, centerY, true));
+      const defs = svg('defs'), marker = svg('marker', { id: 'graph-arrow', viewBox: '0 0 10 10', refX: 8, refY: 5,
+        markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' });
+      marker.append(svg('path', { d: 'M 0 0 L 10 5 L 0 10 z', fill: '#b49ad2' }));
+      defs.append(marker);
+      map.append(defs);
+      edges().forEach(edge => {
+        const element = mapEdge(edge, positions);
+        if (element) map.append(element);
+      });
+      skills().forEach(skill => map.append(mapNode(skill, positions[skill.id])));
+    }
+
+    function renderEdgeDetail() {
+      const box = byId('edge-detail');
+      box.replaceChildren();
+      const edge = edges().find(candidate => candidate.key === state.selectedEdge);
+      if (!edge) {
+        box.append(node('strong', '', 'Connection condition'), node('p', '', 'Select an arrow to read the exact condition recorded in the Library.'));
+        return;
+      }
+      box.append(node('strong', '', `${skillById(edge.from).name} → ${skillById(edge.to).name}`),
+        node('p', 'condition', edge.when));
+    }
+
+    function selectEdge(key) {
+      state.selectedEdge = key;
+      renderMap();
+      renderEdgeDetail();
+      renderEdgeIndex();
+    }
+
+    function renderEdgeIndex() {
+      const grid = byId('edge-grid');
+      grid.replaceChildren();
+      edges().forEach(edge => {
+        const source = skillById(edge.from), target = skillById(edge.to);
+        if (!source || !target) return;
+        const button = node('button', 'edge-choice' + (edge.key === state.selectedEdge ? ' selected' : ''));
+        button.type = 'button';
+        button.setAttribute('aria-label', `${source.name} to ${target.name}. Condition: ${edge.when}`);
+        button.append(node('code', '', `${edge.from} → ${edge.to}`), node('span', '', `${source.name} → ${target.name}`));
+        button.addEventListener('click', () => selectEdge(edge.key));
+        grid.append(button);
+      });
     }
 
     function renderTypes() {
@@ -309,9 +424,11 @@
       renderDetail(skill);
       renderRelations();
       renderMap();
+      renderEdgeDetail();
+      renderEdgeIndex();
       renderTypes();
       byId('skill-count').textContent = String(skills().length);
-      byId('link-count').textContent = String((state.library.connections || []).length);
+      byId('link-count').textContent = String(edges().length);
       byId('version').textContent = String(state.library.version || '—');
     }
 
@@ -329,7 +446,7 @@
         }
         byId('error').style.display = 'none';
         byId('status-dot').classList.remove('error');
-        byId('status').textContent = 'Live · YAML loaded';
+        byId('status').textContent = 'Live · JSON loaded';
       } catch (error) {
         byId('status-dot').classList.add('error');
         byId('status').textContent = 'Load failed';
@@ -338,7 +455,7 @@
       }
     }
 
-    byId('search').addEventListener('input', renderIndex);
+    byId('search').addEventListener('input', render);
     byId('reload').addEventListener('click', refresh);
     window.addEventListener('hashchange', () => choose(decodeURIComponent(location.hash.slice(1))));
     refresh();
