@@ -14,6 +14,8 @@ The [ZenoBench `skills.py` function inventory](docs/zenobench-skills-function-in
 
 The planning loop accepts a goal, an optional current image or observation text, and the complete public Skill Library. One model response proposes all semantic Subgoals and one Skill Subgraph for each Subgoal. Graph Manager checks the proposal against public Skill IDs, Contract inputs, references, dependencies, and DAG structure. On failure, it sends path-addressed errors to the model in the same conversation and asks for a revised complete plan. The loop has a configurable attempt limit and does not execute robot Skills.
 
+There are two optional model backends. `graph-manager-plan` uses the direct HTTP adapter and keeps the short conversation in Python. `graph-manager-plan-harness` uses the DeepSeek Harness Python SDK. Harness owns that backend's conversation history and local session persistence; Graph Manager sends only the initial task input and later validation feedback.
+
 Create the isolated Python environment from the committed lock file with `uv`, then run the tests:
 
 ```bash
@@ -43,6 +45,32 @@ Add `--entity-catalog entities.json` to give the model a GT list of bindable IDs
 ```
 
 The catalog is optional. Without it, the model receives no ID list, and object references remain unresolved; the result status is `unresolved_references`. With it, `{"ref":"apple"}` must match an exact ID and a compatible Contract input type. GT catalog data should contain only IDs and types, not final evaluator truth. A later grounding adapter can resolve references from vision while keeping the graph JSON shape. An observation text file can be supplied with `--observation-file`, and `GRAPH_MANAGER_API_KEY` supplies an optional endpoint token. `--max-attempts` controls the repair limit. Run `graph-manager-plan --help` for all flags.
+
+### DeepSeek Harness SDK backend
+
+Install the optional SDK and its matching runtime wheel without changing the direct HTTP command:
+
+```bash
+uv sync --locked --extra dev --extra harness
+mkdir -p run
+cp examples/harness-local-vlm.patch.yml run/local-vlm.patch.yml
+```
+
+Edit `run/local-vlm.patch.yml` so `baseURL` points to the served endpoint and its model ID matches `--model`. The [example patch](examples/harness-local-vlm.patch.yml) registers an image-capable OpenAI-compatible route named `lab-vlm` in the full Harness `sdk` profile. Harness requires YAML for profile composition; the Skill Contracts and task graphs remain JSON. Supply the route's key through `LAB_VLM_API_KEY` (a dummy value is sufficient when the local endpoint does not authenticate).
+
+```bash
+export LAB_VLM_API_KEY=dummy
+.venv/bin/graph-manager-plan-harness \
+  --goal-file goal.txt \
+  --image scene.png \
+  --dsh-home run/dsh-home \
+  --provider lab-vlm \
+  --model YOUR_SERVED_VLM_NAME \
+  --patch run/local-vlm.patch.yml \
+  --output run/plan.json
+```
+
+This command uses one Harness session for the initial task and every corrective turn. The output records its `session_id`; Harness stores its history under the explicitly selected `--dsh-home`. Graph Manager automatically applies a [planner profile patch](graph_manager/harness_profile/cordis.patch.yml) to the full `sdk` profile: it keeps persistence and compaction but disables the bundled coding tools, workspace instructions, and DeepSeek telemetry and session-log contributors. Later `--patch` files can extend this profile deliberately. A turn has a 300-second deadline by default; change it with `--turn-timeout-seconds` for slower local inference. Use a fresh session ID for each command invocation: this SDK version persists sessions but cannot resume an existing ID in a new Python process. The selected model endpoint receives the planning inputs; local session storage does not imply that a remote model endpoint is local. The SDK is pinned as an optional pre-release dependency and remains separate from the GPU model server.
 
 The model returns one JSON object:
 
@@ -74,16 +102,18 @@ Facts bound to an object are checked only when an entity catalog grounds that ob
 
 ### Code layout
 
-`cli.py` → `PlanningLoop` → model response → domain validation → accepted plan or feedback in the same `Conversation`.
+Direct HTTP: `cli.py` → `PlanningLoop` → model response → domain validation → accepted plan or feedback in the same `Conversation`.
+
+Harness SDK: `harness_cli.py` → `HarnessPlanningService` → persistent Harness session → domain validation → new feedback turn in that session.
 
 | Directory | Responsibility |
 | --- | --- |
-| `application/` | The bounded loop and its model-visible conversation history |
+| `application/` | Plan validation feedback and retry policy; only the direct HTTP path owns a Python conversation |
 | `domain/` | Planning data and pure JSON, Contract, and graph checks |
 | `prompts/` | Initial model instruction and corrective feedback |
-| `adapters/` | OpenAI-compatible HTTP model and JSON Skill Library loader |
+| `adapters/` | OpenAI-compatible HTTP model, DeepSeek Harness SDK session, and JSON Skill Library loader |
 | `ports.py` | Small interfaces between the loop and its adapters |
-| `cli.py` | Command-line input, dependency construction, and result output |
+| `cli.py`, `harness_cli.py`, `plan_inputs.py` | Command-line input, dependency construction, and result output |
 
 Neither the domain nor the prompt builder performs HTTP or file I/O.
 

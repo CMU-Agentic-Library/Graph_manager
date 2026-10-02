@@ -1,0 +1,15 @@
+# Example DeepSeek Harness profile patch. Copy and edit the model ID before use.
+# This configures Harness, not the Skill Library or a task graph.
+- id: llm-pi-ai
+  config:
+    providers:
+      lab-vlm:
+        apiKeyEnv: LAB_VLM_API_KEY
+        api: openai-completions
+        baseURL: http://127.0.0.1:8000/v1
+        compat:
+          supportsDeveloperRole: false
+          maxTokensField: max_tokens
+        models:
+          - id: REPLACE_WITH_SERVED_MODEL_ID
+            input: [text, image]
