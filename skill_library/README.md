@@ -21,7 +21,9 @@ A Library connection is a conditional hint between Skill types. The current cata
 
 The overview is separate from a runtime task DAG. The model receives an observation, goal, and Library, then proposes semantic subgoals and a Skill Subgraph for each subgoal. The proposed graph must be checked against Skill IDs, input types, scene objects, and dependency cycles before execution. `depends_on` expresses the selected plan's ordering; a condition written in a Contract still requires observation or verification at runtime.
 
-The repository currently documents Contracts and provides a catalog viewer. It does not yet include a graph runner or independent visual verifiers. Existing ZenoBench skill checks use privileged simulator state and annotations. Starting microwave heating alone does not establish a target food temperature. The microwave inspection capability currently uses a fixed pose.
+The repository documents Contracts, provides a catalog viewer, and statically validates model proposals. It does not yet include a graph runner or independent visual verifiers. Existing ZenoBench skill checks use privileged simulator state and annotations. Starting microwave heating alone does not establish a target food temperature. The microwave inspection capability currently uses a fixed pose.
+
+The [Planner v1 interface](../README.md#planner-v1) consumes this generated public catalog, proposes one task DAG per semantic Subgoal, and statically checks the proposals. The authoritative Contracts remain the source for future execution bindings.
 
 ## Browse the catalog
 

@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "graph-manager"
+version = "0.1.0"
+description = "Skill graph planning and validation for ZenoBench"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["ruff"]
+
+[project.scripts]
+graph-manager-plan = "graph_manager.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["graph_manager*"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]

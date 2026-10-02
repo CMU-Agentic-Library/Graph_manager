@@ -1,6 +1,6 @@
 # Graph Manager
 
-Graph Manager focuses on task-conditioned skill graphs and the VLM interface around them. The planned workflow uses visual observations, a user's task, and a skill library to produce semantic subgoals and a skill subgraph for each subgoal. This repository will define how those outputs are represented, parsed, and checked against existing skill contracts. The robot skills and benchmark scenes are maintained by collaborators in the same project.
+Graph Manager focuses on task-conditioned skill graphs and the VLM interface around them. It uses visual observations, a user's task, and a skill library to propose semantic subgoals and a skill subgraph for each subgoal. This repository defines how those outputs are represented, parsed, and checked against existing skill contracts. The robot skills and benchmark scenes are maintained by collaborators in the same project.
 
 ## Skill Library v1
 
@@ -9,6 +9,42 @@ The [Skill Library](skill_library/README.md) keeps one JSON Contract per task-le
 Run `python3 skill_library/viewer/server.py` and open `http://127.0.0.1:8765` to browse the current library as a local, searchable Wiki-style page. Its overview draws all nine Skills and the 17 directed links represented by 10 documented connection groups. These are conditional composition hints, not an exhaustive transition graph or a runtime task DAG.
 
 The [ZenoBench `skills.py` function inventory](docs/zenobench-skills-function-inventory.md) lists all 44 source callables and identifies the nine represented by task-level Skill Contracts. The other 35 are implementation details, not graph nodes.
+
+## Planner v1
+
+The planner now accepts a goal, an optional current image or observation text, and the complete public Skill Library. It asks a VLM for all semantic Subgoals first, then asks for one Skill Subgraph per Subgoal. The JSON proposals are checked against the nine public Skill IDs, Contract input names and types, local dependencies, and DAG structure. The planner saves the raw model responses with the validation result; it does not execute robot Skills.
+
+Create the isolated Python environment from the committed lock file with `uv`, then run the tests:
+
+```bash
+uv sync --extra dev
+.venv/bin/python -m unittest discover -s tests
+.venv/bin/ruff check graph_manager tests/test_planner_*.py tests/test_openai_compatible.py
+.venv/bin/ruff format --check graph_manager tests/test_planner_*.py tests/test_openai_compatible.py
+```
+
+If `uv` is unavailable, `python3 -m venv .venv` followed by `.venv/bin/python -m pip install -e '.[dev]'` also works.
+
+For a local VLM served through a vLLM OpenAI-compatible endpoint, run:
+
+```bash
+.venv/bin/graph-manager-plan \
+  --goal-file goal.txt \
+  --image scene.jpg \
+  --base-url http://127.0.0.1:8000/v1 \
+  --model YOUR_SERVED_VLM_NAME \
+  --output run/plan.json
+```
+
+Add `--entity-catalog entities.json` to give the model a GT list of bindable IDs and types. Its format is:
+
+```json
+{"entities": [{"id": "apple", "types": ["MovableObject"]}]}
+```
+
+The catalog is optional. Without it, the model receives no ID list, and object references remain unresolved; the result status is `unresolved_references`. With it, `{"ref":"apple"}` must match an exact ID and a compatible Contract input type. GT catalog data should contain only IDs and types, not final evaluator truth. A later grounding adapter can resolve references from vision while keeping the graph JSON shape. An observation text file can be supplied with `--observation-file`, and `GRAPH_MANAGER_API_KEY` supplies an optional endpoint token. Run `graph-manager-plan --help` for all flags.
+
+The model's first response has `schema_version`, `kind: "subgoal_plan"`, and a `subgoals` array of `{id, goal}`. Each following response has `kind: "skill_subgraph"`, `subgoal_id`, and `nodes` of `{id, skill_id, args, depends_on}`. Each graph is a DAG for one Subgoal. `OptionalVector2` inputs must still be present as a key and may have value `null`. Static checks do not prove physical preconditions, successful execution, or the final task goal; those belong to the future Runner and Verifiers.
 
 ## Goal wording baseline
 
