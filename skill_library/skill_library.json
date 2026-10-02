@@ -30,6 +30,7 @@
         "A target pose is specified in the current scene.",
         "A collision-free base route and a safe arm posture are available at execution time."
       ],
+      "checkable_requires": [],
       "achieves": [
         "The robot reaches the target pose."
       ],
@@ -49,6 +50,13 @@
         "The named part has an annotated handle and open joint target.",
         "The gripper is free for handle manipulation.",
         "A collision-free pose for reaching and moving the handle can be found at execution time."
+      ],
+      "checkable_requires": [
+        {
+          "kind": "fact",
+          "predicate": "gripper_empty",
+          "args": {}
+        }
       ],
       "achieves": [
         "The named part is open."
@@ -70,6 +78,13 @@
         "The gripper is free for handle manipulation.",
         "A collision-free pose for reaching and moving the handle can be found at execution time."
       ],
+      "checkable_requires": [
+        {
+          "kind": "fact",
+          "predicate": "gripper_empty",
+          "args": {}
+        }
+      ],
       "achieves": [
         "The named part is closed."
       ],
@@ -90,6 +105,13 @@
         "The object exists in the current scene and has a feasible grasp annotation.",
         "Any door or drawer blocking access to the object is open.",
         "A reachable grasp can be found at execution time."
+      ],
+      "checkable_requires": [
+        {
+          "kind": "fact",
+          "predicate": "gripper_empty",
+          "args": {}
+        }
       ],
       "achieves": [
         "The robot holds the specified object."
@@ -113,6 +135,17 @@
         "The requested displacement has nonzero length.",
         "A reachable push or drag approach can be found at execution time."
       ],
+      "checkable_requires": [
+        {
+          "kind": "fact",
+          "predicate": "gripper_empty",
+          "args": {}
+        },
+        {
+          "kind": "nonzero_vector",
+          "input": "displacement_xy"
+        }
+      ],
       "achieves": [
         "The object moves in the requested direction along its support."
       ],
@@ -133,6 +166,15 @@
         "The robot holds the specified object.",
         "The container exists in the current scene and has a container annotation.",
         "The container opening is accessible and a placement pose is reachable at execution time."
+      ],
+      "checkable_requires": [
+        {
+          "kind": "fact",
+          "predicate": "holding",
+          "args": {
+            "object": "object"
+          }
+        }
       ],
       "achieves": [
         "The specified object is inside the container.",
@@ -158,6 +200,15 @@
         "A free and reachable placement spot is available at execution time.",
         "Any door or drawer blocking the target surface is open."
       ],
+      "checkable_requires": [
+        {
+          "kind": "fact",
+          "predicate": "holding",
+          "args": {
+            "object": "object"
+          }
+        }
+      ],
       "achieves": [
         "The specified object is on the support.",
         "The gripper is empty."
@@ -180,6 +231,15 @@
         "At least one configured food object is inside the microwave cavity.",
         "The start button is reachable at execution time."
       ],
+      "checkable_requires": [
+        {
+          "kind": "fact",
+          "predicate": "microwave_door_closed",
+          "args": {
+            "appliance": "appliance"
+          }
+        }
+      ],
       "achieves": [
         "Microwave heating is active."
       ],
@@ -199,6 +259,15 @@
         "The microwave has an annotated door button and powered hinge.",
         "The microwave door starts closed.",
         "The door button and inspection pose are reachable at execution time."
+      ],
+      "checkable_requires": [
+        {
+          "kind": "fact",
+          "predicate": "microwave_door_closed",
+          "args": {
+            "appliance": "appliance"
+          }
+        }
       ],
       "achieves": [
         "The microwave door has been opened and returned to the closed state."

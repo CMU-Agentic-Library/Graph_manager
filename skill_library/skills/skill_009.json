@@ -10,6 +10,15 @@
     "The microwave door starts closed.",
     "The door button and inspection pose are reachable at execution time."
   ],
+  "checkable_requires": [
+    {
+      "kind": "fact",
+      "predicate": "microwave_door_closed",
+      "args": {
+        "appliance": "appliance"
+      }
+    }
+  ],
   "achieves": [
     "The microwave door has been opened and returned to the closed state."
   ],

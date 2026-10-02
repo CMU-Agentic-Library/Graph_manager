@@ -10,17 +10,17 @@ Run `python3 skill_library/viewer/server.py` and open `http://127.0.0.1:8765` to
 
 The [ZenoBench `skills.py` function inventory](docs/zenobench-skills-function-inventory.md) lists all 44 source callables and identifies the nine represented by task-level Skill Contracts. The other 35 are implementation details, not graph nodes.
 
-## Planner v1
+## Planning loop
 
-The planner now accepts a goal, an optional current image or observation text, and the complete public Skill Library. It asks a VLM for all semantic Subgoals first, then asks for one Skill Subgraph per Subgoal. The JSON proposals are checked against the nine public Skill IDs, Contract input names and types, local dependencies, and DAG structure. The planner saves the raw model responses with the validation result; it does not execute robot Skills.
+The planning loop accepts a goal, an optional current image or observation text, and the complete public Skill Library. One model response proposes all semantic Subgoals and one Skill Subgraph for each Subgoal. Graph Manager checks the proposal against public Skill IDs, Contract inputs, references, dependencies, and DAG structure. On failure, it sends path-addressed errors to the model in the same conversation and asks for a revised complete plan. The loop has a configurable attempt limit and does not execute robot Skills.
 
 Create the isolated Python environment from the committed lock file with `uv`, then run the tests:
 
 ```bash
 uv sync --extra dev
 .venv/bin/python -m unittest discover -s tests
-.venv/bin/ruff check graph_manager tests/test_planner_*.py tests/test_openai_compatible.py
-.venv/bin/ruff format --check graph_manager tests/test_planner_*.py tests/test_openai_compatible.py
+.venv/bin/ruff check .
+.venv/bin/ruff format --check .
 ```
 
 If `uv` is unavailable, `python3 -m venv .venv` followed by `.venv/bin/python -m pip install -e '.[dev]'` also works.
@@ -42,9 +42,50 @@ Add `--entity-catalog entities.json` to give the model a GT list of bindable IDs
 {"entities": [{"id": "apple", "types": ["MovableObject"]}]}
 ```
 
-The catalog is optional. Without it, the model receives no ID list, and object references remain unresolved; the result status is `unresolved_references`. With it, `{"ref":"apple"}` must match an exact ID and a compatible Contract input type. GT catalog data should contain only IDs and types, not final evaluator truth. A later grounding adapter can resolve references from vision while keeping the graph JSON shape. An observation text file can be supplied with `--observation-file`, and `GRAPH_MANAGER_API_KEY` supplies an optional endpoint token. Run `graph-manager-plan --help` for all flags.
+The catalog is optional. Without it, the model receives no ID list, and object references remain unresolved; the result status is `unresolved_references`. With it, `{"ref":"apple"}` must match an exact ID and a compatible Contract input type. GT catalog data should contain only IDs and types, not final evaluator truth. A later grounding adapter can resolve references from vision while keeping the graph JSON shape. An observation text file can be supplied with `--observation-file`, and `GRAPH_MANAGER_API_KEY` supplies an optional endpoint token. `--max-attempts` controls the repair limit. Run `graph-manager-plan --help` for all flags.
 
-The model's first response has `schema_version`, `kind: "subgoal_plan"`, and a `subgoals` array of `{id, goal}`. Each following response has `kind: "skill_subgraph"`, `subgoal_id`, and `nodes` of `{id, skill_id, args, depends_on}`. Each graph is a DAG for one Subgoal. `OptionalVector2` inputs must still be present as a key and may have value `null`. Static checks do not prove physical preconditions, successful execution, or the final task goal; those belong to the future Runner and Verifiers.
+The model returns one JSON object:
+
+```json
+{
+  "schema_version": 1,
+  "kind": "task_plan",
+  "subgoals": [{"id": "sg_1", "goal": "Hold the apple"}],
+  "subgraphs": [{
+    "subgoal_id": "sg_1",
+    "nodes": [{
+      "id": "n1", "skill_id": "skill_004",
+      "args": {"object": {"ref": "apple"}}, "depends_on": []
+    }]
+  }]
+}
+```
+
+Each Subgraph is a DAG for one Subgoal. `OptionalVector2` inputs must still appear and may be `null`. A rejected result includes `code`, `path`, and `message`; for example, an unknown Skill ID points to `$.subgraphs[0].nodes[0].skill_id`. Model outputs and validation issues are retained in `attempts`.
+
+An optional `--state-file state.json` provides explicitly observed facts:
+
+```json
+{"facts": [{"predicate": "gripper_empty", "args": {}, "value": false}]}
+```
+
+Contracts list a small set of `checkable_requires`. Input-only conditions such as nonzero push displacement are checked anywhere in the plan. State facts are checked only for initially ready nodes of the first Subgoal. Missing facts are unknown rather than false. Other natural-language preconditions, physical execution, and the final task goal require future observation and Verifiers.
+Facts bound to an object are checked only when an entity catalog grounds that object reference to an exact ID; zero-argument facts such as `gripper_empty` can be checked without the catalog.
+
+### Code layout
+
+`cli.py` → `PlanningLoop` → model response → domain validation → accepted plan or feedback in the same `Conversation`.
+
+| Directory | Responsibility |
+| --- | --- |
+| `application/` | The bounded loop and its model-visible conversation history |
+| `domain/` | Planning data and pure JSON, Contract, and graph checks |
+| `prompts/` | Initial model instruction and corrective feedback |
+| `adapters/` | OpenAI-compatible HTTP model and JSON Skill Library loader |
+| `ports.py` | Small interfaces between the loop and its adapters |
+| `cli.py` | Command-line input, dependency construction, and result output |
+
+Neither the domain nor the prompt builder performs HTTP or file I/O.
 
 ## Goal wording baseline
 

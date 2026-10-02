@@ -9,6 +9,7 @@
     "A target pose is specified in the current scene.",
     "A collision-free base route and a safe arm posture are available at execution time."
   ],
+  "checkable_requires": [],
   "achieves": [
     "The robot reaches the target pose."
   ],

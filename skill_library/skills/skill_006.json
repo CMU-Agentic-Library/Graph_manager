@@ -11,6 +11,15 @@
     "The container exists in the current scene and has a container annotation.",
     "The container opening is accessible and a placement pose is reachable at execution time."
   ],
+  "checkable_requires": [
+    {
+      "kind": "fact",
+      "predicate": "holding",
+      "args": {
+        "object": "object"
+      }
+    }
+  ],
   "achieves": [
     "The specified object is inside the container.",
     "The gripper is empty."

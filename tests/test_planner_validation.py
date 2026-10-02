@@ -2,8 +2,8 @@ import json
 import unittest
 from pathlib import Path
 
-from graph_manager.domain import EntityCatalog, ProposalValidationError
-from graph_manager.validation import (
+from graph_manager.domain.models import EntityCatalog, ProposalValidationError
+from graph_manager.domain.validation import (
     validate_complete_plan,
     validate_skill_subgraph,
     validate_subgoal_plan,

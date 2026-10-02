@@ -233,6 +233,16 @@
       const requires = section('Requires');
       addList(requires, skill.requires);
       detail.append(requires);
+      if (skill.checkable_requires?.length) {
+        const checks = section('Program-checkable requires');
+        addList(checks, skill.checkable_requires.map(check => {
+          if (check.kind === 'nonzero_vector') return `${check.input} must be nonzero`;
+          const args = Object.entries(check.args || {})
+            .map(([name, input]) => `${name}=${input}`).join(', ');
+          return `${check.predicate}(${args})`;
+        }));
+        detail.append(checks);
+      }
       const achieves = section('Achieves');
       addList(achieves, skill.achieves);
       detail.append(achieves);

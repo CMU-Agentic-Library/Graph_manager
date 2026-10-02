@@ -13,6 +13,15 @@
     "A free and reachable placement spot is available at execution time.",
     "Any door or drawer blocking the target surface is open."
   ],
+  "checkable_requires": [
+    {
+      "kind": "fact",
+      "predicate": "holding",
+      "args": {
+        "object": "object"
+      }
+    }
+  ],
   "achieves": [
     "The specified object is on the support.",
     "The gripper is empty."

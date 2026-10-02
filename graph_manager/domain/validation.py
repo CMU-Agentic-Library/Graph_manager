@@ -4,7 +4,7 @@ import json
 import math
 from collections import deque
 
-from .domain import ENTITY_TYPES, EntityCatalog, ProposalValidationError, ValidationIssue
+from .models import ENTITY_TYPES, EntityCatalog, ProposalValidationError, ValidationIssue
 
 RECORD_TYPES = {
     "RobotPose2D": ("x", "y", "yaw_deg"),
@@ -17,7 +17,7 @@ def _fail(path: str, code: str, message: str) -> None:
     raise ProposalValidationError([ValidationIssue(path, code, message)])
 
 
-def _parse_json(raw_text: str) -> dict:
+def parse_json_object(raw_text: str) -> dict:
     def unique_object(pairs: list[tuple[str, object]]) -> dict:
         result = {}
         for key, value in pairs:
@@ -56,7 +56,7 @@ def _nonempty_string(value: object, path: str) -> str:
     return value
 
 
-def _envelope(value: dict, kind: str, expected: set[str]) -> None:
+def validate_envelope(value: dict, kind: str, expected: set[str]) -> None:
     _keys(value, expected, "$")
     if type(value["schema_version"]) is not int or value["schema_version"] != 1:
         _fail("$.schema_version", "schema_version", "expected schema version 1")
@@ -66,9 +66,14 @@ def _envelope(value: dict, kind: str, expected: set[str]) -> None:
 
 def validate_subgoal_plan(raw_text: str) -> dict:
     """Parse the first model output; return its JSON form or path-addressed errors."""
-    plan = _parse_json(raw_text)
-    _envelope(plan, "subgoal_plan", {"schema_version", "kind", "subgoals"})
-    subgoals = plan["subgoals"]
+    plan = parse_json_object(raw_text)
+    validate_envelope(plan, "subgoal_plan", {"schema_version", "kind", "subgoals"})
+    validate_subgoals(plan["subgoals"])
+    return plan
+
+
+def validate_subgoals(subgoals: object) -> None:
+    """Validate the shared Subgoal array used by both output protocols."""
     if not isinstance(subgoals, list) or not subgoals:
         _fail("$.subgoals", "subgoals", "expected at least one subgoal")
     seen = set()
@@ -80,7 +85,6 @@ def validate_subgoal_plan(raw_text: str) -> dict:
         if subgoal_id in seen:
             _fail(f"{path}.id", "duplicate_subgoal", f"duplicate subgoal ID {subgoal_id}")
         seen.add(subgoal_id)
-    return plan
 
 
 def _validate_argument(
@@ -114,7 +118,7 @@ def _validate_argument(
     _fail(path, "unsupported_type", f"no validator for Contract type {type_name}")
 
 
-def _check_acyclic(nodes: list[dict]) -> None:
+def _check_acyclic(nodes: list[dict], path: str) -> None:
     successors = {node["id"]: [] for node in nodes}
     indegree = {node["id"]: len(node["depends_on"]) for node in nodes}
     for node in nodes:
@@ -130,66 +134,93 @@ def _check_acyclic(nodes: list[dict]) -> None:
             if indegree[successor] == 0:
                 ready.append(successor)
     if visited != len(nodes):
-        _fail("$.nodes", "dependency_cycle", "node dependencies contain a cycle")
+        _fail(f"{path}.nodes", "dependency_cycle", "node dependencies contain a cycle")
 
 
 def validate_skill_subgraph(
     raw_text: str, subgoal_ids: set[str], library: dict, catalog: EntityCatalog | None = None
 ) -> dict:
     """Validate one proposed DAG; no catalog leaves refs unresolved."""
-    graph = _parse_json(raw_text)
-    _envelope(graph, "skill_subgraph", {"schema_version", "kind", "subgoal_id", "nodes"})
-    subgoal_id = _nonempty_string(graph["subgoal_id"], "$.subgoal_id")
+    graph = parse_json_object(raw_text)
+    validate_envelope(graph, "skill_subgraph", {"schema_version", "kind", "subgoal_id", "nodes"})
+    validate_graph(
+        {"subgoal_id": graph["subgoal_id"], "nodes": graph["nodes"]},
+        subgoal_ids,
+        library,
+        catalog,
+    )
+    return graph
+
+
+def validate_graph(
+    graph: object,
+    subgoal_ids: set[str],
+    library: dict,
+    catalog: EntityCatalog | None = None,
+    path: str = "$",
+) -> None:
+    """Validate one graph body and report paths in its containing document."""
+    graph = _keys(graph, {"subgoal_id", "nodes"}, path)
+    subgoal_id = _nonempty_string(graph["subgoal_id"], f"{path}.subgoal_id")
     if subgoal_id not in subgoal_ids:
-        _fail("$.subgoal_id", "unknown_subgoal", f"unknown subgoal ID {subgoal_id}")
+        _fail(f"{path}.subgoal_id", "unknown_subgoal", f"unknown subgoal ID {subgoal_id}")
     skills = {skill["id"]: skill for skill in library["skills"]}
     nodes = graph["nodes"]
     if not isinstance(nodes, list) or not nodes:
-        _fail("$.nodes", "nodes", "expected at least one Skill node")
+        _fail(f"{path}.nodes", "nodes", "expected at least one Skill node")
     seen = set()
     for index, node in enumerate(nodes):
-        path = f"$.nodes[{index}]"
-        _keys(node, {"id", "skill_id", "args", "depends_on"}, path)
-        node_id = _nonempty_string(node["id"], f"{path}.id")
+        node_path = f"{path}.nodes[{index}]"
+        _keys(node, {"id", "skill_id", "args", "depends_on"}, node_path)
+        node_id = _nonempty_string(node["id"], f"{node_path}.id")
         if node_id in seen:
-            _fail(f"{path}.id", "duplicate_node", f"duplicate node ID {node_id}")
+            _fail(f"{node_path}.id", "duplicate_node", f"duplicate node ID {node_id}")
         seen.add(node_id)
-        skill_id = _nonempty_string(node["skill_id"], f"{path}.skill_id")
+        skill_id = _nonempty_string(node["skill_id"], f"{node_path}.skill_id")
         skill = skills.get(skill_id)
         if skill is None:
-            _fail(f"{path}.skill_id", "unknown_skill", f"unknown Skill ID {skill_id}")
+            _fail(f"{node_path}.skill_id", "unknown_skill", f"unknown Skill ID {skill_id}")
         arguments = node["args"]
         expected_args = skill["inputs"]
         if not isinstance(arguments, dict) or set(arguments) != set(expected_args):
-            _fail(f"{path}.args", "argument_names", f"expected exactly {sorted(expected_args)}")
+            _fail(
+                f"{node_path}.args", "argument_names", f"expected exactly {sorted(expected_args)}"
+            )
         for name, type_name in expected_args.items():
-            _validate_argument(arguments[name], type_name, f"{path}.args.{name}", catalog)
+            _validate_argument(arguments[name], type_name, f"{node_path}.args.{name}", catalog)
         dependencies = node["depends_on"]
         if not isinstance(dependencies, list):
-            _fail(f"{path}.depends_on", "dependencies", "expected an array")
-        if len(dependencies) != len(set(map(str, dependencies))):
-            _fail(f"{path}.depends_on", "duplicate_dependency", "duplicate dependency")
+            _fail(f"{node_path}.depends_on", "dependencies", "expected an array")
+        seen_dependencies = set()
         for position, predecessor in enumerate(dependencies):
             if not isinstance(predecessor, str) or not predecessor:
                 _fail(
-                    f"{path}.depends_on[{position}]", "dependency_type", "expected a node ID string"
+                    f"{node_path}.depends_on[{position}]",
+                    "dependency_type",
+                    "expected a node ID string",
                 )
             if predecessor == node_id:
                 _fail(
-                    f"{path}.depends_on[{position}]",
+                    f"{node_path}.depends_on[{position}]",
                     "self_dependency",
                     "node cannot depend on itself",
                 )
+            if predecessor in seen_dependencies:
+                _fail(
+                    f"{node_path}.depends_on[{position}]",
+                    "duplicate_dependency",
+                    f"duplicate predecessor {predecessor}",
+                )
+            seen_dependencies.add(predecessor)
     for index, node in enumerate(nodes):
         for position, predecessor in enumerate(node["depends_on"]):
             if predecessor not in seen:
                 _fail(
-                    f"$.nodes[{index}].depends_on[{position}]",
+                    f"{path}.nodes[{index}].depends_on[{position}]",
                     "unknown_dependency",
                     f"unknown node ID {predecessor}",
                 )
-    _check_acyclic(nodes)
-    return graph
+    _check_acyclic(nodes, path)
 
 
 def validate_complete_plan(plan: dict, graphs: list[dict]) -> None:

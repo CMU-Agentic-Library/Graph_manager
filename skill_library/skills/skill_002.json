@@ -10,6 +10,13 @@
     "The gripper is free for handle manipulation.",
     "A collision-free pose for reaching and moving the handle can be found at execution time."
   ],
+  "checkable_requires": [
+    {
+      "kind": "fact",
+      "predicate": "gripper_empty",
+      "args": {}
+    }
+  ],
   "achieves": [
     "The named part is open."
   ],

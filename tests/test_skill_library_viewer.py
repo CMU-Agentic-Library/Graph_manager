@@ -17,7 +17,15 @@ class SkillLibraryViewerTest(unittest.TestCase):
         self.library = root / "skill_library.json"
         self.page = root / "index.html"
         self.page.write_text("<html><body>Skill Library</body></html>")
-        self.library.write_text(json.dumps({"version": 1, "skills": [{"id": "skill_001", "name": "First name"}], "connections": []}))
+        self.library.write_text(
+            json.dumps(
+                {
+                    "version": 1,
+                    "skills": [{"id": "skill_001", "name": "First name"}],
+                    "connections": [],
+                }
+            )
+        )
         self.server = make_server(self.library, self.page, port=0)
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
         self.thread.start()
@@ -35,7 +43,15 @@ class SkillLibraryViewerTest(unittest.TestCase):
             self.assertEqual(response.headers["Cache-Control"], "no-store")
         self.assertEqual(first["skills"][0]["name"], "First name")
 
-        self.library.write_text(json.dumps({"version": 1, "skills": [{"id": "skill_001", "name": "Updated name"}], "connections": []}))
+        self.library.write_text(
+            json.dumps(
+                {
+                    "version": 1,
+                    "skills": [{"id": "skill_001", "name": "Updated name"}],
+                    "connections": [],
+                }
+            )
+        )
         with urlopen(self.base + "/api/library") as response:
             second = json.load(response)
         self.assertEqual(second["skills"][0]["name"], "Updated name")
@@ -73,7 +89,8 @@ class SkillLibraryViewerTest(unittest.TestCase):
             "import json, pathlib\n"
             "root = pathlib.Path(__file__).parent\n"
             "skill = json.loads((root / 'skills' / 'skill_001.json').read_text())\n"
-            "(root / 'skill_library.json').write_text(json.dumps({'version': 1, 'skills': [skill]}))\n"
+            "(root / 'skill_library.json').write_text("
+            "json.dumps({'version': 1, 'skills': [skill]}))\n"
         )
         self.library.unlink()
         self.server = make_server(self.library, self.page, port=0, builder_path=builder)
@@ -100,14 +117,18 @@ class SkillLibraryViewerTest(unittest.TestCase):
         skills = root / "skills"
         skills.mkdir()
         for number in (1, 2):
-            (skills / f"skill_{number:03}.json").write_text(json.dumps({"id": f"skill_{number:03}"}))
+            (skills / f"skill_{number:03}.json").write_text(
+                json.dumps({"id": f"skill_{number:03}"})
+            )
         (root / "types.json").write_text(json.dumps({"types": {}}))
         builder = root / "build.py"
         builder.write_text(
             "import json, pathlib\n"
             "root = pathlib.Path(__file__).parent\n"
-            "skills = [json.loads(p.read_text()) for p in sorted((root / 'skills').glob('skill_*.json'))]\n"
-            "(root / 'skill_library.json').write_text(json.dumps({'version': 1, 'skills': skills}))\n"
+            "skills = [json.loads(p.read_text()) "
+            "for p in sorted((root / 'skills').glob('skill_*.json'))]\n"
+            "(root / 'skill_library.json').write_text("
+            "json.dumps({'version': 1, 'skills': skills}))\n"
         )
         self.library.unlink()
         self.server = make_server(self.library, self.page, port=0, builder_path=builder)
@@ -118,7 +139,9 @@ class SkillLibraryViewerTest(unittest.TestCase):
             self.assertEqual(2, len(json.load(response)["skills"]))
         (skills / "skill_002.json").unlink()
         with urlopen(self.base + "/api/library") as response:
-            self.assertEqual(["skill_001"], [skill["id"] for skill in json.load(response)["skills"]])
+            self.assertEqual(
+                ["skill_001"], [skill["id"] for skill in json.load(response)["skills"]]
+            )
 
     def test_does_not_rebuild_repeatedly_when_id_differs_from_filename(self):
         self.server.shutdown()

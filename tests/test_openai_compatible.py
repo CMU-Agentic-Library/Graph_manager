@@ -4,7 +4,8 @@ import threading
 import unittest
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-from graph_manager.openai_compatible import ModelAdapterError, OpenAICompatibleModel
+from graph_manager.adapters.openai_compatible import ModelAdapterError, OpenAICompatibleModel
+from graph_manager.domain.models import ChatMessage
 
 
 class FakeChatHandler(BaseHTTPRequestHandler):
@@ -44,26 +45,35 @@ class OpenAICompatibleModelTest(unittest.TestCase):
         model = OpenAICompatibleModel(
             f"http://127.0.0.1:{self.server.server_port}/v1", "local-vlm", api_key="test-key"
         )
-        self.assertEqual(
-            '{"ok":true}', model.generate("Task and Library", b"jpeg-data", "image/jpeg")
+        messages = (
+            ChatMessage("system", "Return JSON"),
+            ChatMessage("user", "Task and Library", b"jpeg-data", "image/jpeg"),
+            ChatMessage("assistant", "{bad json"),
+            ChatMessage("user", '{"kind":"validation_feedback"}'),
         )
+        self.assertEqual('{"ok":true}', model.generate(messages))
         path, auth, request = FakeChatHandler.requests[0]
         self.assertEqual("/v1/chat/completions", path)
         self.assertEqual("Bearer test-key", auth)
         self.assertEqual("local-vlm", request["model"])
         self.assertEqual({"type": "json_object"}, request["response_format"])
+        self.assertEqual(
+            ["system", "user", "assistant", "user"], [item["role"] for item in request["messages"]]
+        )
         content = request["messages"][1]["content"]
         self.assertEqual("Task and Library", content[0]["text"])
         self.assertEqual(
             "data:image/jpeg;base64," + base64.b64encode(b"jpeg-data").decode(),
             content[1]["image_url"]["url"],
         )
+        self.assertEqual("{bad json", request["messages"][2]["content"])
+        self.assertEqual('{"kind":"validation_feedback"}', request["messages"][3]["content"])
 
     def test_missing_content_is_reported(self):
         FakeChatHandler.response = {"choices": [{"message": {"content": None}}]}
         model = OpenAICompatibleModel(f"http://127.0.0.1:{self.server.server_port}/v1", "local-vlm")
         with self.assertRaisesRegex(ModelAdapterError, "content"):
-            model.generate("Task")
+            model.generate((ChatMessage("user", "Task"),))
 
     def test_truncated_completion_is_rejected_with_raw_content(self):
         FakeChatHandler.response = {
@@ -71,7 +81,7 @@ class OpenAICompatibleModelTest(unittest.TestCase):
         }
         model = OpenAICompatibleModel(f"http://127.0.0.1:{self.server.server_port}/v1", "local-vlm")
         with self.assertRaisesRegex(ModelAdapterError, "length") as caught:
-            model.generate("Task")
+            model.generate((ChatMessage("user", "Task"),))
         self.assertEqual('{"subgoals":[]}', caught.exception.raw_content)
 
 

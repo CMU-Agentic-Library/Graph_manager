@@ -6,14 +6,20 @@ import re
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT.parent / "ZenoBench" / "zeno_skills" / "skills.py"
 SKILLS = ROOT / "skill_library" / "skills"
 INVENTORY = ROOT / "docs" / "zenobench-skills-function-inventory.md"
 EXPOSED = {
-    "navigate", "open_articulated", "close_articulated", "pick", "push",
-    "place", "place_on", "press_microwave_start", "cycle_microwave_door",
+    "navigate",
+    "open_articulated",
+    "close_articulated",
+    "pick",
+    "push",
+    "place",
+    "place_on",
+    "press_microwave_start",
+    "cycle_microwave_door",
 }
 
 
@@ -55,12 +61,16 @@ class SourceFunctionInventoryTest(unittest.TestCase):
         self.assertEqual(44, len(documented))
         contracts = [json.loads(path.read_text()) for path in sorted(SKILLS.glob("skill_*.json"))]
         self.assertEqual(9, len(contracts))
-        actual = {(c["source_function"]["qualname"], c["source_function"]["line"]) for c in contracts}
+        actual = {
+            (c["source_function"]["qualname"], c["source_function"]["line"]) for c in contracts
+        }
         self.assertEqual(EXPOSED, {name for name, _ in actual})
         self.assertTrue(actual <= set(documented))
         self.assertEqual(35, len(set(documented) - actual))
 
-        for link in re.findall(r"\]\((\.\./skill_library/skills/[^)]+\.json)\)", INVENTORY.read_text()):
+        for link in re.findall(
+            r"\]\((\.\./skill_library/skills/[^)]+\.json)\)", INVENTORY.read_text()
+        ):
             self.assertTrue((INVENTORY.parent / link).exists(), link)
 
     @unittest.skipUnless(SOURCE.exists(), "Sibling ZenoBench checkout is needed for AST comparison")

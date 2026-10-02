@@ -11,6 +11,13 @@
     "Any door or drawer blocking access to the object is open.",
     "A reachable grasp can be found at execution time."
   ],
+  "checkable_requires": [
+    {
+      "kind": "fact",
+      "predicate": "gripper_empty",
+      "args": {}
+    }
+  ],
   "achieves": [
     "The robot holds the specified object."
   ],

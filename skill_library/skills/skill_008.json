@@ -11,6 +11,15 @@
     "At least one configured food object is inside the microwave cavity.",
     "The start button is reachable at execution time."
   ],
+  "checkable_requires": [
+    {
+      "kind": "fact",
+      "predicate": "microwave_door_closed",
+      "args": {
+        "appliance": "appliance"
+      }
+    }
+  ],
   "achieves": [
     "Microwave heating is active."
   ],

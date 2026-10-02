@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from graph_manager.repository import JsonSkillLibraryRepository
+from graph_manager.adapters.skill_library_json import JsonSkillLibraryRepository
 
 
 class RepositoryTest(unittest.TestCase):
@@ -57,6 +57,54 @@ class RepositoryTest(unittest.TestCase):
                 )
             )
             with self.assertRaisesRegex(ValueError, "private field"):
+                JsonSkillLibraryRepository(path).load()
+
+    def test_rejects_malformed_checkable_requirements(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "library.json"
+            path.write_text(
+                json.dumps(
+                    {
+                        "version": 1,
+                        "types": {"MovableObject": "object"},
+                        "skills": [
+                            {
+                                "id": "skill_001",
+                                "inputs": {"object": "MovableObject"},
+                                "checkable_requires": {"kind": "fact"},
+                            }
+                        ],
+                    }
+                )
+            )
+            with self.assertRaisesRegex(ValueError, "checkable_requires"):
+                JsonSkillLibraryRepository(path).load()
+
+    def test_rejects_fact_bound_to_nonentity_input(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "library.json"
+            path.write_text(
+                json.dumps(
+                    {
+                        "version": 1,
+                        "types": {"OptionalVector2": "vector"},
+                        "skills": [
+                            {
+                                "id": "skill_001",
+                                "inputs": {"hint": "OptionalVector2"},
+                                "checkable_requires": [
+                                    {
+                                        "kind": "fact",
+                                        "predicate": "holding",
+                                        "args": {"object": "hint"},
+                                    }
+                                ],
+                            }
+                        ],
+                    }
+                )
+            )
+            with self.assertRaisesRegex(ValueError, "invalid fact"):
                 JsonSkillLibraryRepository(path).load()
 
 

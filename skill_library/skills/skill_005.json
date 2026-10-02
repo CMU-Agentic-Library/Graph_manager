@@ -12,6 +12,17 @@
     "The requested displacement has nonzero length.",
     "A reachable push or drag approach can be found at execution time."
   ],
+  "checkable_requires": [
+    {
+      "kind": "fact",
+      "predicate": "gripper_empty",
+      "args": {}
+    },
+    {
+      "kind": "nonzero_vector",
+      "input": "displacement_xy"
+    }
+  ],
   "achieves": [
     "The object moves in the requested direction along its support."
   ],

@@ -1,6 +1,6 @@
 import unittest
 
-from graph_manager.domain import EntityCatalog, PlanningRequest
+from graph_manager.domain.models import EntityCatalog, PlanningRequest
 
 
 class EntityCatalogTest(unittest.TestCase):

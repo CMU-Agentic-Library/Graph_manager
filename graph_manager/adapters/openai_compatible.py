@@ -6,13 +6,16 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
 
+from ..domain.models import ChatMessage
+from ..ports import ModelPortError
 
-class ModelAdapterError(RuntimeError):
+
+class ModelAdapterError(ModelPortError):
     """The model endpoint did not return usable chat content."""
 
     def __init__(self, message: str, raw_content: str | None = None):
         self.raw_content = raw_content
-        super().__init__(message)
+        super().__init__(message, partial_output=raw_content)
 
 
 class OpenAICompatibleModel:
@@ -42,25 +45,25 @@ class OpenAICompatibleModel:
         self.timeout = timeout
         self.max_tokens = max_tokens
 
-    def generate(
-        self, prompt: str, image: bytes | None = None, image_mime: str = "image/jpeg"
-    ) -> str:
-        content: str | list[dict] = prompt
-        if image is not None:
-            encoded = base64.b64encode(image).decode("ascii")
-            content = [
-                {"type": "text", "text": prompt},
-                {"type": "image_url", "image_url": {"url": f"data:{image_mime};base64,{encoded}"}},
-            ]
+    def generate(self, messages: tuple[ChatMessage, ...]) -> str:
+        wire_messages = []
+        for message in messages:
+            if message.role not in {"system", "user", "assistant"}:
+                raise ValueError(f"unsupported model message role: {message.role}")
+            content: str | list[dict] = message.text
+            if message.image is not None:
+                encoded = base64.b64encode(message.image).decode("ascii")
+                content = [
+                    {"type": "text", "text": message.text},
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": f"data:{message.image_mime};base64,{encoded}"},
+                    },
+                ]
+            wire_messages.append({"role": message.role, "content": content})
         payload = {
             "model": self.model,
-            "messages": [
-                {
-                    "role": "system",
-                    "content": "Return only the requested JSON object, with no markdown.",
-                },
-                {"role": "user", "content": content},
-            ],
+            "messages": wire_messages,
             "response_format": {"type": "json_object"},
             "temperature": 0,
             "max_tokens": self.max_tokens,
