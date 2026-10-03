@@ -1,0 +1,189 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2400 1180" width="2400" height="1180" data-generator="fireworks-tech-graph" data-schema-version="1" data-text-metrics="heuristic-v1" data-style-id="1" data-visual-theme="Flat Icon" data-diagram-type="architecture" data-motion-scene="" data-semantic-profile="generic" data-semantic-valid="true" data-quality-profile="standard" data-max-bends-per-edge="12" data-max-total-bends="100" data-max-route-stretch="5.0" data-max-bridged-crossings="8" data-min-node-gap="0.0" data-min-container-gutter="0.0" data-min-label-clearance="2.0" data-min-segment-length="0.0">
+  <defs>
+    <marker id="arrowA" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7c3aed"/>
+    </marker>
+    <marker id="arrowB" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#10b981"/>
+    </marker>
+    <marker id="arrowC" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/>
+    </marker>
+    <marker id="arrowE" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#f97316"/>
+    </marker>
+    <marker id="arrowF" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7c3aed"/>
+    </marker>
+    <marker id="arrowG" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ef4444"/>
+    </marker>
+    <marker id="arrowH" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#6b7280"/>
+    </marker>
+    <filter id="shadowSoft" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="3" stdDeviation="6" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+    <filter id="shadowGlass" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#020617" flood-opacity="0.28"/>
+    </filter>
+    <style>
+    text { font-family: 'Helvetica Neue', Helvetica, Arial, 'PingFang SC', 'Noto Sans CJK SC', 'Microsoft YaHei', 'Microsoft JhengHei', 'SimHei', sans-serif; }
+    .title { font-size: 30px; font-weight: 700; fill: #111827; }
+    .subtitle { font-size: 14px; font-weight: 500; fill: #6b7280; }
+    .section { font-size: 13px; font-weight: 700; fill: #2563eb; letter-spacing: 1.4px; }
+    .section-sub { font-size: 12px; font-weight: 500; fill: #64748b; }
+    .node-title { font-weight: 700; fill: #111827; }
+    .node-sub { font-weight: 500; fill: #6b7280; }
+    .node-type { font-size: 12px; font-weight: 700; fill: #64748b; letter-spacing: 0.08em; }
+    .arrow-label { font-size: 12px; font-weight: 600; fill: #6b7280; }
+    .legend { font-size: 12px; font-weight: 500; fill: #6b7280; }
+    .footnote { font-size: 12px; font-weight: 500; fill: #64748b; }
+    .metric-label { font-size: 8.5px; font-weight: 700; fill: #64748b; text-transform: uppercase; }
+    .metric-value { font-size: 9.5px; font-weight: 700; fill: #111827; }
+    </style>
+  </defs>
+  <rect data-graph-role="background" width="2400.0" height="1180.0" fill="#ffffff"/>
+  <text x="1200.0" y="56" text-anchor="middle" class="title">Figure 1. Skill-Graph-Based Agentic Task Execution</text>
+  <text x="1200.0" y="82" text-anchor="middle" class="subtitle">A VLM proposes one Skill Subgraph at a time and revisits the plan after observing its result</text>
+  <g id="library" data-graph-role="container" data-container-id="library" data-semantic-role="boundary" data-graph-bounds="364,154,2352,382">
+  <rect data-graph-role="container" x="364.0" y="154.0" width="1988.0" height="228.0" rx="16.0" fill="none" stroke="#dbe5f1" stroke-width="1.4" stroke-dasharray="6 5"/>
+  <text x="382.0" y="178.0" class="section">STATIC SKILL LIBRARY</text>
+    <rect id="library-header" data-graph-role="reserved" data-reserved-kind="container-header" x="372" y="160" width="164.94" height="30" fill="none" stroke="none"/>
+  </g>
+  <g id="cycle" data-graph-role="container" data-container-id="cycle" data-semantic-role="boundary" data-graph-bounds="40,460,2352,756">
+  <rect data-graph-role="container" x="40.0" y="460.0" width="2312.0" height="296.0" rx="16.0" fill="none" stroke="#dbe5f1" stroke-width="1.4" stroke-dasharray="6 5"/>
+  <text x="58.0" y="484.0" class="section">CURRENT-SUBGOAL PLANNING AND EXECUTION CYCLE</text>
+    <rect id="cycle-header" data-graph-role="reserved" data-reserved-kind="container-header" x="48" y="466" width="343.56" height="30" fill="none" stroke="none"/>
+  </g>
+  <g id="assessment" data-graph-role="container" data-container-id="assessment" data-semantic-role="boundary" data-graph-bounds="750,810,2352,974">
+  <rect data-graph-role="container" x="750.0" y="810.0" width="1602.0" height="164.0" rx="16.0" fill="none" stroke="#dbe5f1" stroke-width="1.4" stroke-dasharray="6 5"/>
+  <text x="768.0" y="834.0" class="section">OBSERVATION AND AGENTIC ASSESSMENT</text>
+    <rect id="assessment-header" data-graph-role="reserved" data-reserved-kind="container-header" x="758" y="816" width="274.14" height="30" fill="none" stroke="none"/>
+  </g>
+  <path id="validation-feedback" data-graph-role="edge" data-edge-id="validation-feedback" data-source="manager" data-target="vlm" data-edge-kind="flow" data-topic-id="" data-flow="feedback" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="2" data-route-stretch="1.108" data-bridges="" d="M 1827,650 L 1827,720 L 533,720 L 533,650" fill="none" stroke="#ef4444" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowG)" stroke-dasharray="6,4"/>
+  <path id="replan-loop" data-graph-role="edge" data-edge-id="replan-loop" data-source="review" data-target="context" data-edge-kind="flow" data-topic-id="" data-flow="feedback" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="2" data-route-stretch="1.101" data-bridges="" d="M 1290,942 L 1290,1012 L 195,1012 L 195,650" fill="none" stroke="#ef4444" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowG)" stroke-dasharray="6,4"/>
+  <path id="input-to-vlm" data-graph-role="edge" data-edge-id="input-to-vlm" data-source="context" data-target="vlm" data-edge-kind="flow" data-topic-id="" data-flow="control" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 320,600 L 408,600" fill="none" stroke="#7c3aed" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowA)"/>
+  <path id="catalog-context" data-graph-role="edge" data-edge-id="catalog-context" data-source="catalog" data-target="vlm" data-edge-kind="flow" data-topic-id="" data-flow="read" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="2" data-route-stretch="1.0" data-bridges="" d="M 582,326 L 582,346.4 L 533,346.4 L 533,550" fill="none" stroke="#2563eb" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowC)"/>
+  <path id="vlm-to-subgoals" data-graph-role="edge" data-edge-id="vlm-to-subgoals" data-source="vlm" data-target="subgoals" data-edge-kind="flow" data-topic-id="" data-flow="control" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 658,600 L 738,600" fill="none" stroke="#7c3aed" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowA)"/>
+  <path id="subgoals-to-current" data-graph-role="edge" data-edge-id="subgoals-to-current" data-source="subgoals" data-target="current" data-edge-kind="flow" data-topic-id="" data-flow="control" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 982,600 L 1052,600" fill="none" stroke="#7c3aed" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowA)"/>
+  <path id="current-to-graph" data-graph-role="edge" data-edge-id="current-to-graph" data-source="current" data-target="subgraph" data-edge-kind="flow" data-topic-id="" data-flow="control" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 1280,600 L 1354,600" fill="none" stroke="#7c3aed" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowA)"/>
+  <path id="relations-to-graph" data-graph-role="edge" data-edge-id="relations-to-graph" data-source="relations" data-target="subgraph" data-edge-kind="flow" data-topic-id="" data-flow="read" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="2" data-route-stretch="1.0" data-bridges="" d="M 1059,326 L 1059,350 L 1489,350 L 1489,550" fill="none" stroke="#2563eb" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowC)"/>
+  <path id="graph-to-manager" data-graph-role="edge" data-edge-id="graph-to-manager" data-source="subgraph" data-target="manager" data-edge-kind="flow" data-topic-id="" data-flow="control" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 1624,600 L 1694,600" fill="none" stroke="#7c3aed" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowA)"/>
+  <path id="contracts-to-manager" data-graph-role="edge" data-edge-id="contracts-to-manager" data-source="contracts" data-target="manager" data-edge-kind="flow" data-topic-id="" data-flow="read" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="2" data-route-stretch="1.0" data-bridges="" d="M 1676,326 L 1676,346.4 L 1827,346.4 L 1827,550" fill="none" stroke="#2563eb" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowC)"/>
+  <path id="manager-to-execute" data-graph-role="edge" data-edge-id="manager-to-execute" data-source="manager" data-target="execute" data-edge-kind="flow" data-topic-id="" data-flow="control" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 1960,600 L 2038,600" fill="none" stroke="#7c3aed" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowA)"/>
+  <path id="policies-to-execute" data-graph-role="edge" data-edge-id="policies-to-execute" data-source="policies" data-target="execute" data-edge-kind="flow" data-topic-id="" data-flow="read" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="2" data-route-stretch="1.0" data-bridges="" d="M 2129,326 L 2129,346.4 L 2168,346.4 L 2168,550" fill="none" stroke="#2563eb" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowC)"/>
+  <path id="execute-to-verifier" data-graph-role="edge" data-edge-id="execute-to-verifier" data-source="execute" data-target="verifier" data-edge-kind="flow" data-topic-id="" data-flow="control" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 2168,650 L 2168,846" fill="none" stroke="#7c3aed" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowA)"/>
+  <path id="result-to-observation" data-graph-role="edge" data-edge-id="result-to-observation" data-source="verifier" data-target="observation" data-edge-kind="flow" data-topic-id="" data-flow="data" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 2038,894 L 1840,894" fill="none" stroke="#f97316" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowE)"/>
+  <path id="observation-to-vlm" data-graph-role="edge" data-edge-id="observation-to-vlm" data-source="observation" data-target="review" data-edge-kind="flow" data-topic-id="" data-flow="data" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 1560,894 L 1450,894" fill="none" stroke="#f97316" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowE)"/>
+  <path id="completion" data-graph-role="edge" data-edge-id="completion" data-source="review" data-target="done" data-edge-kind="flow" data-topic-id="" data-flow="control" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 1130,894 L 1020,894" fill="none" stroke="#7c3aed" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowA)"/>
+  <g id="node-catalog" data-graph-role="node" data-node-id="catalog" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="416,230,748,326">
+  <rect x="416.0" y="230.0" width="332.0" height="96.0" rx="10.0" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.8"/>
+  <text data-text-role="title" data-full-text="Public Skill Catalog" data-text-max-width="308.0" x="582.0" y="278.0" text-anchor="middle" class="node-title" font-size="18">Public Skill Catalog</text>
+  <text data-text-role="subtitle" data-full-text="Skills + Contract view" data-text-max-width="308.0" x="582.0" y="300.0" text-anchor="middle" class="node-sub" font-size="12">Skills + Contract view</text>
+  </g>
+  <g id="node-relations" data-graph-role="node" data-node-id="relations" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="862,230,1256,326">
+  <rect x="862.0" y="230.0" width="394.0" height="96.0" rx="10.0" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.8"/>
+  <text data-text-role="title" data-full-text="Skill Relationships" data-text-max-width="370.0" x="1059.0" y="278.0" text-anchor="middle" class="node-title" font-size="18">Skill Relationships</text>
+  <text data-text-role="subtitle" data-full-text="conditions · substitutes · fallback" data-text-max-width="370.0" x="1059.0" y="300.0" text-anchor="middle" class="node-sub" font-size="12">conditions · substitutes · fallback</text>
+  </g>
+  <g id="node-contracts" data-graph-role="node" data-node-id="contracts" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="1500,230,1852,326">
+  <rect x="1500.0" y="230.0" width="352.0" height="96.0" rx="10.0" fill="#ecfdf5" stroke="#10b981" stroke-width="1.8"/>
+  <text data-text-role="title" data-full-text="Skill Contracts" data-text-max-width="328.0" x="1676.0" y="278.0" text-anchor="middle" class="node-title" font-size="18">Skill Contracts</text>
+  <text data-text-role="subtitle" data-full-text="inputs · pre/post · verifier" data-text-max-width="328.0" x="1676.0" y="300.0" text-anchor="middle" class="node-sub" font-size="12">inputs · pre/post · verifier</text>
+  </g>
+  <g id="node-policies" data-graph-role="node" data-node-id="policies" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="1974,230,2284,326">
+  <rect x="1974.0" y="230.0" width="310.0" height="96.0" rx="10.0" fill="#ecfdf5" stroke="#10b981" stroke-width="1.8"/>
+  <text data-text-role="title" data-full-text="Low-level Policies" data-text-max-width="286.0" x="2129.0" y="278.0" text-anchor="middle" class="node-title" font-size="18">Low-level Policies</text>
+  <text data-text-role="subtitle" data-full-text="bound to each Skill" data-text-max-width="286.0" x="2129.0" y="300.0" text-anchor="middle" class="node-sub" font-size="12">bound to each Skill</text>
+  </g>
+  <g id="node-context" data-graph-role="node" data-node-id="context" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="70,550,320,650">
+  <rect x="70.0" y="550.0" width="250.0" height="100.0" rx="10.0" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.8"/>
+  <text data-text-role="title" data-full-text="Task Context" data-text-max-width="226.0" x="195.0" y="600.0" text-anchor="middle" class="node-title" font-size="18">Task Context</text>
+  <text data-text-role="subtitle" data-full-text="Goal + current image" data-text-max-width="226.0" x="195.0" y="622.0" text-anchor="middle" class="node-sub" font-size="12">Goal + current image</text>
+  </g>
+  <g id="node-vlm" data-graph-role="node" data-node-id="vlm" data-semantic-role="double_rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="408,550,658,650">
+  <rect x="408.0" y="550.0" width="250.0" height="100.0" rx="10.0" fill="#faf5ff" stroke="#8b5cf6" stroke-width="2.0"/>
+  <rect x="414.0" y="556.0" width="238.0" height="88.0" rx="7.0" fill="none" stroke="#8b5cf6" stroke-width="1.2" opacity="0.65"/>
+  <text data-text-role="title" data-full-text="VLM Planner" data-text-max-width="218.0" x="533.0" y="600.0" text-anchor="middle" class="node-title" font-size="18">VLM Planner</text>
+  <text data-text-role="subtitle" data-full-text="reason · select · revise" data-text-max-width="218.0" x="533.0" y="622.0" text-anchor="middle" class="node-sub" font-size="12">reason · select · revise</text>
+  </g>
+  <g id="node-subgoals" data-graph-role="node" data-node-id="subgoals" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="738,550,982,650">
+  <rect x="738.0" y="550.0" width="244.0" height="100.0" rx="10.0" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.8"/>
+  <text data-text-role="title" data-full-text="Semantic Subgoals" data-text-max-width="220.0" x="860.0" y="600.0" text-anchor="middle" class="node-title" font-size="18">Semantic Subgoals</text>
+  <text data-text-role="subtitle" data-full-text="g1 ... gn for the task" data-text-max-width="220.0" x="860.0" y="622.0" text-anchor="middle" class="node-sub" font-size="12">g1 ... gn for the task</text>
+  </g>
+  <g id="node-current" data-graph-role="node" data-node-id="current" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="1052,550,1280,650">
+  <rect x="1052.0" y="550.0" width="228.0" height="100.0" rx="10.0" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.8"/>
+  <text data-text-role="title" data-full-text="Current Subgoal" data-text-max-width="204.0" x="1166.0" y="600.0" text-anchor="middle" class="node-title" font-size="18">Current Subgoal</text>
+  <text data-text-role="subtitle" data-full-text="choose gi" data-text-max-width="204.0" x="1166.0" y="622.0" text-anchor="middle" class="node-sub" font-size="12">choose gi</text>
+  </g>
+  <g id="node-subgraph" data-graph-role="node" data-node-id="subgraph" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="1354,550,1624,650">
+  <rect x="1354.0" y="550.0" width="270.0" height="100.0" rx="10.0" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.8"/>
+  <text data-text-role="title" data-full-text="Skill Subgraph Gi" data-text-max-width="246.0" x="1489.0" y="600.0" text-anchor="middle" class="node-title" font-size="18">Skill Subgraph Gi</text>
+  <text data-text-role="subtitle" data-full-text="A to B  |  A to B' fallback" data-text-max-width="246.0" x="1489.0" y="622.0" text-anchor="middle" class="node-sub" font-size="12">A to B | A to B' fallback</text>
+  </g>
+  <g id="node-manager" data-graph-role="node" data-node-id="manager" data-semantic-role="double_rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="1694,550,1960,650">
+  <rect x="1694.0" y="550.0" width="266.0" height="100.0" rx="10.0" fill="#fffbeb" stroke="#f59e0b" stroke-width="2.0"/>
+  <rect x="1700.0" y="556.0" width="254.0" height="88.0" rx="7.0" fill="none" stroke="#f59e0b" stroke-width="1.2" opacity="0.65"/>
+  <text data-text-role="title" data-full-text="Graph Manager" data-text-max-width="234.0" x="1827.0" y="600.0" text-anchor="middle" class="node-title" font-size="18">Graph Manager</text>
+  <text data-text-role="subtitle" data-full-text="parse · lookup · validate" data-text-max-width="234.0" x="1827.0" y="622.0" text-anchor="middle" class="node-sub" font-size="12">parse · lookup · validate</text>
+  </g>
+  <g id="node-execute" data-graph-role="node" data-node-id="execute" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="2038,550,2298,650">
+  <rect x="2038.0" y="550.0" width="260.0" height="100.0" rx="10.0" fill="#ecfdf5" stroke="#10b981" stroke-width="1.8"/>
+  <text data-text-role="title" data-full-text="Skill Execution" data-text-max-width="236.0" x="2168.0" y="600.0" text-anchor="middle" class="node-title" font-size="18">Skill Execution</text>
+  <text data-text-role="subtitle" data-full-text="invoke selected policies" data-text-max-width="236.0" x="2168.0" y="622.0" text-anchor="middle" class="node-sub" font-size="12">invoke selected policies</text>
+  </g>
+  <g id="node-verifier" data-graph-role="node" data-node-id="verifier" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="2038,846,2298,942">
+  <rect x="2038.0" y="846.0" width="260.0" height="96.0" rx="10.0" fill="#fff1f2" stroke="#fb7185" stroke-width="1.8"/>
+  <text data-text-role="title" data-full-text="Verifier" data-text-max-width="236.0" x="2168.0" y="894.0" text-anchor="middle" class="node-title" font-size="18">Verifier</text>
+  <text data-text-role="subtitle" data-full-text="sense + check outcomes" data-text-max-width="236.0" x="2168.0" y="916.0" text-anchor="middle" class="node-sub" font-size="12">sense + check outcomes</text>
+  </g>
+  <g id="node-observation" data-graph-role="node" data-node-id="observation" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="1560,846,1840,942">
+  <rect x="1560.0" y="846.0" width="280.0" height="96.0" rx="10.0" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.8"/>
+  <text data-text-role="title" data-full-text="New Observation" data-text-max-width="256.0" x="1700.0" y="894.0" text-anchor="middle" class="node-title" font-size="18">New Observation</text>
+  <text data-text-role="subtitle" data-full-text="scene image + result" data-text-max-width="256.0" x="1700.0" y="916.0" text-anchor="middle" class="node-sub" font-size="12">scene image + result</text>
+  </g>
+  <g id="node-review" data-graph-role="node" data-node-id="review" data-semantic-role="double_rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="1130,846,1450,942">
+  <rect x="1130.0" y="846.0" width="320.0" height="96.0" rx="10.0" fill="#faf5ff" stroke="#8b5cf6" stroke-width="2.0"/>
+  <rect x="1136.0" y="852.0" width="308.0" height="84.0" rx="7.0" fill="none" stroke="#8b5cf6" stroke-width="1.2" opacity="0.65"/>
+  <text data-text-role="title" data-full-text="VLM Reassessment" data-text-max-width="288.0" x="1290.0" y="894.0" text-anchor="middle" class="node-title" font-size="18">VLM Reassessment</text>
+  <text data-text-role="subtitle" data-full-text="next subgoal · revise · stop" data-text-max-width="288.0" x="1290.0" y="916.0" text-anchor="middle" class="node-sub" font-size="12">next subgoal · revise · stop</text>
+  </g>
+  <g id="node-done" data-graph-role="node" data-node-id="done" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="790,846,1020,942">
+  <rect x="790.0" y="846.0" width="230.0" height="96.0" rx="10.0" fill="#ecfdf5" stroke="#10b981" stroke-width="1.8"/>
+  <text data-text-role="title" data-full-text="Goal Achieved" data-text-max-width="206.0" x="905.0" y="894.0" text-anchor="middle" class="node-title" font-size="18">Goal Achieved</text>
+  <text data-text-role="subtitle" data-full-text="terminate task" data-text-max-width="206.0" x="905.0" y="916.0" text-anchor="middle" class="node-sub" font-size="12">terminate task</text>
+  </g>
+  <g id="catalog-context-label" data-graph-role="label" data-owner="catalog-context" data-graph-bounds="440.64,434.2,530,454.2">
+  <rect x="440.64" y="434.2" width="89.36" height="20" rx="6" fill="#ffffff" opacity="0.94"/>
+  <text x="485.32" y="448.2" text-anchor="middle" class="arrow-label">Skill Library</text>
+  </g>
+  <g id="relations-to-graph-label" data-graph-role="label" data-owner="relations-to-graph" data-graph-bounds="1170.52,337,1377.48,357">
+  <rect x="1170.52" y="337.0" width="206.95999999999998" height="20" rx="6" fill="#ffffff" opacity="0.94"/>
+  <text x="1274.0" y="351.0" text-anchor="middle" class="arrow-label">conditional links + alternatives</text>
+  </g>
+  <g id="contracts-to-manager-label" data-graph-role="label" data-owner="contracts-to-manager" data-graph-bounds="1711.36,434.2,1824,454.2">
+  <rect x="1711.36" y="434.2" width="112.64000000000001" height="20" rx="6" fill="#ffffff" opacity="0.94"/>
+  <text x="1767.68" y="448.2" text-anchor="middle" class="arrow-label">Contract lookup</text>
+  </g>
+  <g id="policies-to-execute-label" data-graph-role="label" data-owner="policies-to-execute" data-graph-bounds="2068.68,434.2,2165,454.2">
+  <rect x="2068.68" y="434.2" width="96.32000000000001" height="20" rx="6" fill="#ffffff" opacity="0.94"/>
+  <text x="2116.84" y="448.2" text-anchor="middle" class="arrow-label">policy binding</text>
+  </g>
+  <g id="validation-feedback-label" data-graph-role="label" data-owner="validation-feedback" data-graph-bounds="1102.8,689,1257.2,709">
+  <rect x="1102.8" y="689.0" width="154.4" height="20" rx="6" fill="#ffffff" opacity="0.94"/>
+  <text x="1180.0" y="703.0" text-anchor="middle" class="arrow-label">invalid graph: revise Gi</text>
+  </g>
+  <g id="completion-label" data-graph-role="label" data-owner="completion" data-graph-bounds="1041.72,863,1108.28,883">
+  <rect x="1041.72" y="863.0" width="66.56" height="20" rx="6" fill="#ffffff" opacity="0.94"/>
+  <text x="1075.0" y="877.0" text-anchor="middle" class="arrow-label">complete</text>
+  </g>
+  <g id="replan-loop-label" data-graph-role="label" data-owner="replan-loop" data-graph-bounds="606.38,981,878.62,1001">
+  <rect x="606.38" y="981.0" width="272.23999999999984" height="20" rx="6" fill="#ffffff" opacity="0.94"/>
+  <text x="742.5" y="995.0" text-anchor="middle" class="arrow-label">continue with next Gi or revise current Gi</text>
+  </g>
+  <g id="footer" data-graph-role="reserved" data-graph-bounds="64,1146,1205,1162">
+  <text x="64.0" y="1158.0" class="footnote">Each Gi is a task-specific DAG. Library relations may include conditional transitions, substitutes, and fallbacks; planning and reassessment share one VLM context.</text>
+  </g>
+</svg>

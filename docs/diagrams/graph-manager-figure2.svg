@@ -1,0 +1,202 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2400 1420" width="2400" height="1420" data-generator="fireworks-tech-graph" data-schema-version="1" data-text-metrics="heuristic-v1" data-style-id="1" data-visual-theme="Flat Icon" data-diagram-type="architecture" data-motion-scene="" data-semantic-profile="generic" data-semantic-valid="true" data-quality-profile="standard" data-max-bends-per-edge="12" data-max-total-bends="100" data-max-route-stretch="5.0" data-max-bridged-crossings="8" data-min-node-gap="0.0" data-min-container-gutter="0.0" data-min-label-clearance="2.0" data-min-segment-length="0.0">
+  <defs>
+    <marker id="arrowA" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7c3aed"/>
+    </marker>
+    <marker id="arrowB" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#10b981"/>
+    </marker>
+    <marker id="arrowC" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/>
+    </marker>
+    <marker id="arrowE" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#f97316"/>
+    </marker>
+    <marker id="arrowF" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7c3aed"/>
+    </marker>
+    <marker id="arrowG" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ef4444"/>
+    </marker>
+    <marker id="arrowH" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#6b7280"/>
+    </marker>
+    <filter id="shadowSoft" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="3" stdDeviation="6" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+    <filter id="shadowGlass" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#020617" flood-opacity="0.28"/>
+    </filter>
+    <style>
+    text { font-family: 'Helvetica Neue', Helvetica, Arial, 'PingFang SC', 'Noto Sans CJK SC', 'Microsoft YaHei', 'Microsoft JhengHei', 'SimHei', sans-serif; }
+    .title { font-size: 30px; font-weight: 700; fill: #111827; }
+    .subtitle { font-size: 14px; font-weight: 500; fill: #6b7280; }
+    .section { font-size: 13px; font-weight: 700; fill: #2563eb; letter-spacing: 1.4px; }
+    .section-sub { font-size: 12px; font-weight: 500; fill: #64748b; }
+    .node-title { font-weight: 700; fill: #111827; }
+    .node-sub { font-weight: 500; fill: #6b7280; }
+    .node-type { font-size: 12px; font-weight: 700; fill: #64748b; letter-spacing: 0.08em; }
+    .arrow-label { font-size: 12px; font-weight: 600; fill: #6b7280; }
+    .legend { font-size: 12px; font-weight: 500; fill: #6b7280; }
+    .footnote { font-size: 12px; font-weight: 500; fill: #64748b; }
+    .metric-label { font-size: 8.5px; font-weight: 700; fill: #64748b; text-transform: uppercase; }
+    .metric-value { font-size: 9.5px; font-weight: 700; fill: #111827; }
+    </style>
+  </defs>
+  <rect data-graph-role="background" width="2400.0" height="1420.0" fill="#ffffff"/>
+  <text x="1200.0" y="56" text-anchor="middle" class="title">Figure 2. Skill Library as a Semantic-to-Policy Interface</text>
+  <text x="1200.0" y="82" text-anchor="middle" class="subtitle">Skill IDs and Contracts connect semantic planning to heterogeneous low-level policies through one invocation pattern</text>
+  <g id="semantic" data-graph-role="container" data-container-id="semantic" data-semantic-role="boundary" data-graph-bounds="100,152,2300,322">
+  <rect data-graph-role="container" x="100.0" y="152.0" width="2200.0" height="170.0" rx="16.0" fill="none" stroke="#dbe5f1" stroke-width="1.4" stroke-dasharray="6 5"/>
+  <text x="118.0" y="176.0" class="section">SEMANTIC PLANNING</text>
+    <rect id="semantic-header" data-graph-role="reserved" data-reserved-kind="container-header" x="108" y="158" width="151.68" height="30" fill="none" stroke="none"/>
+  </g>
+  <g id="library" data-graph-role="container" data-container-id="library" data-semantic-role="boundary" data-graph-bounds="100,394,2300,918">
+  <rect data-graph-role="container" x="100.0" y="394.0" width="2200.0" height="524.0" rx="16.0" fill="none" stroke="#dbe5f1" stroke-width="1.4" stroke-dasharray="6 5"/>
+  <text x="118.0" y="418.0" class="section">SKILL LIBRARY · SEMANTIC RECORDS, PER-SKILL CONTRACTS AND CONDITIONAL RELATIONS</text>
+    <rect id="library-header" data-graph-role="reserved" data-reserved-kind="container-header" x="108" y="400" width="576" height="30" fill="none" stroke="none"/>
+  </g>
+  <g id="runtime" data-graph-role="container" data-container-id="runtime" data-semantic-role="boundary" data-graph-bounds="100,986,2300,1334">
+  <rect data-graph-role="container" x="100.0" y="986.0" width="2200.0" height="348.0" rx="16.0" fill="none" stroke="#dbe5f1" stroke-width="1.4" stroke-dasharray="6 5"/>
+  <text x="118.0" y="1010.0" class="section">RUNTIME ONLY</text>
+    <rect id="runtime-header" data-graph-role="reserved" data-reserved-kind="container-header" x="108" y="992" width="117.36" height="30" fill="none" stroke="none"/>
+  </g>
+  <path id="id-lookup-example" data-graph-role="edge" data-edge-id="id-lookup-example" data-source="selected" data-target="skill_pick" data-edge-kind="flow" data-topic-id="" data-flow="read" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="2" data-route-stretch="1.0" data-bridges="" d="M 1668,294 L 1668,350 L 910,350 L 910,504" fill="none" stroke="#2563eb" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowC)"/>
+  <path id="pick-to-place" data-graph-role="edge" data-edge-id="pick-to-place" data-source="skill_pick" data-target="skill_place" data-edge-kind="flow" data-topic-id="" data-flow="control" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="3" data-route-stretch="1.148" data-bridges="" d="M 1120,536 L 1166,536 L 1166,436 L 2010,436 L 2010,504" fill="none" stroke="#7c3aed" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowA)"/>
+  <path id="reposition-to-pick" data-graph-role="edge" data-edge-id="reposition-to-pick" data-source="skill_reposition" data-target="skill_pick" data-edge-kind="flow" data-topic-id="" data-flow="control" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="4" data-route-stretch="2.209" data-bridges="" d="M 1250,563 L 1208,563 L 1208,656 L 1162,656 L 1162,572 L 1120,572" fill="none" stroke="#7c3aed" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowA)"/>
+  <path id="nav-adapter" data-graph-role="edge" data-edge-id="nav-adapter" data-source="contract_nav" data-target="adapter_nav" data-edge-kind="flow" data-topic-id="" data-flow="async" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 360,858 L 360,944 L 360,1044" fill="none" stroke="#7c3aed" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowA)"/>
+  <path id="goal-to-vlm" data-graph-role="edge" data-edge-id="goal-to-vlm" data-source="subgoal" data-target="vlm" data-edge-kind="flow" data-topic-id="" data-flow="control" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 590,249 L 820,249" fill="none" stroke="#7c3aed" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowA)"/>
+  <path id="vlm-to-ids" data-graph-role="edge" data-edge-id="vlm-to-ids" data-source="vlm" data-target="selected" data-edge-kind="flow" data-topic-id="" data-flow="control" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 1232,249 L 1462,249" fill="none" stroke="#7c3aed" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowA)"/>
+  <path id="nav-to-pick" data-graph-role="edge" data-edge-id="nav-to-pick" data-source="skill_nav" data-target="skill_pick" data-edge-kind="flow" data-topic-id="" data-flow="control" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 570,554 L 700,554" fill="none" stroke="#7c3aed" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowA)"/>
+  <path id="pick-to-reposition" data-graph-role="edge" data-edge-id="pick-to-reposition" data-source="skill_pick" data-target="skill_reposition" data-edge-kind="flow" data-topic-id="" data-flow="feedback" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="2" data-route-stretch="1.0" data-bridges="" d="M 1120,554 L 1132.2,554 L 1132.2,545 L 1250,545" fill="none" stroke="#ef4444" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowG)" stroke-dasharray="6,4"/>
+  <path id="nav-contract" data-graph-role="edge" data-edge-id="nav-contract" data-source="skill_nav" data-target="contract_nav" data-edge-kind="flow" data-topic-id="" data-flow="read" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 360,604 L 360,748" fill="none" stroke="#2563eb" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowC)"/>
+  <path id="pick-contract" data-graph-role="edge" data-edge-id="pick-contract" data-source="skill_pick" data-target="contract_pick" data-edge-kind="flow" data-topic-id="" data-flow="read" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 910,604 L 910,748" fill="none" stroke="#2563eb" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowC)"/>
+  <path id="reposition-contract" data-graph-role="edge" data-edge-id="reposition-contract" data-source="skill_reposition" data-target="contract_reposition" data-edge-kind="flow" data-topic-id="" data-flow="read" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 1460,604 L 1460,748" fill="none" stroke="#2563eb" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowC)"/>
+  <path id="place-contract" data-graph-role="edge" data-edge-id="place-contract" data-source="skill_place" data-target="contract_place" data-edge-kind="flow" data-topic-id="" data-flow="read" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 2010,604 L 2010,748" fill="none" stroke="#2563eb" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowC)"/>
+  <path id="pick-adapter" data-graph-role="edge" data-edge-id="pick-adapter" data-source="contract_pick" data-target="adapter_pick" data-edge-kind="flow" data-topic-id="" data-flow="async" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 910,858 L 910,1044" fill="none" stroke="#7c3aed" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowA)"/>
+  <path id="reposition-adapter" data-graph-role="edge" data-edge-id="reposition-adapter" data-source="contract_reposition" data-target="adapter_reposition" data-edge-kind="flow" data-topic-id="" data-flow="async" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 1460,858 L 1460,1044" fill="none" stroke="#7c3aed" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowA)"/>
+  <path id="place-adapter" data-graph-role="edge" data-edge-id="place-adapter" data-source="contract_place" data-target="adapter_place" data-edge-kind="flow" data-topic-id="" data-flow="async" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 2010,858 L 2010,1044" fill="none" stroke="#7c3aed" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowA)"/>
+  <path id="adapter-nav-policy" data-graph-role="edge" data-edge-id="adapter-nav-policy" data-source="adapter_nav" data-target="policy_nav" data-edge-kind="flow" data-topic-id="" data-flow="control" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 360,1120 L 360,1204" fill="none" stroke="#7c3aed" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowA)"/>
+  <path id="adapter-pick-policy" data-graph-role="edge" data-edge-id="adapter-pick-policy" data-source="adapter_pick" data-target="policy_pick" data-edge-kind="flow" data-topic-id="" data-flow="control" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 910,1120 L 910,1204" fill="none" stroke="#7c3aed" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowA)"/>
+  <path id="adapter-reposition-policy" data-graph-role="edge" data-edge-id="adapter-reposition-policy" data-source="adapter_reposition" data-target="policy_reposition" data-edge-kind="flow" data-topic-id="" data-flow="control" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 1460,1120 L 1460,1204" fill="none" stroke="#7c3aed" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowA)"/>
+  <path id="adapter-place-policy" data-graph-role="edge" data-edge-id="adapter-place-policy" data-source="adapter_place" data-target="policy_place" data-edge-kind="flow" data-topic-id="" data-flow="control" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 2010,1120 L 2010,1204" fill="none" stroke="#7c3aed" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowA)"/>
+  <g id="node-subgoal" data-graph-role="node" data-node-id="subgoal" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="178,204,590,294">
+  <rect x="178.0" y="204.0" width="412.0" height="90.0" rx="10.0" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.8"/>
+  <text data-text-role="title" data-full-text="Semantic Subgoal" data-text-max-width="388.0" x="384.0" y="249.0" text-anchor="middle" class="node-title" font-size="18">Semantic Subgoal</text>
+  <text data-text-role="subtitle" data-full-text="what should change in the scene" data-text-max-width="388.0" x="384.0" y="271.0" text-anchor="middle" class="node-sub" font-size="12">what should change in the scene</text>
+  </g>
+  <g id="node-vlm" data-graph-role="node" data-node-id="vlm" data-semantic-role="double_rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="820,204,1232,294">
+  <rect x="820.0" y="204.0" width="412.0" height="90.0" rx="10.0" fill="#faf5ff" stroke="#8b5cf6" stroke-width="2.0"/>
+  <rect x="826.0" y="210.0" width="400.0" height="78.0" rx="7.0" fill="none" stroke="#8b5cf6" stroke-width="1.2" opacity="0.65"/>
+  <text data-text-role="title" data-full-text="VLM Planner" data-text-max-width="380.0" x="1026.0" y="249.0" text-anchor="middle" class="node-title" font-size="18">VLM Planner</text>
+  <text data-text-role="subtitle" data-full-text="reads public Skill fields; reasons by meaning" data-text-max-width="380.0" x="1026.0" y="271.0" text-anchor="middle" class="node-sub" font-size="12">reads public Skill fields; reasons by meaning</text>
+  </g>
+  <g id="node-selected" data-graph-role="node" data-node-id="selected" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="1462,204,1874,294">
+  <rect x="1462.0" y="204.0" width="412.0" height="90.0" rx="10.0" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.8"/>
+  <text data-text-role="title" data-full-text="Selected Skill IDs" data-text-max-width="388.0" x="1668.0" y="249.0" text-anchor="middle" class="node-title" font-size="18">Selected Skill IDs</text>
+  <text data-text-role="subtitle" data-full-text="stable references in a task subgraph" data-text-max-width="388.0" x="1668.0" y="271.0" text-anchor="middle" class="node-sub" font-size="12">stable references in a task subgraph</text>
+  </g>
+  <g id="node-skill_nav" data-graph-role="node" data-node-id="skill_nav" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="150,504,570,604">
+  <rect x="150.0" y="504.0" width="420.0" height="100.0" rx="10.0" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.8"/>
+  <text data-text-role="title" data-full-text="id: s_nav  |  name: Navigate" data-text-max-width="396.0" x="360.0" y="554.0" text-anchor="middle" class="node-title" font-size="18">id: s_nav | name: Navigate</text>
+  <text data-text-role="subtitle" data-full-text="description: approach a target pose" data-text-max-width="396.0" x="360.0" y="576.0" text-anchor="middle" class="node-sub" font-size="12">description: approach a target pose</text>
+  </g>
+  <g id="node-skill_pick" data-graph-role="node" data-node-id="skill_pick" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="700,504,1120,604">
+  <rect x="700.0" y="504.0" width="420.0" height="100.0" rx="10.0" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.8"/>
+  <text data-text-role="title" data-full-text="id: s_pick  |  name: Pick" data-text-max-width="396.0" x="910.0" y="554.0" text-anchor="middle" class="node-title" font-size="18">id: s_pick | name: Pick</text>
+  <text data-text-role="subtitle" data-full-text="description: acquire an object" data-text-max-width="396.0" x="910.0" y="576.0" text-anchor="middle" class="node-sub" font-size="12">description: acquire an object</text>
+  </g>
+  <g id="node-skill_reposition" data-graph-role="node" data-node-id="skill_reposition" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="1250,504,1670,604">
+  <rect x="1250.0" y="504.0" width="420.0" height="100.0" rx="10.0" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.8"/>
+  <text data-text-role="title" data-full-text="id: s_move  |  name: Reposition" data-text-max-width="396.0" x="1460.0" y="554.0" text-anchor="middle" class="node-title" font-size="18">id: s_move | name: Reposition</text>
+  <text data-text-role="subtitle" data-full-text="description: change object pose" data-text-max-width="396.0" x="1460.0" y="576.0" text-anchor="middle" class="node-sub" font-size="12">description: change object pose</text>
+  </g>
+  <g id="node-skill_place" data-graph-role="node" data-node-id="skill_place" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="1800,504,2220,604">
+  <rect x="1800.0" y="504.0" width="420.0" height="100.0" rx="10.0" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.8"/>
+  <text data-text-role="title" data-full-text="id: s_place  |  name: Place" data-text-max-width="396.0" x="2010.0" y="554.0" text-anchor="middle" class="node-title" font-size="18">id: s_place | name: Place</text>
+  <text data-text-role="subtitle" data-full-text="description: release at the target" data-text-max-width="396.0" x="2010.0" y="576.0" text-anchor="middle" class="node-sub" font-size="12">description: release at the target</text>
+  </g>
+  <g id="node-contract_nav" data-graph-role="node" data-node-id="contract_nav" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="150,748,570,858">
+  <rect x="150.0" y="748.0" width="420.0" height="110.0" rx="10.0" fill="#ecfdf5" stroke="#10b981" stroke-width="1.8"/>
+  <text data-text-role="title" data-full-text="Contract for s_nav" data-text-max-width="396.0" x="360.0" y="803.0" text-anchor="middle" class="node-title" font-size="18">Contract for s_nav</text>
+  <text data-text-role="subtitle" data-full-text="inputs · requires · achieves · outcomes · verifier" data-text-max-width="396.0" x="360.0" y="825.0" text-anchor="middle" class="node-sub" font-size="12">inputs · requires · achieves · outcomes · verifier</text>
+  </g>
+  <g id="node-contract_pick" data-graph-role="node" data-node-id="contract_pick" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="700,748,1120,858">
+  <rect x="700.0" y="748.0" width="420.0" height="110.0" rx="10.0" fill="#ecfdf5" stroke="#10b981" stroke-width="1.8"/>
+  <text data-text-role="title" data-full-text="Contract for s_pick" data-text-max-width="396.0" x="910.0" y="803.0" text-anchor="middle" class="node-title" font-size="18">Contract for s_pick</text>
+  <text data-text-role="subtitle" data-full-text="inputs · requires · achieves · outcomes · verifier" data-text-max-width="396.0" x="910.0" y="825.0" text-anchor="middle" class="node-sub" font-size="12">inputs · requires · achieves · outcomes · verifier</text>
+  </g>
+  <g id="node-contract_reposition" data-graph-role="node" data-node-id="contract_reposition" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="1250,748,1670,858">
+  <rect x="1250.0" y="748.0" width="420.0" height="110.0" rx="10.0" fill="#ecfdf5" stroke="#10b981" stroke-width="1.8"/>
+  <text data-text-role="title" data-full-text="Contract for s_move" data-text-max-width="396.0" x="1460.0" y="803.0" text-anchor="middle" class="node-title" font-size="18">Contract for s_move</text>
+  <text data-text-role="subtitle" data-full-text="inputs · requires · achieves · outcomes · verifier" data-text-max-width="396.0" x="1460.0" y="825.0" text-anchor="middle" class="node-sub" font-size="12">inputs · requires · achieves · outcomes · verifier</text>
+  </g>
+  <g id="node-contract_place" data-graph-role="node" data-node-id="contract_place" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="1800,748,2220,858">
+  <rect x="1800.0" y="748.0" width="420.0" height="110.0" rx="10.0" fill="#ecfdf5" stroke="#10b981" stroke-width="1.8"/>
+  <text data-text-role="title" data-full-text="Contract for s_place" data-text-max-width="396.0" x="2010.0" y="803.0" text-anchor="middle" class="node-title" font-size="18">Contract for s_place</text>
+  <text data-text-role="subtitle" data-full-text="inputs · requires · achieves · outcomes · verifier" data-text-max-width="396.0" x="2010.0" y="825.0" text-anchor="middle" class="node-sub" font-size="12">inputs · requires · achieves · outcomes · verifier</text>
+  </g>
+  <g id="node-adapter_nav" data-graph-role="node" data-node-id="adapter_nav" data-semantic-role="double_rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="150,1044,570,1120">
+  <rect x="150.0" y="1044.0" width="420.0" height="76.0" rx="10.0" fill="#fffbeb" stroke="#f59e0b" stroke-width="2.0"/>
+  <rect x="156.0" y="1050.0" width="408.0" height="64.0" rx="7.0" fill="none" stroke="#f59e0b" stroke-width="1.2" opacity="0.65"/>
+  <text data-text-role="title" data-full-text="Skill Invocation Adapter" data-text-max-width="388.0" x="360.0" y="1082.0" text-anchor="middle" class="node-title" font-size="18">Skill Invocation Adapter</text>
+  <text data-text-role="subtitle" data-full-text="execute(skill_id, args) · Python / CLI / API" data-text-max-width="388.0" x="360.0" y="1104.0" text-anchor="middle" class="node-sub" font-size="12">execute(skill_id, args) · Python / CLI / API</text>
+  </g>
+  <g id="node-adapter_pick" data-graph-role="node" data-node-id="adapter_pick" data-semantic-role="double_rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="700,1044,1120,1120">
+  <rect x="700.0" y="1044.0" width="420.0" height="76.0" rx="10.0" fill="#fffbeb" stroke="#f59e0b" stroke-width="2.0"/>
+  <rect x="706.0" y="1050.0" width="408.0" height="64.0" rx="7.0" fill="none" stroke="#f59e0b" stroke-width="1.2" opacity="0.65"/>
+  <text data-text-role="title" data-full-text="Skill Invocation Adapter" data-text-max-width="388.0" x="910.0" y="1082.0" text-anchor="middle" class="node-title" font-size="18">Skill Invocation Adapter</text>
+  <text data-text-role="subtitle" data-full-text="execute(skill_id, args) · Python / CLI / API" data-text-max-width="388.0" x="910.0" y="1104.0" text-anchor="middle" class="node-sub" font-size="12">execute(skill_id, args) · Python / CLI / API</text>
+  </g>
+  <g id="node-adapter_reposition" data-graph-role="node" data-node-id="adapter_reposition" data-semantic-role="double_rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="1250,1044,1670,1120">
+  <rect x="1250.0" y="1044.0" width="420.0" height="76.0" rx="10.0" fill="#fffbeb" stroke="#f59e0b" stroke-width="2.0"/>
+  <rect x="1256.0" y="1050.0" width="408.0" height="64.0" rx="7.0" fill="none" stroke="#f59e0b" stroke-width="1.2" opacity="0.65"/>
+  <text data-text-role="title" data-full-text="Skill Invocation Adapter" data-text-max-width="388.0" x="1460.0" y="1082.0" text-anchor="middle" class="node-title" font-size="18">Skill Invocation Adapter</text>
+  <text data-text-role="subtitle" data-full-text="execute(skill_id, args) · Python / CLI / API" data-text-max-width="388.0" x="1460.0" y="1104.0" text-anchor="middle" class="node-sub" font-size="12">execute(skill_id, args) · Python / CLI / API</text>
+  </g>
+  <g id="node-adapter_place" data-graph-role="node" data-node-id="adapter_place" data-semantic-role="double_rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="1800,1044,2220,1120">
+  <rect x="1800.0" y="1044.0" width="420.0" height="76.0" rx="10.0" fill="#fffbeb" stroke="#f59e0b" stroke-width="2.0"/>
+  <rect x="1806.0" y="1050.0" width="408.0" height="64.0" rx="7.0" fill="none" stroke="#f59e0b" stroke-width="1.2" opacity="0.65"/>
+  <text data-text-role="title" data-full-text="Skill Invocation Adapter" data-text-max-width="388.0" x="2010.0" y="1082.0" text-anchor="middle" class="node-title" font-size="18">Skill Invocation Adapter</text>
+  <text data-text-role="subtitle" data-full-text="execute(skill_id, args) · Python / CLI / API" data-text-max-width="388.0" x="2010.0" y="1104.0" text-anchor="middle" class="node-sub" font-size="12">execute(skill_id, args) · Python / CLI / API</text>
+  </g>
+  <g id="node-policy_nav" data-graph-role="node" data-node-id="policy_nav" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="150,1204,570,1292">
+  <rect x="150.0" y="1204.0" width="420.0" height="88.0" rx="10.0" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.8"/>
+  <text data-text-role="title" data-full-text="Navigation Controller" data-text-max-width="396.0" x="360.0" y="1248.0" text-anchor="middle" class="node-title" font-size="18">Navigation Controller</text>
+  <text data-text-role="subtitle" data-full-text="example low-level policy family" data-text-max-width="396.0" x="360.0" y="1270.0" text-anchor="middle" class="node-sub" font-size="12">example low-level policy family</text>
+  </g>
+  <g id="node-policy_pick" data-graph-role="node" data-node-id="policy_pick" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="700,1204,1120,1292">
+  <rect x="700.0" y="1204.0" width="420.0" height="88.0" rx="10.0" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.8"/>
+  <text data-text-role="title" data-full-text="pi0.5 / VLA" data-text-max-width="396.0" x="910.0" y="1248.0" text-anchor="middle" class="node-title" font-size="18">pi0.5 / VLA</text>
+  <text data-text-role="subtitle" data-full-text="example low-level policy family" data-text-max-width="396.0" x="910.0" y="1270.0" text-anchor="middle" class="node-sub" font-size="12">example low-level policy family</text>
+  </g>
+  <g id="node-policy_reposition" data-graph-role="node" data-node-id="policy_reposition" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="1250,1204,1670,1292">
+  <rect x="1250.0" y="1204.0" width="420.0" height="88.0" rx="10.0" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.8"/>
+  <text data-text-role="title" data-full-text="Code as Policies" data-text-max-width="396.0" x="1460.0" y="1248.0" text-anchor="middle" class="node-title" font-size="18">Code as Policies</text>
+  <text data-text-role="subtitle" data-full-text="example low-level policy family" data-text-max-width="396.0" x="1460.0" y="1270.0" text-anchor="middle" class="node-sub" font-size="12">example low-level policy family</text>
+  </g>
+  <g id="node-policy_place" data-graph-role="node" data-node-id="policy_place" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="1800,1204,2220,1292">
+  <rect x="1800.0" y="1204.0" width="420.0" height="88.0" rx="10.0" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.8"/>
+  <text data-text-role="title" data-full-text="Scripted / External Tool" data-text-max-width="396.0" x="2010.0" y="1248.0" text-anchor="middle" class="node-title" font-size="18">Scripted / External Tool</text>
+  <text data-text-role="subtitle" data-full-text="example low-level policy family" data-text-max-width="396.0" x="2010.0" y="1270.0" text-anchor="middle" class="node-sub" font-size="12">example low-level policy family</text>
+  </g>
+  <g id="id-lookup-example-label" data-graph-role="label" data-owner="id-lookup-example" data-graph-bounds="1214.08,319,1363.92,339">
+  <rect x="1214.08" y="319.0" width="149.84000000000003" height="20" rx="6" fill="#ffffff" opacity="0.94"/>
+  <text x="1289.0" y="333.0" text-anchor="middle" class="arrow-label">lookup by ID (example)</text>
+  </g>
+  <g id="pick-to-place-label" data-graph-role="label" data-owner="pick-to-place" data-graph-bounds="1467,405,1709,425">
+  <rect x="1467.0" y="405.0" width="241.9999999999999" height="20" rx="6" fill="#ffffff" opacity="0.94"/>
+  <text x="1588.0" y="419.0" text-anchor="middle" class="arrow-label">primary path when holding the object</text>
+  </g>
+  <g id="pick-to-reposition-label" data-graph-role="label" data-owner="pick-to-reposition" data-graph-bounds="1177.38,514,1240.82,534">
+  <rect x="1177.38" y="514.0" width="63.44" height="20" rx="6" fill="#ffffff" opacity="0.94"/>
+  <text x="1209.1" y="528.0" text-anchor="middle" class="arrow-label">fallback</text>
+  </g>
+  <g id="reposition-to-pick-label" data-graph-role="label" data-owner="reposition-to-pick" data-graph-bounds="1156.2,595.5,1205,615.5">
+  <rect x="1156.2" y="595.5" width="48.8" height="20" rx="6" fill="#ffffff" opacity="0.94"/>
+  <text x="1180.6" y="609.5" text-anchor="middle" class="arrow-label">retry</text>
+  </g>
+  <g id="footer" data-graph-role="reserved" data-graph-bounds="150,1372,1585,1388">
+  <text x="150.0" y="1384.0" class="footnote">Illustrative records and backend families. Skill links are conditional hints; fallback may enter a recovery-and-retry cycle. The VLM sees semantic fields; runtime bindings and policy internals stay hidden.</text>
+  </g>
+</svg>
