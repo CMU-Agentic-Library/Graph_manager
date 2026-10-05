@@ -16,10 +16,11 @@ dev = ["ruff"]
 graph-manager-plan = "graph_manager.cli:main"
 
 [tool.setuptools.packages.find]
-include = ["graph_manager*"]
+include = ["graph_manager*", "skill_library"]
 
 [tool.setuptools.package-data]
 graph_manager = ["harness_profile/*.yml"]
+skill_library = ["skill_library.json"]
 
 [tool.ruff]
 target-version = "py312"
