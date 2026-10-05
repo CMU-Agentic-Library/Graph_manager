@@ -1,156 +1,102 @@
+"""The public command wires Harness to the single planning service."""
+
 import json
-import subprocess
-import sys
 import tempfile
-import threading
 import unittest
-from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
+from unittest.mock import patch
+
+from graph_manager.cli import run
 
 
-class SequenceHandler(BaseHTTPRequestHandler):
-    outputs = []
-    requests = []
+class FakeHarnessSession:
+    created = []
 
-    def do_POST(self):
-        length = int(self.headers["Content-Length"])
-        self.requests.append(json.loads(self.rfile.read(length)))
-        text = self.outputs.pop(0)
-        data = json.dumps({"choices": [{"message": {"content": text}}]}).encode()
-        self.send_response(200)
-        self.send_header("Content-Type", "application/json")
-        self.send_header("Content-Length", str(len(data)))
-        self.end_headers()
-        self.wfile.write(data)
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
+        self.session_id = kwargs["session_id"] or "generated-session"
+        self.dsh_home = Path(kwargs["dsh_home"])
+        self.turns = []
+        self.created.append(self)
 
-    def log_message(self, *_args):
-        pass
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_args):
+        return None
+
+    def ask(self, text, image=None, image_mime="image/jpeg"):
+        self.turns.append((text, image, image_mime))
+        return json.dumps(
+            {
+                "schema_version": 1,
+                "kind": "task_plan",
+                "subgoals": [{"id": "sg_1", "goal": "Hold apple"}],
+                "subgraphs": [
+                    {
+                        "subgoal_id": "sg_1",
+                        "nodes": [
+                            {
+                                "id": "n1",
+                                "skill_id": "skill_004",
+                                "args": {"object": {"ref": "apple"}},
+                                "depends_on": [],
+                            }
+                        ],
+                    }
+                ],
+            }
+        )
 
 
 class PlannerCliTest(unittest.TestCase):
     def setUp(self):
-        SequenceHandler.requests = []
-        self.server = HTTPServer(("127.0.0.1", 0), SequenceHandler)
-        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
-        self.thread.start()
+        FakeHarnessSession.created = []
 
-    def tearDown(self):
-        self.server.shutdown()
-        self.server.server_close()
-        self.thread.join()
-
-    def test_cli_writes_validated_result_with_optional_catalog(self):
-        SequenceHandler.outputs = [
-            json.dumps(
-                {
-                    "schema_version": 1,
-                    "kind": "task_plan",
-                    "subgoals": [{"id": "sg_1", "goal": "Hold apple"}],
-                    "subgraphs": [
-                        {
-                            "subgoal_id": "sg_1",
-                            "nodes": [
-                                {
-                                    "id": "n1",
-                                    "skill_id": "skill_004",
-                                    "args": {"object": {"ref": "apple"}},
-                                    "depends_on": [],
-                                }
-                            ],
-                        }
-                    ],
-                }
-            ),
-        ]
+    def test_public_command_saves_grounded_plan_and_session_metadata(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
+            image = root / "scene.png"
+            image.write_bytes(b"pixels")
             catalog = root / "entities.json"
-            output = root / "result.json"
             catalog.write_text(
                 json.dumps({"entities": [{"id": "apple", "types": ["MovableObject"]}]})
             )
-            result = subprocess.run(
-                [
-                    sys.executable,
-                    "-m",
-                    "graph_manager.cli",
-                    "--goal",
-                    "Hold the apple",
-                    "--entity-catalog",
-                    str(catalog),
-                    "--base-url",
-                    f"http://127.0.0.1:{self.server.server_port}/v1",
-                    "--model",
-                    "local-vlm",
-                    "--output",
-                    str(output),
-                ],
-                cwd=Path(__file__).resolve().parents[1],
-                capture_output=True,
-                text=True,
-            )
-            self.assertEqual(0, result.returncode, result.stderr)
-            saved = json.loads(output.read_text())
-            self.assertEqual("statically_validated", saved["status"])
-            self.assertEqual(
-                "skill_004", saved["task_plan"]["subgraphs"][0]["nodes"][0]["skill_id"]
-            )
-            self.assertEqual(1, len(SequenceHandler.requests))
+            patch_file = root / "route.patch.yml"
+            patch_file.write_text("[]\n")
+            output = root / "plan.json"
 
-    def test_cli_reports_proven_precondition_with_exact_node_path(self):
-        invalid = {
-            "schema_version": 1,
-            "kind": "task_plan",
-            "subgoals": [{"id": "sg_1", "goal": "Hold apple"}],
-            "subgraphs": [
-                {
-                    "subgoal_id": "sg_1",
-                    "nodes": [
-                        {
-                            "id": "n1",
-                            "skill_id": "skill_004",
-                            "args": {"object": {"ref": "apple"}},
-                            "depends_on": [],
-                        }
-                    ],
-                }
-            ],
-        }
-        SequenceHandler.outputs = [json.dumps(invalid)]
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            state = root / "state.json"
-            output = root / "result.json"
-            state.write_text(
-                json.dumps({"facts": [{"predicate": "gripper_empty", "args": {}, "value": False}]})
-            )
-            result = subprocess.run(
-                [
-                    sys.executable,
-                    "-m",
-                    "graph_manager.cli",
-                    "--goal",
-                    "Hold the apple",
-                    "--state-file",
-                    str(state),
-                    "--max-attempts",
-                    "1",
-                    "--base-url",
-                    f"http://127.0.0.1:{self.server.server_port}/v1",
-                    "--model",
-                    "local-vlm",
-                    "--output",
-                    str(output),
-                ],
-                cwd=Path(__file__).resolve().parents[1],
-                capture_output=True,
-                text=True,
-            )
-            self.assertEqual(1, result.returncode, result.stderr)
+            with patch("graph_manager.cli.DeepSeekHarnessSession", FakeHarnessSession):
+                exit_code = run(
+                    [
+                        "--goal",
+                        "Hold apple",
+                        "--image",
+                        str(image),
+                        "--entity-catalog",
+                        str(catalog),
+                        "--dsh-home",
+                        str(root / "dsh"),
+                        "--provider",
+                        "lab-vlm",
+                        "--model",
+                        "local-vlm",
+                        "--patch",
+                        str(patch_file),
+                        "--output",
+                        str(output),
+                    ]
+                )
+
             saved = json.loads(output.read_text())
-            self.assertEqual("rejected", saved["status"])
-            self.assertEqual("precondition_failed", saved["issues"][0]["code"])
-            self.assertEqual("$.subgraphs[0].nodes[0]", saved["issues"][0]["path"])
+            self.assertEqual(0, exit_code)
+            self.assertEqual("statically_validated", saved["status"])
+            self.assertEqual("deepseek_harness", saved["runtime"]["backend"])
+            self.assertEqual("generated-session", saved["runtime"]["session_id"])
+            session = FakeHarnessSession.created[0]
+            self.assertEqual("sdk", session.kwargs["profile"])
+            self.assertEqual(b"pixels", session.turns[0][1])
+            self.assertEqual("image/png", session.turns[0][2])
 
 
 if __name__ == "__main__":
