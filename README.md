@@ -24,55 +24,33 @@ The [ZenoBench `skills.py` function inventory](docs/zenobench-skills-function-in
 
 ## Planning loop
 
-The planning loop accepts a goal, an optional current image or observation text, and the complete public Skill Library. One model response proposes all semantic Subgoals and one Skill Subgraph for each Subgoal. Graph Manager checks the proposal against public Skill IDs, Contract inputs, references, dependencies, and DAG structure. On failure, it sends path-addressed errors to the model in the same conversation and asks for a revised complete plan. The loop has a configurable attempt limit and does not execute robot Skills.
+Graph Manager accepts a Goal, an optional scene image or observation text, and the complete public Skill Library. In the current version, one model response proposes all semantic Subgoals and one Skill Subgraph for each Subgoal. The application checks Skill IDs, Contract inputs, object references, dependencies, and DAG structure. It sends addressable validation feedback in the same DeepSeek Harness session when a proposal is invalid. It does not execute robot Skills.
 
-There are two optional model backends. `graph-manager-plan` uses the direct HTTP adapter and keeps the short conversation in Python. `graph-manager-plan-harness` uses the DeepSeek Harness Python SDK. Harness owns that backend's conversation history and local session persistence; Graph Manager sends only the initial task input and later validation feedback.
+DeepSeek Harness is the sole model runtime. It owns model access and conversation history; Graph Manager owns the planning input, the accepted JSON schema, Contract validation, and the decision to accept or request another proposal. The local model server, such as vLLM, is a separate process.
 
-Create the isolated Python environment from the committed lock file with `uv`, then run the tests:
+### Install and run
+
+Create the isolated Python environment from the committed lock file:
 
 ```bash
-uv sync --extra dev
+uv sync --locked --extra dev
 .venv/bin/python -m unittest discover -s tests
 .venv/bin/ruff check .
 .venv/bin/ruff format --check .
 ```
 
-If `uv` is unavailable, `python3 -m venv .venv` followed by `.venv/bin/python -m pip install -e '.[dev]'` also works.
-
-For a local VLM served through a vLLM OpenAI-compatible endpoint, run:
+Copy the local vision-model route and edit its `baseURL` and model ID to match the served model:
 
 ```bash
-.venv/bin/graph-manager-plan \
-  --goal-file goal.txt \
-  --image scene.jpg \
-  --base-url http://127.0.0.1:8000/v1 \
-  --model YOUR_SERVED_VLM_NAME \
-  --output run/plan.json
-```
-
-Add `--entity-catalog entities.json` to give the model a GT list of bindable IDs and types. Its format is:
-
-```json
-{"entities": [{"id": "apple", "types": ["MovableObject"]}]}
-```
-
-The catalog is optional. Without it, the model receives no ID list, and object references remain unresolved; the result status is `unresolved_references`. With it, `{"ref":"apple"}` must match an exact ID and a compatible Contract input type. GT catalog data should contain only IDs and types, not final evaluator truth. A later grounding adapter can resolve references from vision while keeping the graph JSON shape. An observation text file can be supplied with `--observation-file`, and `GRAPH_MANAGER_API_KEY` supplies an optional endpoint token. `--max-attempts` controls the repair limit. Run `graph-manager-plan --help` for all flags.
-
-### DeepSeek Harness SDK backend
-
-Install the optional SDK and its matching runtime wheel without changing the direct HTTP command:
-
-```bash
-uv sync --locked --extra dev --extra harness
 mkdir -p run
 cp examples/harness-local-vlm.patch.yml run/local-vlm.patch.yml
 ```
 
-Edit `run/local-vlm.patch.yml` so `baseURL` points to the served endpoint and its model ID matches `--model`. The [example patch](examples/harness-local-vlm.patch.yml) registers an image-capable OpenAI-compatible route named `lab-vlm` in the full Harness `sdk` profile. Harness requires YAML for profile composition; the Skill Contracts and task graphs remain JSON. Supply the route's key through `LAB_VLM_API_KEY` (a dummy value is sufficient when the local endpoint does not authenticate).
+The [example route](examples/harness-local-vlm.patch.yml) declares `input: [text, image]` for the vision model. Replace its model ID with the value passed to `--model`. Harness uses YAML for its profile composition; Skill Contracts and task plans remain JSON. Supply the route credential through `LAB_VLM_API_KEY`; a dummy value is sufficient for an unauthenticated local endpoint.
 
 ```bash
 export LAB_VLM_API_KEY=dummy
-.venv/bin/graph-manager-plan-harness \
+.venv/bin/graph-manager-plan \
   --goal-file goal.txt \
   --image scene.png \
   --dsh-home run/dsh-home \
@@ -82,9 +60,19 @@ export LAB_VLM_API_KEY=dummy
   --output run/plan.json
 ```
 
-This command uses one Harness session for the initial task and every corrective turn. The output records its `session_id`; Harness stores its history under the explicitly selected `--dsh-home`. Graph Manager automatically applies a [planner profile patch](graph_manager/harness_profile/cordis.patch.yml) to the full `sdk` profile: it keeps persistence and compaction but disables the bundled coding tools, workspace instructions, and DeepSeek telemetry and session-log contributors. Later `--patch` files can extend this profile deliberately. A turn has a 300-second deadline by default; change it with `--turn-timeout-seconds` for slower local inference. Use a fresh session ID for each command invocation: this SDK version persists sessions but cannot resume an existing ID in a new Python process. The selected model endpoint receives the planning inputs; local session storage does not imply that a remote model endpoint is local. The SDK is pinned as an optional pre-release dependency and remains separate from the GPU model server.
+The same command accepts `--observation-file`, `--state-file`, `--entity-catalog`, and `--max-attempts`. Run `graph-manager-plan --help` for all options. The default planner profile keeps local session persistence and compaction while disabling coding tools, workspace instructions, and the bundled DeepSeek telemetry contributors. The output records the Harness session ID. The pinned SDK stores session history under the selected `--dsh-home`; this version does not resume an existing ID from a later Python process.
 
-The model returns one JSON object:
+The optional entity catalog gives exact bindable IDs and types:
+
+```json
+{"entities": [{"id": "apple", "types": ["MovableObject"]}]}
+```
+
+Without the catalog, the model receives no GT ID list; object references remain unresolved and the result status is `unresolved_references`. With it, `{"ref":"apple"}` must match an exact ID with a compatible Contract input type. The catalog must not contain evaluator truth.
+
+### Plan format and checks
+
+The model proposes one JSON object:
 
 ```json
 {
@@ -94,40 +82,45 @@ The model returns one JSON object:
   "subgraphs": [{
     "subgoal_id": "sg_1",
     "nodes": [{
-      "id": "n1", "skill_id": "skill_004",
-      "args": {"object": {"ref": "apple"}}, "depends_on": []
+      "id": "n1",
+      "skill_id": "skill_004",
+      "args": {"object": {"ref": "apple"}},
+      "depends_on": []
     }]
   }]
 }
 ```
 
-Each Subgraph is a DAG for one Subgoal. `OptionalVector2` inputs must still appear and may be `null`. A rejected result includes `code`, `path`, and `message`; for example, an unknown Skill ID points to `$.subgraphs[0].nodes[0].skill_id`. Model outputs and validation issues are retained in `attempts`.
+Each Subgraph is a DAG for one Subgoal. Every Contract input key must appear; `OptionalVector2` may be `null`. A rejected proposal reports `code`, `path`, and `message`; for example, an unknown Skill ID points to `$.subgraphs[0].nodes[0].skill_id`. Output attempts and issues are retained.
 
-An optional `--state-file state.json` provides explicitly observed facts:
+An optional state file supplies explicitly observed facts:
 
 ```json
 {"facts": [{"predicate": "gripper_empty", "args": {}, "value": false}]}
 ```
 
-Contracts list a small set of `checkable_requires`. Input-only conditions such as nonzero push displacement are checked anywhere in the plan. State facts are checked only for initially ready nodes of the first Subgoal. Missing facts are unknown rather than false. Other natural-language preconditions, physical execution, and the final task goal require future observation and Verifiers.
-Facts bound to an object are checked only when an entity catalog grounds that object reference to an exact ID; zero-argument facts such as `gripper_empty` can be checked without the catalog.
+The validator checks only facts and input conditions represented in `checkable_requires`. Input-only requirements can be checked anywhere in the plan; observed facts apply only to initially ready nodes in the first Subgoal. Missing facts mean unknown. Object-bound facts require an entity catalog to ground references to exact IDs; zero-argument facts can be checked without one. Other natural-language preconditions, physical execution, and final Goal completion require later observation and Verifiers.
 
 ### Code layout
 
-Direct HTTP: `cli.py` → `PlanningLoop` → model response → domain validation → accepted plan or feedback in the same `Conversation`.
+```text
+cli.py
+  → PlanningService
+      ├─ PlanningInputBuilder → initial turn / feedback turn
+      ├─ DeepSeekHarnessSession → candidate plan
+      └─ task_plan_validation → accepted plan / validation issues
+```
 
-Harness SDK: `harness_cli.py` → `HarnessPlanningService` → persistent Harness session → domain validation → new feedback turn in that session.
-
-| Directory | Responsibility |
+| Directory or module | Responsibility |
 | --- | --- |
-| `application/` | Plan validation feedback and retry policy; only the direct HTTP path owns a Python conversation |
-| `domain/` | Planning data and pure JSON, Contract, and graph checks |
-| `prompts/` | Initial model instruction and corrective feedback |
-| `adapters/` | OpenAI-compatible HTTP model, DeepSeek Harness SDK session, and JSON Skill Library loader |
-| `ports.py` | Small interfaces between the loop and its adapters |
-| `cli.py`, `harness_cli.py`, `plan_inputs.py` | Command-line input, dependency construction, and result output |
+| `application/input_builder.py` | Build first and corrective model turns |
+| `application/planning_service.py` | Orchestrate proposals and bounded acceptance |
+| `domain/` | Planning data and pure JSON, Contract, and DAG checks |
+| `prompts/task_plan.py` | Model-visible plan instructions and feedback text |
+| `adapters/` | DeepSeek SDK session and public JSON Skill Library loading |
+| `cli.py`, `plan_inputs.py` | Read local inputs, construct dependencies, write results |
 
-Neither the domain nor the prompt builder performs HTTP or file I/O.
+The execution runner for ZenoBench Skills and post-execution Verifiers is a separate future component.
 
 ## Goal wording baseline
 
