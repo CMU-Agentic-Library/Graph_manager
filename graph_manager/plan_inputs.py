@@ -1,4 +1,4 @@
-"""Read planning inputs shared by the HTTP and Harness command lines."""
+"""Read planning inputs for the public planning command."""
 
 import argparse
 import json

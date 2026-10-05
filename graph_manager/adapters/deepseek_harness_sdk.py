@@ -1,4 +1,4 @@
-"""Optional DeepSeek Harness SDK session adapter.
+"""DeepSeek Harness SDK session adapter.
 
 Harness owns the session log and its derived model history. This adapter sends
 only the new user turn; it never replays previous messages from Python.
@@ -19,7 +19,7 @@ def _load_harness_class():
     try:
         from deepseek_harness import DeepSeekHarness
     except ImportError as exc:
-        raise RuntimeError("install the optional harness extra: uv sync --extra harness") from exc
+        raise RuntimeError("DeepSeek Harness SDK is required; run uv sync") from exc
     return DeepSeekHarness
 
 

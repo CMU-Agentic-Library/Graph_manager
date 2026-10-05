@@ -7,15 +7,13 @@ name = "graph-manager"
 version = "0.1.0"
 description = "Skill graph planning and validation for ZenoBench"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = ["deepseek-harness-sdk==0.1.5rc1"]
 
 [project.optional-dependencies]
 dev = ["ruff"]
-harness = ["deepseek-harness-sdk==0.1.5rc1"]
 
 [project.scripts]
 graph-manager-plan = "graph_manager.cli:main"
-graph-manager-plan-harness = "graph_manager.harness_cli:main"
 
 [tool.setuptools.packages.find]
 include = ["graph_manager*"]

@@ -1,4 +1,4 @@
-"""The optional SDK backend lets Harness own all conversation history."""
+"""The SDK adapter lets Harness own all conversation history."""
 
 import json
 import threading
@@ -9,8 +9,8 @@ from unittest.mock import patch
 
 from graph_manager.adapters.deepseek_harness_sdk import DeepSeekHarnessSession
 from graph_manager.adapters.skill_library_json import JsonSkillLibraryRepository
-from graph_manager.application.harness_planning import HarnessPlanningService
-from graph_manager.application.planning_loop import PlanningFailure
+from graph_manager.application.errors import PlanningFailure
+from graph_manager.application.planning_service import PlanningService
 from graph_manager.domain.models import PlanningRequest
 from graph_manager.ports import ModelPortError
 
@@ -122,7 +122,7 @@ class DeepSeekHarnessSessionTest(unittest.TestCase):
         ]
         repository = JsonSkillLibraryRepository(ROOT / "skill_library" / "skill_library.json")
         with self.session() as session:
-            result = HarnessPlanningService(repository, session).run(PlanningRequest("Hold apple"))
+            result = PlanningService(repository, session).run(PlanningRequest("Hold apple"))
         inputs = FakeHarness.instances[0].session.inputs
         self.assertEqual(2, len(inputs))
         self.assertIn("Hold apple", inputs[0])
@@ -229,7 +229,7 @@ class DeepSeekHarnessSessionTest(unittest.TestCase):
         ]
         repository = JsonSkillLibraryRepository(ROOT / "skill_library" / "skill_library.json")
         with self.session() as session:
-            result = HarnessPlanningService(repository, session).run(PlanningRequest("Hold apple"))
+            result = PlanningService(repository, session).run(PlanningRequest("Hold apple"))
         feedback = json.loads(FakeHarness.instances[0].session.inputs[1])
         self.assertEqual("model_output_incomplete", feedback["errors"][0]["code"])
         self.assertEqual(2, len(result.attempts))
@@ -239,7 +239,7 @@ class DeepSeekHarnessSessionTest(unittest.TestCase):
         repository = JsonSkillLibraryRepository(ROOT / "skill_library" / "skill_library.json")
         with self.session() as session:
             with self.assertRaises(PlanningFailure) as caught:
-                HarnessPlanningService(repository, session, max_attempts=2).run(
+                PlanningService(repository, session, max_attempts=2).run(
                     PlanningRequest("Hold apple")
                 )
         self.assertEqual(2, len(caught.exception.attempts))

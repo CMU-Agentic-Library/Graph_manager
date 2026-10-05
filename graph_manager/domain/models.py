@@ -1,7 +1,6 @@
 """Provider-independent inputs and error records for planning."""
 
 from dataclasses import dataclass
-from typing import Literal
 
 ENTITY_TYPES = frozenset(
     {"ArticulatedPart", "MovableObject", "ContainerObject", "SupportSurface", "Microwave"}
@@ -142,14 +141,6 @@ class PlanningRequest:
             "image/webp",
         }:
             raise ValueError("image_mime must be image/jpeg, image/png, or image/webp")
-
-
-@dataclass(frozen=True)
-class ChatMessage:
-    role: Literal["system", "user", "assistant"]
-    text: str
-    image: bytes | None = None
-    image_mime: str = "image/jpeg"
 
 
 @dataclass(frozen=True)

@@ -39,21 +39,21 @@ wheels = [
 name = "graph-manager"
 version = "0.1.0"
 source = { editable = "." }
+dependencies = [
+    { name = "deepseek-harness-sdk" },
+]
 
 [package.optional-dependencies]
 dev = [
     { name = "ruff" },
 ]
-harness = [
-    { name = "deepseek-harness-sdk" },
-]
 
 [package.metadata]
 requires-dist = [
-    { name = "deepseek-harness-sdk", marker = "extra == 'harness'", specifier = "==0.1.5rc1" },
+    { name = "deepseek-harness-sdk", specifier = "==0.1.5rc1" },
     { name = "ruff", marker = "extra == 'dev'" },
 ]
-provides-extras = ["dev", "harness"]
+provides-extras = ["dev"]
 
 [[package]]
 name = "pydantic"
