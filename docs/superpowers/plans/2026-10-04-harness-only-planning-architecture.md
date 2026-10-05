@@ -52,7 +52,7 @@ Delete the obsolete direct HTTP adapter, Python-owned conversation, duplicate ap
 - Create: `tests/test_input_builder.py`
 - Read: `graph_manager/prompts/task_plan.py`
 
-- [ ] **Step 1: Write the failing input-builder test**
+- [x] **Step 1: Write the failing input-builder test**
 
 Create `tests/test_input_builder.py` with:
 
@@ -128,7 +128,7 @@ if __name__ == "__main__":
     unittest.main()
 ~~~
 
-- [ ] **Step 2: Run the focused test to see the missing-module failure**
+- [x] **Step 2: Run the focused test to see the missing-module failure**
 
 ~~~bash
 .venv/bin/python -m unittest discover -s tests -p 'test_input_builder.py' -v
@@ -136,7 +136,7 @@ if __name__ == "__main__":
 
 Expected: FAIL with `ModuleNotFoundError: No module named 'graph_manager.application.input_builder'`.
 
-- [ ] **Step 3: Add the complete input builder**
+- [x] **Step 3: Add the complete input builder**
 
 Create `graph_manager/application/input_builder.py`:
 
@@ -168,7 +168,7 @@ class PlanningInputBuilder:
         return ModelTurn(text=validation_feedback(issues))
 ~~~
 
-- [ ] **Step 4: Run the focused test and lint**
+- [x] **Step 4: Run the focused test and lint**
 
 ~~~bash
 .venv/bin/python -m unittest discover -s tests -p 'test_input_builder.py' -v
@@ -177,7 +177,7 @@ class PlanningInputBuilder:
 
 Expected: all three tests pass and Ruff reports `All checks passed!`.
 
-- [ ] **Step 5: Commit the input boundary**
+- [x] **Step 5: Commit the input boundary**
 
 ~~~bash
 git add graph_manager/application/input_builder.py tests/test_input_builder.py
@@ -191,7 +191,7 @@ git commit -m "refactor: isolate planning model input builder"
 - Create: `tests/test_planning_service.py`
 - Read: `graph_manager/domain/task_plan_validation.py` and `graph_manager/application/errors.py`
 
-- [ ] **Step 1: Write focused tests for one-session orchestration**
+- [x] **Step 1: Write focused tests for one-session orchestration**
 
 Create `tests/test_planning_service.py`:
 
@@ -318,7 +318,7 @@ if __name__ == "__main__":
     unittest.main()
 ~~~
 
-- [ ] **Step 2: Confirm the new service is absent**
+- [x] **Step 2: Confirm the new service is absent**
 
 ~~~bash
 .venv/bin/python -m unittest discover -s tests -p 'test_planning_service.py' -v
@@ -326,7 +326,7 @@ if __name__ == "__main__":
 
 Expected: FAIL with `ModuleNotFoundError: No module named 'graph_manager.application.planning_service'`.
 
-- [ ] **Step 3: Add the complete service**
+- [x] **Step 3: Add the complete service**
 
 Create `graph_manager/application/planning_service.py`:
 
@@ -400,7 +400,7 @@ class PlanningService:
         raise AssertionError("positive max_attempts guarantees a return or raise")
 ~~~
 
-- [ ] **Step 4: Run focused and full tests**
+- [x] **Step 4: Run focused and full tests**
 
 ~~~bash
 .venv/bin/python -m unittest discover -s tests -p 'test_planning_service.py' -v
@@ -410,7 +410,7 @@ class PlanningService:
 
 Expected: five focused tests pass, the existing suite remains green, and Ruff passes.
 
-- [ ] **Step 5: Commit the single service**
+- [x] **Step 5: Commit the single service**
 
 ~~~bash
 git add graph_manager/application/planning_service.py tests/test_planning_service.py
@@ -424,7 +424,7 @@ git commit -m "refactor: add one session-based planning service"
 - Replace: `tests/test_planner_cli.py`
 - Read: `graph_manager/harness_cli.py` and `graph_manager/plan_inputs.py`
 
-- [ ] **Step 1: Replace the direct HTTP CLI test with a Harness-wiring test**
+- [x] **Step 1: Replace the direct HTTP CLI test with a Harness-wiring test**
 
 Replace `tests/test_planner_cli.py` with:
 
@@ -534,7 +534,7 @@ if __name__ == "__main__":
     unittest.main()
 ~~~
 
-- [ ] **Step 2: Run the test against the old CLI**
+- [x] **Step 2: Run the test against the old CLI**
 
 ~~~bash
 .venv/bin/python -m unittest discover -s tests -p 'test_planner_cli.py' -v
@@ -542,7 +542,7 @@ if __name__ == "__main__":
 
 Expected: FAIL because `graph_manager.cli` has no `DeepSeekHarnessSession` attribute.
 
-- [ ] **Step 3: Replace the CLI with the complete Harness wiring**
+- [x] **Step 3: Replace the CLI with the complete Harness wiring**
 
 Replace `graph_manager/cli.py` with:
 
@@ -634,7 +634,7 @@ if __name__ == "__main__":
     main()
 ~~~
 
-- [ ] **Step 4: Run the new CLI test and the regression suite**
+- [x] **Step 4: Run the new CLI test and the regression suite**
 
 ~~~bash
 .venv/bin/python -m unittest discover -s tests -p 'test_planner_cli.py' -v
@@ -644,7 +644,7 @@ if __name__ == "__main__":
 
 Expected: the new CLI test passes; existing SDK and domain tests also pass.
 
-- [ ] **Step 5: Commit the controller switch**
+- [x] **Step 5: Commit the controller switch**
 
 ~~~bash
 git add graph_manager/cli.py tests/test_planner_cli.py
@@ -662,7 +662,7 @@ git commit -m "refactor: route planner CLI through DeepSeek Harness"
 - Delete: `graph_manager/adapters/openai_compatible.py`, `graph_manager/application/conversation.py`, `graph_manager/application/planning_loop.py`, `graph_manager/application/harness_planning.py`, `graph_manager/harness_cli.py`
 - Delete: `tests/test_openai_compatible.py`, `tests/test_planning_context.py`, `tests/test_planning_loop.py`, `tests/test_harness_cli.py`
 
-- [ ] **Step 1: Move the existing SDK behavior tests onto the sole service**
+- [x] **Step 1: Move the existing SDK behavior tests onto the sole service**
 
 Run this exact source edit from the repository root:
 
@@ -689,7 +689,7 @@ PY
 
 The four occurrences are one import and three service constructions. The existing tests still assert one SDK session, image transfer, feedback, timeout, partial output, and bounded rejection.
 
-- [ ] **Step 2: Check the migrated SDK tests before deleting old code**
+- [x] **Step 2: Check the migrated SDK tests before deleting old code**
 
 ~~~bash
 .venv/bin/python -m unittest discover -s tests -p 'test_deepseek_harness_sdk.py' -v
@@ -697,7 +697,7 @@ The four occurrences are one import and three service constructions. The existin
 
 Expected: the SDK adapter and new PlanningService tests pass.
 
-- [ ] **Step 3: Delete the obsolete application and direct transport files**
+- [x] **Step 3: Delete the obsolete application and direct transport files**
 
 ~~~bash
 git rm graph_manager/adapters/openai_compatible.py
@@ -713,7 +713,7 @@ git rm tests/test_harness_cli.py
 
 These are the removed duplicate path and its backend-specific tests. `tests/test_input_builder.py`, `tests/test_planning_service.py`, `tests/test_planner_cli.py`, `tests/test_deepseek_harness_sdk.py`, and the existing domain tests provide the replacement coverage.
 
-- [ ] **Step 4: Remove the now-unused direct-model types**
+- [x] **Step 4: Remove the now-unused direct-model types**
 
 Replace `graph_manager/ports.py` with:
 
@@ -770,7 +770,7 @@ path.write_text(source, encoding="utf-8")
 PY
 ~~~
 
-- [ ] **Step 5: Keep one installed command and make the SDK a normal dependency**
+- [x] **Step 5: Keep one installed command and make the SDK a normal dependency**
 
 Run this exact edit for `pyproject.toml`:
 
@@ -803,7 +803,7 @@ path.write_text(source.replace(old, new), encoding="utf-8")
 PY
 ~~~
 
-- [ ] **Step 6: Regenerate and sync the lock file**
+- [x] **Step 6: Regenerate and sync the lock file**
 
 ~~~bash
 uv lock
@@ -812,7 +812,7 @@ uv sync --locked --extra dev
 
 Expected: both `uv` commands exit 0, the pinned SDK/runtime are installed into `.venv`, and `uv.lock` records the SDK as a base dependency.
 
-- [ ] **Step 7: Verify the single code path and all tests**
+- [x] **Step 7: Verify the single code path and all tests**
 
 ~~~bash
 rg -n 'PlanningLoop|HarnessPlanningService|OpenAICompatibleModel|Conversation|ChatMessage|graph-manager-plan-harness|harness_cli|application\.planning_loop|application\.harness_planning' graph_manager tests pyproject.toml
@@ -824,7 +824,7 @@ rg -n 'PlanningLoop|HarnessPlanningService|OpenAICompatibleModel|Conversation|Ch
 
 Expected: `rg` returns no matches (exit 1); tests end with `OK`; both Ruff checks pass; the sole command shows `--dsh-home`, `--model`, `--image`, and `--output`. If the formatter reports only formatting differences, run `.venv/bin/ruff format graph_manager tests` and repeat the checks before committing.
 
-- [ ] **Step 8: Commit the backend cleanup**
+- [x] **Step 8: Commit the backend cleanup**
 
 ~~~bash
 git add graph_manager/ports.py graph_manager/domain/models.py pyproject.toml uv.lock tests/test_deepseek_harness_sdk.py
@@ -837,7 +837,7 @@ git commit -m "refactor: make Harness the only planning runtime"
 - Modify: `README.md`
 - Check: `skill_library/README.md`, `examples/harness-local-vlm.patch.yml`, `graph_manager/harness_profile/cordis.patch.yml`
 
-- [ ] **Step 1: Replace the outdated planning section**
+- [x] **Step 1: Replace the outdated planning section**
 
 Run this exact edit from the repository root. It preserves the Goal wording section below it:
 
@@ -955,7 +955,7 @@ path.write_text(source, encoding="utf-8")
 PY
 ~~~
 
-- [ ] **Step 2: Check the README and installed command**
+- [x] **Step 2: Check the README and installed command**
 
 ~~~bash
 rg -n 'graph-manager-plan-harness|Direct HTTP|OpenAICompatibleModel|HarnessPlanningService|PlanningLoop' README.md
@@ -965,7 +965,7 @@ git diff --check
 
 Expected: `rg` returns no matches (exit 1), the sole CLI help prints its Harness arguments, and `git diff --check` exits 0.
 
-- [ ] **Step 3: Run final repository checks**
+- [x] **Step 3: Run final repository checks**
 
 ~~~bash
 .venv/bin/python -m unittest discover -s tests
@@ -977,7 +977,7 @@ git status --short
 
 Expected: tests end with `OK`; Ruff passes; SDK import prints `DeepSeekHarness`; `git status` lists the planned README change and, if the plan was not committed before worktree creation, the saved plan document. These checks prove the integration boundary and mock-session behavior; a live Qwen/vLLM image-to-plan run remains the next lab experiment.
 
-- [ ] **Step 4: Commit documentation**
+- [x] **Step 4: Commit documentation**
 
 ~~~bash
 git add README.md
