@@ -6,6 +6,7 @@ import unittest
 from graph_manager.adapters.zenobench_library import ZenoBenchLibrary
 from graph_manager.domain.models import ProposalValidationError
 from graph_manager.domain.task_plan import validate_task_plan
+from graph_manager.prompts.task_plan import EXAMPLE_PLAN
 
 
 def subgraph(subgoal_id, *nodes):
@@ -101,6 +102,14 @@ class TaskPlanTest(unittest.TestCase):
             [("$.subgoals[0].goal", "string_expected"), ("$.subgoals[1].id", "duplicate_id")],
             self.issues(value),
         )
+
+    def test_json_syntax_message_says_to_drop_markdown(self):
+        with self.assertRaises(ProposalValidationError) as caught:
+            validate_task_plan("```json\n" + json.dumps(plan()) + "\n```", self.catalog)
+        self.assertIn("no markdown code fences", caught.exception.issues[0].message)
+
+    def test_prompt_example_is_a_valid_plan(self):
+        self.assertEqual(EXAMPLE_PLAN, validate_task_plan(json.dumps(EXAMPLE_PLAN), self.catalog))
 
 
 if __name__ == "__main__":

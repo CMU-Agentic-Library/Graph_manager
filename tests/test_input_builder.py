@@ -44,6 +44,14 @@ class PlanningInputBuilderTest(unittest.TestCase):
         self.assertEqual("validation_feedback", body["kind"])
         self.assertEqual("$.subgraphs[0].nodes[0].skill", body["errors"][0]["path"])
 
+    def test_instructions_explain_verbs_and_show_an_example(self):
+        text = PlanningInputBuilder().initial(PlanningRequest("Hold apple")).text
+
+        self.assertIn('"skill": "fetch"', text)
+        self.assertIn("not the catalog name", text)
+        self.assertIn('{"ref": "mug"}', text)
+        self.assertIn("no markdown code fences", text)
+
 
 if __name__ == "__main__":
     unittest.main()

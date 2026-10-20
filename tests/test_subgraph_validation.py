@@ -125,6 +125,12 @@ class SubgraphValidationTest(unittest.TestCase):
         nodes = [node("a", "pick", {}, ["b"]), node("b", "pick", {}), node("c", "pick", {})]
         self.assertEqual(["b", "a", "c"], [n["id"] for n in topological_order(nodes)])
 
+    def test_unknown_skill_message_names_the_verb_for_a_catalog_name(self):
+        value = graph(node("n1", "fetch-object", {"object": {"ref": "apple"}}))
+        (issue,) = validate_subgraph(value, self.catalog)
+        self.assertEqual("unknown_skill", issue.code)
+        self.assertIn("'fetch'", issue.message)
+
 
 if __name__ == "__main__":
     unittest.main()

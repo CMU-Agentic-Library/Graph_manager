@@ -43,6 +43,11 @@ class ZenoBenchLibraryTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "skill.json"):
             SkillSpec.from_json({"verb": "pick"})
 
+    def test_catalog_names_map_to_verbs_but_do_not_resolve(self):
+        self.assertEqual("fetch", self.catalog.verb_for_name("fetch-object"))
+        self.assertIsNone(self.catalog.verb_for_name("fetch"))
+        self.assertIsNone(self.catalog.resolve("fetch-object"))
+
 
 if __name__ == "__main__":
     unittest.main()

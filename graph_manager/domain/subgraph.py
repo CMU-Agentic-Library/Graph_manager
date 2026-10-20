@@ -98,7 +98,8 @@ def _check_args(args: object, spec: SkillSpec, path: str, add: Add) -> None:
             add(
                 arg_path,
                 "arg_form",
-                'use exactly one of {"ref": name}, {"value": literal}, {"from": "node.output"}',
+                'use exactly one of {"ref": name}, {"value": literal}, {"from": "node.output"}, '
+                'for example "object": {"ref": "apple"}',
             )
             continue
         ((form, item),) = value.items()
@@ -116,6 +117,13 @@ def _check_args(args: object, spec: SkillSpec, path: str, add: Add) -> None:
                 add(arg_path, "invalid_value", f"invalid {input_spec.type} value {item!r}")
         elif _from_reference(value) is None:
             add(arg_path, "from_syntax", "from must be '<node id>.<output name>'")
+
+
+def _unknown_skill_message(key: object, catalog: SkillCatalog) -> str:
+    verb = catalog.verb_for_name(key) if isinstance(key, str) else None
+    if verb is not None:
+        return f"{key!r} is a catalog name; write the verb from its signature: {verb!r}"
+    return f"unknown skill {key!r}; write the verb from the skill's signature, such as 'pick'"
 
 
 def validate_subgraph(
@@ -160,7 +168,11 @@ def validate_subgraph(
         index_of[node_id] = index
         spec = catalog.resolve(node["skill"]) if isinstance(node["skill"], str) else None
         if spec is None:
-            add(f"{node_path}.skill", "unknown_skill", f"unknown skill {node['skill']!r}")
+            add(
+                f"{node_path}.skill",
+                "unknown_skill",
+                _unknown_skill_message(node["skill"], catalog),
+            )
         else:
             specs[node_id] = spec
             _check_args(node["args"], spec, f"{node_path}.args", add)

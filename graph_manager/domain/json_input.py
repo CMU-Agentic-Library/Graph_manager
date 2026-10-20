@@ -4,6 +4,8 @@ import json
 
 from .models import ProposalValidationError, ValidationIssue
 
+ONLY_JSON = "Return only the JSON object: no markdown code fences and no text before or after it."
+
 
 def parse_json_object(raw_text: str) -> dict:
     """Parse one JSON object, rejecting duplicate keys and NaN or Infinity."""
@@ -24,7 +26,8 @@ def parse_json_object(raw_text: str) -> dict:
             raw_text, object_pairs_hook=unique_object, parse_constant=reject_constant
         )
     except (json.JSONDecodeError, ValueError, TypeError) as exc:
-        raise ProposalValidationError([ValidationIssue("$", "json_syntax", str(exc))]) from exc
+        message = f"{exc}. {ONLY_JSON}"
+        raise ProposalValidationError([ValidationIssue("$", "json_syntax", message)]) from exc
     if not isinstance(value, dict):
         raise ProposalValidationError(
             [ValidationIssue("$", "object_expected", "proposal must be a JSON object")]
