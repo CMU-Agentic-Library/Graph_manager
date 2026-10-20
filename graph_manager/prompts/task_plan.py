@@ -46,9 +46,10 @@ SYSTEM_INSTRUCTION = (
     "the skill fetch-object has the signature fetch(object, receptacle), "
     'so write "skill": "fetch". '
     "Every argument value is an object with exactly one key: "
-    '{"ref": scene name} for scene objects and places, {"value": literal} for numbers, '
-    'vectors, hands, and tags, or {"from": "<node id>.<output>"} for a measured output of an '
-    "earlier node in the same subgraph; list that node in depends_on. "
+    '{"ref": scene name} for one scene object or place, {"value": literal} for numbers, '
+    "vectors, hands, tags, and lists of scene names (an object_list input is "
+    '{"value": ["apple", "orange"]}), or {"from": "<node id>.<output>"} for a measured '
+    "output of an earlier node in the same subgraph; list that node in depends_on. "
     "Use scene names exactly as the observation gives them. "
     "Node dependencies must form a DAG.\n\n"
     "Example of the format for the task 'hold the mug':\n" + json.dumps(EXAMPLE_PLAN)

@@ -51,6 +51,11 @@ class PlanningInputBuilderTest(unittest.TestCase):
         self.assertIn('{"ref": "mug"}', text)
         self.assertIn("no markdown code fences", text)
 
+    def test_instructions_show_how_to_write_an_object_list(self):
+        text = PlanningInputBuilder().initial(PlanningRequest("Hold apple")).text
+
+        self.assertIn('object_list input is {"value": ["apple", "orange"]}', text)
+
 
 if __name__ == "__main__":
     unittest.main()

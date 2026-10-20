@@ -131,6 +131,23 @@ class SubgraphValidationTest(unittest.TestCase):
         self.assertEqual("unknown_skill", issue.code)
         self.assertIn("'fetch'", issue.message)
 
+    def test_object_list_takes_a_value_list_of_scene_names(self):
+        args = {"objects": {"value": ["apple", "orange"]}, "container": {"ref": "fruit_basket"}}
+        self.assertEqual([], self.codes(graph(node("n1", "collect", args))))
+
+    def test_form_errors_show_the_form_for_the_input_type(self):
+        basket = {"ref": "fruit_basket"}
+        value = graph(
+            node("n1", "collect", {"objects": [{"ref": "apple"}], "container": basket}),
+            node("n2", "collect", {"objects": {"ref": "apple"}, "container": basket}),
+            node("n3", "pick", {"object": "apple"}),
+        )
+        issues = validate_subgraph(value, self.catalog)
+        self.assertEqual(["arg_form", "ref_not_allowed", "arg_form"], [i.code for i in issues])
+        self.assertIn('"objects": {"value": ["apple", "orange"]}', issues[0].message)
+        self.assertIn('"objects": {"value": ["apple", "orange"]}', issues[1].message)
+        self.assertIn('"object": {"ref": "apple"}', issues[2].message)
+
 
 if __name__ == "__main__":
     unittest.main()

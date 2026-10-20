@@ -77,6 +77,26 @@ def _from_reference(value: object) -> str | None:
     return None
 
 
+# One correct argument per input type, shown when the model writes the wrong form.
+FORM_EXAMPLES = {
+    "object_list": '{"value": ["apple", "orange"]}',
+    "category_map": '{"value": {"apple": "fruit"}}',
+    "hand": '{"value": "right"}',
+    "tag": '{"value": "top"}',
+    "pose2d": '{"value": [1.0, 2.0, 90.0]}',
+    "xy": '{"value": [1.0, 2.0]}',
+    "unit_vec2": '{"value": [1.0, 0.0]}',
+}
+
+
+def _form_hint(name: str, input_type: str) -> str:
+    if input_type.endswith("_ref"):
+        example = '{"ref": "apple"}'
+    else:
+        example = FORM_EXAMPLES.get(input_type, '{"value": 0.3}')
+    return f'for this {input_type} input write "{name}": {example}'
+
+
 def _check_args(args: object, spec: SkillSpec, path: str, add: Add) -> None:
     if not isinstance(args, dict):
         add(path, "object_expected", "expected an object of inputs")
@@ -98,15 +118,20 @@ def _check_args(args: object, spec: SkillSpec, path: str, add: Add) -> None:
             add(
                 arg_path,
                 "arg_form",
-                'use exactly one of {"ref": name}, {"value": literal}, {"from": "node.output"}, '
-                'for example "object": {"ref": "apple"}',
+                'use exactly one of {"ref": name}, {"value": literal}, {"from": "node.output"}; '
+                + _form_hint(name, input_spec.type),
             )
             continue
         ((form, item),) = value.items()
         is_ref = input_spec.type.endswith("_ref")
         if form == "ref":
             if not is_ref:
-                add(arg_path, "ref_not_allowed", f"{input_spec.type} takes a value, not a ref")
+                add(
+                    arg_path,
+                    "ref_not_allowed",
+                    f"{input_spec.type} takes a value, not a ref; "
+                    + _form_hint(name, input_spec.type),
+                )
             elif not isinstance(item, str) or not item.strip():
                 add(arg_path, "invalid_value", "ref must be a nonempty scene name")
         elif form == "value":
