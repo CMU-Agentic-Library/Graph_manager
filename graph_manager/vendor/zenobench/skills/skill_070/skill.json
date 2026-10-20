@@ -1,0 +1,254 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_070",
+ "name": "hide-object",
+ "verb": "hide",
+ "noun": "object",
+ "title": "Hide an object",
+ "group": "multi_object",
+ "signature": "hide(object: object_ref, receptacle: receptacle_ref, lid: lid_ref?)",
+ "action_predicate": {
+  "name": "hide_object",
+  "verb": "hide",
+  "noun": "object",
+  "arguments": [
+   "object",
+   "receptacle",
+   "lid"
+  ]
+ },
+ "description": "Make an object invisible from outside: put it into a container and cover that container with its lid, or put it on a shelf inside a cabinet and close the cabinet.",
+ "use_when": "An object must end up out of sight inside a closed container.",
+ "not_to_be_confused_with": {
+  "collect": "hide also covers the container."
+ },
+ "inputs": {
+  "object": {
+   "type": "object_ref",
+   "required": true,
+   "description": "The object to hide."
+  },
+  "receptacle": {
+   "type": "receptacle_ref",
+   "required": true,
+   "description": "A lidded container or a cabinet interior shelf."
+  },
+  "lid": {
+   "type": "lid_ref",
+   "required": false,
+   "description": "The lid to use for a container."
+  }
+ },
+ "required_inputs": [
+  "object",
+  "receptacle"
+ ],
+ "outputs": {},
+ "applicability": {
+  "always": false,
+  "summary": "Requires hand_empty(hand=right). Depending on the bound nouns, the chosen path also needs: container_with_lid (receptacle.kind == 'object' and args.lid): uncovered(container=$receptacle)."
+ },
+ "preconditions": [
+  {
+   "predicate": "hand_empty(hand=right)",
+   "name": "hand_empty",
+   "args": {
+    "hand": "right"
+   },
+   "negated": false,
+   "meaning": "The given gripper holds nothing.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  }
+ ],
+ "postconditions": [
+  {
+   "predicate": "hidden(object=$object)",
+   "name": "hidden",
+   "args": {
+    "object": "$object"
+   },
+   "negated": false,
+   "meaning": "Object is inside a lid-covered container or on a shelf inside a closed cabinet.",
+   "kind": "fluent",
+   "gt_sources": [
+    "object_pose",
+    "container_profile",
+    "articulation_joint",
+    "support_annotation"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  },
+  {
+   "predicate": "hand_empty(hand=right)",
+   "name": "hand_empty",
+   "args": {
+    "hand": "right"
+   },
+   "negated": false,
+   "meaning": "The given gripper holds nothing.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "hidden(object=$object)",
+    "name": "hidden",
+    "args": {
+     "object": "$object"
+    },
+    "negated": false,
+    "meaning": "Object is inside a lid-covered container or on a shelf inside a closed cabinet.",
+    "kind": "fluent",
+    "gt_sources": [
+     "object_pose",
+     "container_profile",
+     "articulation_joint",
+     "support_annotation"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   },
+   {
+    "predicate": "hand_empty(hand=right)",
+    "name": "hand_empty",
+    "args": {
+     "hand": "right"
+    },
+    "negated": false,
+    "meaning": "The given gripper holds nothing.",
+    "kind": "fluent",
+    "gt_sources": [
+     "gripper_state"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   }
+  ]
+ },
+ "invalidates": [],
+ "policy_paths": [
+  {
+   "path_id": "container_with_lid",
+   "when": [
+    "receptacle.kind == 'object'",
+    "args.lid"
+   ],
+   "extra_preconditions": [
+    {
+     "predicate": "uncovered(container=$receptacle)",
+     "name": "uncovered",
+     "args": {
+      "container": "$receptacle"
+     },
+     "negated": false,
+     "meaning": "No lid rests on the container rim.",
+     "kind": "fluent",
+     "gt_sources": [
+      "object_pose",
+      "container_profile",
+      "asset_tags"
+     ],
+     "checked": "before execution on live GT state; the Contract does not move if false"
+    }
+   ],
+   "extra_postconditions": [],
+   "chain": [
+    "[fetch](object=$object, receptacle=$receptacle)",
+    "[navigate](destination=$lid)",
+    "[pick](object=$lid)",
+    "[navigate](destination=$receptacle)",
+    "[cover](container=$receptacle, lid=$lid)"
+   ],
+   "policies": [],
+   "note": ""
+  },
+  {
+   "path_id": "closed_cabinet",
+   "when": [
+    "receptacle.kind == 'support'",
+    "receptacle.category == 'cabinet_inside'"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "[navigate](destination=@receptacle.appliance)",
+    "[open](articulated=@receptacle.appliance)",
+    "[fetch](object=$object, receptacle=$receptacle)",
+    "[close](articulated=@receptacle.appliance)"
+   ],
+   "policies": [],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [],
+  "next": [
+   {
+    "skill_id": "skill_009",
+    "verb": "tuck",
+    "when": "the robot leaves",
+    "bind": {
+     "hand": "right"
+    },
+    "type": "enables"
+   }
+  ],
+  "fallback": [],
+  "fallback_for": [],
+  "alternative": [
+   {
+    "skill_id": "skill_047",
+    "verb": "fetch",
+    "when": "the object only needs to move",
+    "bind": {
+     "object": "$object"
+    }
+   }
+  ]
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": []
+ },
+ "scope": {
+  "includes": [],
+  "excludes": []
+ },
+ "contract_id": "contract_078",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_070",
+   "args": {
+    "object": {
+     "ref": "<object>"
+    },
+    "receptacle": {
+     "ref": "<receptacle>"
+    }
+   },
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"hide\", {'object': ..., 'receptacle': ...})"
+ }
+}

@@ -1,0 +1,29 @@
+{
+ "schema_version": 2,
+ "kind": "skill_subgraph",
+ "subgoal_id": "lay_down_bottle",
+ "nodes": [
+  {
+   "id": "n1",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "juice_bottle"
+    }
+   },
+   "depends_on": []
+  },
+  {
+   "id": "n2",
+   "skill": "tip",
+   "args": {
+    "object": {
+     "value": "juice_bottle"
+    }
+   },
+   "depends_on": [
+    "n1"
+   ]
+  }
+ ]
+}

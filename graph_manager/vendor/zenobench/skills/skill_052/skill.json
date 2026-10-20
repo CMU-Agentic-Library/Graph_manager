@@ -1,0 +1,190 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_052",
+ "name": "arrange-objects",
+ "verb": "arrange",
+ "noun": "objects",
+ "title": "Arrange objects together",
+ "group": "multi_object",
+ "signature": "arrange(objects: object_list, support: support_ref, max_dist_m: positive_number)",
+ "action_predicate": {
+  "name": "arrange_objects",
+  "verb": "arrange",
+  "noun": "objects",
+  "arguments": [
+   "objects",
+   "support",
+   "max_dist_m"
+  ]
+ },
+ "description": "Place the listed objects on one support so that they are pairwise within a distance (a place setting).",
+ "use_when": "Several objects must be grouped together on one support (a setting).",
+ "not_to_be_confused_with": {
+  "sweep": "arrange picks and places; sweep pushes."
+ },
+ "inputs": {
+  "objects": {
+   "type": "object_list",
+   "required": true,
+   "description": "Objects to group."
+  },
+  "support": {
+   "type": "support_ref",
+   "required": true,
+   "description": "The surface."
+  },
+  "max_dist_m": {
+   "type": "positive_number",
+   "required": true,
+   "description": "Pairwise distance limit.",
+   "default": 0.5
+  }
+ },
+ "required_inputs": [
+  "objects",
+  "support",
+  "max_dist_m"
+ ],
+ "outputs": {},
+ "applicability": {
+  "always": false,
+  "summary": "Requires hand_empty(hand=right)."
+ },
+ "preconditions": [
+  {
+   "predicate": "hand_empty(hand=right)",
+   "name": "hand_empty",
+   "args": {
+    "hand": "right"
+   },
+   "negated": false,
+   "meaning": "The given gripper holds nothing.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  }
+ ],
+ "postconditions": [
+  {
+   "predicate": "grouped(objects=$objects, support=$support, max_dist_m=$max_dist_m)",
+   "name": "grouped",
+   "args": {
+    "objects": "$objects",
+    "support": "$support",
+    "max_dist_m": "$max_dist_m"
+   },
+   "negated": false,
+   "meaning": "Every listed object is on the support and pairwise within the distance.",
+   "kind": "fluent",
+   "gt_sources": [
+    "object_pose",
+    "support_annotation"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "grouped(objects=$objects, support=$support, max_dist_m=$max_dist_m)",
+    "name": "grouped",
+    "args": {
+     "objects": "$objects",
+     "support": "$support",
+     "max_dist_m": "$max_dist_m"
+    },
+    "negated": false,
+    "meaning": "Every listed object is on the support and pairwise within the distance.",
+    "kind": "fluent",
+    "gt_sources": [
+     "object_pose",
+     "support_annotation"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   }
+  ]
+ },
+ "invalidates": [],
+ "policy_paths": [
+  {
+   "path_id": "place_near_common_spot",
+   "when": [
+    "always (default path)"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "for each item in $objects: [navigate](destination=$item) -> [pick](object=$item) -> [navigate](destination=$support) -> [place](object=$item, receptacle=$support, hint_xy=@support.roomiest_xy)"
+   ],
+   "policies": [],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [
+   {
+    "skill_id": "skill_050",
+    "verb": "clear",
+    "when": "a new layout is set on the cleared surface",
+    "type": "then"
+   }
+  ],
+  "next": [],
+  "fallback": [
+   {
+    "skill_id": "skill_050",
+    "verb": "clear",
+    "when": "the support is too crowded",
+    "bind": {
+     "support": "$support"
+    },
+    "reason": "frees room for the place setting",
+    "type": "recover"
+   }
+  ],
+  "fallback_for": [],
+  "alternative": []
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": []
+ },
+ "scope": {
+  "includes": [],
+  "excludes": []
+ },
+ "contract_id": "contract_060",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_052",
+   "args": {
+    "objects": {
+     "value": "<object_list>"
+    },
+    "support": {
+     "ref": "<support>"
+    },
+    "max_dist_m": {
+     "value": 0.5
+    }
+   },
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"arrange\", {'objects': ..., 'support': ..., 'max_dist_m': ...})"
+ }
+}

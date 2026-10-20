@@ -1,0 +1,304 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_002",
+ "name": "approach-target",
+ "verb": "approach",
+ "noun": "target",
+ "title": "Approach a manipulation target",
+ "group": "base_and_body",
+ "signature": "approach(target: entity_ref, pass_by: pose2d?)",
+ "action_predicate": {
+  "name": "approach_target",
+  "verb": "approach",
+  "noun": "target",
+  "arguments": [
+   "target",
+   "pass_by"
+  ]
+ },
+ "description": "Park the base where the right arm has a collision-free IK solution at the target's reach pose: 10 cm above an object or support, the handle pre-grasp of a door or drawer, 8 cm in front of a button.",
+ "use_when": "Right before a contact action on one specific target.",
+ "not_to_be_confused_with": {
+  "navigate": "navigate goes to a region; approach verifies arm IK for one target."
+ },
+ "inputs": {
+  "target": {
+   "type": "entity_ref",
+   "required": true,
+   "description": "The object, support, handle-bearing part or button to reach."
+  },
+  "pass_by": {
+   "type": "pose2d",
+   "required": false,
+   "description": "Optional base waypoint: reach toward the target while driving past it."
+  }
+ },
+ "required_inputs": [
+  "target"
+ ],
+ "outputs": {
+  "base_pose": {
+   "type": "pose2d",
+   "description": "Base pose at which reachability was verified."
+  }
+ },
+ "applicability": {
+  "always": false,
+  "summary": "Requires base_near(place=$target)."
+ },
+ "preconditions": [
+  {
+   "predicate": "base_near(place=$target)",
+   "name": "base_near",
+   "args": {
+    "place": "$target"
+   },
+   "negated": false,
+   "meaning": "Base centre within 1.3 m of the place's footprint (inside the room for a room).",
+   "kind": "fluent",
+   "gt_sources": [
+    "base_pose",
+    "scene_annotation"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  }
+ ],
+ "postconditions": [
+  {
+   "predicate": "reachable(target=$target)",
+   "name": "reachable",
+   "args": {
+    "target": "$target"
+   },
+   "negated": false,
+   "meaning": "From the current base pose the right TCP has a collision-free IK solution 10 cm above the target (handle pre-grasp for doors, 8 cm in front of a button).",
+   "kind": "fluent",
+   "gt_sources": [
+    "base_pose",
+    "arm_ik",
+    "collision_model",
+    "object_pose",
+    "grasp_annotation"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "reachable(target=$target)",
+    "name": "reachable",
+    "args": {
+     "target": "$target"
+    },
+    "negated": false,
+    "meaning": "From the current base pose the right TCP has a collision-free IK solution 10 cm above the target (handle pre-grasp for doors, 8 cm in front of a button).",
+    "kind": "fluent",
+    "gt_sources": [
+     "base_pose",
+     "arm_ik",
+     "collision_model",
+     "object_pose",
+     "grasp_annotation"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   }
+  ]
+ },
+ "invalidates": [
+  "reachable(*)",
+  "facing(*)",
+  "in_view(*)",
+  "pointing_at(*)"
+ ],
+ "policy_paths": [
+  {
+   "path_id": "reach_on_the_move",
+   "when": [
+    "args.pass_by"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_098($target) as reach",
+    "policy_051(#reach.position, #reach.rotation, $pass_by)"
+   ],
+   "policies": [
+    "policy_051",
+    "policy_098"
+   ],
+   "note": "Extend the arm toward the reach pose while the base follows the given waypoint."
+  },
+  {
+   "path_id": "park",
+   "when": [
+    "always (default path)"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_065($target)"
+   ],
+   "policies": [
+    "policy_065"
+   ],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [
+   {
+    "skill_id": "skill_001",
+    "verb": "navigate",
+    "when": "a manipulation target is on the destination",
+    "type": "enables"
+   },
+   {
+    "skill_id": "skill_007",
+    "verb": "bend",
+    "when": "the target was just out of reach",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_011",
+    "verb": "look",
+    "when": "the observed target will be manipulated",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_055",
+    "verb": "sidestep",
+    "when": "the target is now in front of the arm",
+    "type": "then"
+   }
+  ],
+  "next": [
+   {
+    "skill_id": "skill_017",
+    "verb": "pick",
+    "when": "the target is an object to grasp",
+    "bind": {
+     "object": "$target"
+    },
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_040",
+    "verb": "open",
+    "when": "the target is a door or drawer",
+    "bind": {
+     "articulated": "$target"
+    },
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_042",
+    "verb": "press",
+    "when": "the target is a button",
+    "bind": {
+     "button": "$target"
+    },
+    "type": "then"
+   }
+  ],
+  "fallback": [
+   {
+    "skill_id": "skill_001",
+    "verb": "navigate",
+    "when": "no base pose near the current one reaches the target",
+    "bind": {
+     "destination": "$target"
+    },
+    "type": "repair",
+    "repairs": "base_near"
+   },
+   {
+    "skill_id": "skill_007",
+    "verb": "bend",
+    "when": "the target is just beyond the arm envelope",
+    "bind": {},
+    "reason": "Waist pitch adds forward reach from the same base pose.",
+    "type": "recover"
+   },
+   {
+    "skill_id": "skill_030",
+    "verb": "pull",
+    "when": "the object sits too deep on its support",
+    "bind": {
+     "object": "$target"
+    },
+    "reason": "Dragging the object to the front makes it reachable.",
+    "type": "substitute"
+   }
+  ],
+  "fallback_for": [
+   {
+    "skill_id": "skill_017",
+    "verb": "pick",
+    "when": "no grasp is reachable from base poses near the current one",
+    "type": "recover"
+   },
+   {
+    "skill_id": "skill_018",
+    "verb": "place",
+    "when": "the receptacle is out of reach",
+    "type": "recover"
+   },
+   {
+    "skill_id": "skill_031",
+    "verb": "expose",
+    "when": "no base pose reaches behind the object",
+    "type": "repair"
+   },
+   {
+    "skill_id": "skill_040",
+    "verb": "open",
+    "when": "the handle is out of reach",
+    "type": "recover"
+   }
+  ],
+  "alternative": []
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": [
+   "no base pose reaches the target",
+   "IK fails after parking"
+  ]
+ },
+ "scope": {
+  "includes": [
+   "base pose search with IK + collision checks",
+   "verification from the reached pose"
+  ],
+  "excludes": [
+   "contact with the target"
+  ]
+ },
+ "contract_id": "contract_010",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_002",
+   "args": {
+    "target": {
+     "ref": "<entity>"
+    }
+   },
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"approach\", {'target': ...})"
+ }
+}

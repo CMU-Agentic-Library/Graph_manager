@@ -1,0 +1,205 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_031",
+ "name": "expose-object",
+ "verb": "expose",
+ "noun": "object",
+ "title": "Expose a grasp edge",
+ "group": "contact",
+ "signature": "expose(object: object_ref)",
+ "action_predicate": {
+  "name": "expose_object",
+  "verb": "expose",
+  "noun": "object",
+  "arguments": [
+   "object"
+  ]
+ },
+ "description": "Push a flat object (book, plate, notebook) until it overhangs a free support edge by >= 5.5 cm while its centre of mass stays on the support, so the overhang can be pinched.",
+ "use_when": "A flat object is wider than the gripper and must overhang an edge before pick.",
+ "not_to_be_confused_with": {
+  "push": "expose pushes toward a free edge until a pinchable overhang exists."
+ },
+ "inputs": {
+  "object": {
+   "type": "object_ref",
+   "required": true,
+   "description": "A flat object on a support."
+  }
+ },
+ "required_inputs": [
+  "object"
+ ],
+ "outputs": {},
+ "applicability": {
+  "always": false,
+  "summary": "Requires hand_empty(hand=right); base_near(place=$object)."
+ },
+ "preconditions": [
+  {
+   "predicate": "hand_empty(hand=right)",
+   "name": "hand_empty",
+   "args": {
+    "hand": "right"
+   },
+   "negated": false,
+   "meaning": "The given gripper holds nothing.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  },
+  {
+   "predicate": "base_near(place=$object)",
+   "name": "base_near",
+   "args": {
+    "place": "$object"
+   },
+   "negated": false,
+   "meaning": "Base centre within 1.3 m of the place's footprint (inside the room for a room).",
+   "kind": "fluent",
+   "gt_sources": [
+    "base_pose",
+    "scene_annotation"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  }
+ ],
+ "postconditions": [
+  {
+   "predicate": "edge_overhang(object=$object)",
+   "name": "edge_overhang",
+   "args": {
+    "object": "$object"
+   },
+   "negated": false,
+   "meaning": "A flat object overhangs a support edge enough for an edge pinch (>= 5.5 cm) while its centre of mass stays 3.5 cm inside the edge.",
+   "kind": "fluent",
+   "gt_sources": [
+    "object_pose",
+    "asset_annotation",
+    "support_annotation"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "edge_overhang(object=$object)",
+    "name": "edge_overhang",
+    "args": {
+     "object": "$object"
+    },
+    "negated": false,
+    "meaning": "A flat object overhangs a support edge enough for an edge pinch (>= 5.5 cm) while its centre of mass stays 3.5 cm inside the edge.",
+    "kind": "fluent",
+    "gt_sources": [
+     "object_pose",
+     "asset_annotation",
+     "support_annotation"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   }
+  ]
+ },
+ "invalidates": [
+  "at_initial_place($object)",
+  "away_from_edge($object,*)"
+ ],
+ "policy_paths": [
+  {
+   "path_id": "slide_to_edge",
+   "when": [
+    "object.flat"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_045($object)"
+   ],
+   "policies": [
+    "policy_045"
+   ],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [],
+  "next": [
+   {
+    "skill_id": "skill_017",
+    "verb": "pick",
+    "when": "pinch the overhang",
+    "bind": {
+     "object": "$object"
+    },
+    "type": "enables"
+   },
+   {
+    "skill_id": "skill_028",
+    "verb": "flip",
+    "when": "turn the object over",
+    "bind": {
+     "object": "$object"
+    },
+    "type": "then"
+   }
+  ],
+  "fallback": [
+   {
+    "skill_id": "skill_002",
+    "verb": "approach",
+    "when": "no base pose reaches behind the object",
+    "bind": {
+     "target": "$object"
+    },
+    "type": "repair"
+   }
+  ],
+  "fallback_for": [
+   {
+    "skill_id": "skill_017",
+    "verb": "pick",
+    "when": "a flat object cannot be pinched from the top: push it to the edge by hand, then pick the overhang",
+    "type": "repair"
+   }
+  ],
+  "alternative": []
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": []
+ },
+ "scope": {
+  "includes": [],
+  "excludes": []
+ },
+ "contract_id": "contract_039",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_031",
+   "args": {
+    "object": {
+     "ref": "<object>"
+    }
+   },
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"expose\", {'object': ...})"
+ }
+}

@@ -1,0 +1,50 @@
+{
+ "schema_version": 2,
+ "kind": "skill_subgraph",
+ "subgoal_id": "empty_mug",
+ "nodes": [
+  {
+   "id": "n1",
+   "skill": "fetch",
+   "args": {
+    "object": {
+     "value": "cherry_tomato_1"
+    },
+    "receptacle": {
+     "value": "kitchen_island/top"
+    }
+   },
+   "depends_on": []
+  },
+  {
+   "id": "n2",
+   "skill": "fetch",
+   "args": {
+    "object": {
+     "value": "cherry_tomato_2"
+    },
+    "receptacle": {
+     "value": "kitchen_island/top"
+    }
+   },
+   "depends_on": [
+    "n1"
+   ]
+  },
+  {
+   "id": "n3",
+   "skill": "fetch",
+   "args": {
+    "object": {
+     "value": "cherry_tomato_3"
+    },
+    "receptacle": {
+     "value": "kitchen_island/top"
+    }
+   },
+   "depends_on": [
+    "n2"
+   ]
+  }
+ ]
+}

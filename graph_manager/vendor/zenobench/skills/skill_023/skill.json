@@ -1,0 +1,258 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_023",
+ "name": "lift-object",
+ "verb": "lift",
+ "noun": "object",
+ "title": "Lift a held object",
+ "group": "grasp_and_hand",
+ "signature": "lift(object: object_ref, height_m: positive_number)",
+ "action_predicate": {
+  "name": "lift_object",
+  "verb": "lift",
+  "noun": "object",
+  "arguments": [
+   "object",
+   "height_m"
+  ]
+ },
+ "description": "Raise the held object until its bottom is at least the given world height (e.g. above a bin rim or a furniture edge before carrying).",
+ "use_when": "A held object must be raised to a height (clear an obstacle, show it).",
+ "not_to_be_confused_with": {
+  "stand": "stand moves the torso, not the held object.",
+  "lower": "opposite direction.",
+  "pick": "lift raises an object already held."
+ },
+ "inputs": {
+  "object": {
+   "type": "object_ref",
+   "required": true,
+   "description": "The held object."
+  },
+  "height_m": {
+   "type": "positive_number",
+   "required": true,
+   "description": "Minimum world height of the object's bottom.",
+   "default": 0.55
+  }
+ },
+ "required_inputs": [
+  "object",
+  "height_m"
+ ],
+ "outputs": {},
+ "applicability": {
+  "always": false,
+  "summary": "Requires holding(hand=right, object=$object)."
+ },
+ "preconditions": [
+  {
+   "predicate": "holding(hand=right, object=$object)",
+   "name": "holding",
+   "args": {
+    "hand": "right",
+    "object": "$object"
+   },
+   "negated": false,
+   "meaning": "The object is in the given gripper: fingers not shut, TCP-to-body distance unchanged since the grasp.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state",
+    "finger_joints",
+    "object_pose",
+    "arm_fk"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  }
+ ],
+ "postconditions": [
+  {
+   "predicate": "held_above(object=$object, height_m=$height_m)",
+   "name": "held_above",
+   "args": {
+    "object": "$object",
+    "height_m": "$height_m"
+   },
+   "negated": false,
+   "meaning": "Right-held object's bottom at or above the given world height (2 cm tolerance).",
+   "kind": "fluent",
+   "gt_sources": [
+    "object_pose",
+    "gripper_state"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  },
+  {
+   "predicate": "holding(hand=right, object=$object)",
+   "name": "holding",
+   "args": {
+    "hand": "right",
+    "object": "$object"
+   },
+   "negated": false,
+   "meaning": "The object is in the given gripper: fingers not shut, TCP-to-body distance unchanged since the grasp.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state",
+    "finger_joints",
+    "object_pose",
+    "arm_fk"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "held_above(object=$object, height_m=$height_m)",
+    "name": "held_above",
+    "args": {
+     "object": "$object",
+     "height_m": "$height_m"
+    },
+    "negated": false,
+    "meaning": "Right-held object's bottom at or above the given world height (2 cm tolerance).",
+    "kind": "fluent",
+    "gt_sources": [
+     "object_pose",
+     "gripper_state"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   },
+   {
+    "predicate": "holding(hand=right, object=$object)",
+    "name": "holding",
+    "args": {
+     "hand": "right",
+     "object": "$object"
+    },
+    "negated": false,
+    "meaning": "The object is in the given gripper: fingers not shut, TCP-to-body distance unchanged since the grasp.",
+    "kind": "fluent",
+    "gt_sources": [
+     "gripper_state",
+     "finger_joints",
+     "object_pose",
+     "arm_fk"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   }
+  ]
+ },
+ "invalidates": [
+  "held_below($object,*)"
+ ],
+ "policy_paths": [
+  {
+   "path_id": "raise",
+   "when": [
+    "always (default path)"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_034($height_m)"
+   ],
+   "policies": [
+    "policy_034"
+   ],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [
+   {
+    "skill_id": "skill_017",
+    "verb": "pick",
+    "when": "the object must clear a high rim while carried",
+    "type": "enables"
+   }
+  ],
+  "next": [
+   {
+    "skill_id": "skill_001",
+    "verb": "navigate",
+    "when": "the object is carried over furniture",
+    "bind": {},
+    "reason": "carry clearance",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_019",
+    "verb": "drop",
+    "when": "the object is released over a tall container",
+    "bind": {
+     "object": "$object"
+    },
+    "type": "enables"
+   }
+  ],
+  "fallback": [],
+  "fallback_for": [
+   {
+    "skill_id": "skill_001",
+    "verb": "navigate",
+    "when": "a carried object hangs too low for the doorway clearance",
+    "type": "recover"
+   }
+  ],
+  "alternative": [
+   {
+    "skill_id": "skill_016",
+    "verb": "present",
+    "when": "only the height of the load matters",
+    "bind": {}
+   },
+   {
+    "skill_id": "skill_024",
+    "verb": "lower",
+    "when": "opposite direction",
+    "bind": {}
+   },
+   {
+    "skill_id": "skill_063",
+    "verb": "hover",
+    "when": "only a height matters",
+    "bind": {}
+   }
+  ]
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": []
+ },
+ "scope": {
+  "includes": [],
+  "excludes": []
+ },
+ "contract_id": "contract_031",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_023",
+   "args": {
+    "object": {
+     "ref": "<object>"
+    },
+    "height_m": {
+     "value": 0.55
+    }
+   },
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"lift\", {'object': ..., 'height_m': ...})"
+ }
+}

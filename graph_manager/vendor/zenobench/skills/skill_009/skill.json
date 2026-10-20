@@ -1,0 +1,238 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_009",
+ "name": "tuck-arm",
+ "verb": "tuck",
+ "noun": "arm",
+ "title": "Tuck an arm",
+ "group": "base_and_body",
+ "signature": "tuck(hand: hand)",
+ "action_predicate": {
+  "name": "tuck_arm",
+  "verb": "tuck",
+  "noun": "arm",
+  "arguments": [
+   "hand"
+  ]
+ },
+ "description": "Fold an empty arm to its travel posture along a collision-checked path.",
+ "use_when": "Before driving through a narrow passage or after a hand action left the arm out.",
+ "not_to_be_confused_with": {
+  "reset": "reset also restores torso, waist and head; tuck only folds the arm."
+ },
+ "inputs": {
+  "hand": {
+   "type": "hand",
+   "required": true,
+   "description": "Which arm to fold.",
+   "default": "right",
+   "enum": [
+    "right",
+    "left"
+   ]
+  }
+ },
+ "required_inputs": [
+  "hand"
+ ],
+ "outputs": {},
+ "applicability": {
+  "always": false,
+  "summary": "Requires hand_empty(hand=$hand)."
+ },
+ "preconditions": [
+  {
+   "predicate": "hand_empty(hand=$hand)",
+   "name": "hand_empty",
+   "args": {
+    "hand": "$hand"
+   },
+   "negated": false,
+   "meaning": "The given gripper holds nothing.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  }
+ ],
+ "postconditions": [
+  {
+   "predicate": "arm_stowed(hand=$hand)",
+   "name": "arm_stowed",
+   "args": {
+    "hand": "$hand"
+   },
+   "negated": false,
+   "meaning": "The arm is folded at its travel posture.",
+   "kind": "fluent",
+   "gt_sources": [
+    "arm_joints"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "arm_stowed(hand=$hand)",
+    "name": "arm_stowed",
+    "args": {
+     "hand": "$hand"
+    },
+    "negated": false,
+    "meaning": "The arm is folded at its travel posture.",
+    "kind": "fluent",
+    "gt_sources": [
+     "arm_joints"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   }
+  ]
+ },
+ "invalidates": [
+  "reachable(*)",
+  "pointing_at(*)"
+ ],
+ "policy_paths": [
+  {
+   "path_id": "left",
+   "when": [
+    "args.hand == 'left'"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_091()"
+   ],
+   "policies": [
+    "policy_091"
+   ],
+   "note": ""
+  },
+  {
+   "path_id": "right",
+   "when": [
+    "always (default path)"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_003()"
+   ],
+   "policies": [
+    "policy_003"
+   ],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [
+   {
+    "skill_id": "skill_015",
+    "verb": "point",
+    "when": "the gesture is finished",
+    "type": "enables"
+   },
+   {
+    "skill_id": "skill_018",
+    "verb": "place",
+    "when": "the hand is empty and the robot drives next",
+    "type": "enables"
+   },
+   {
+    "skill_id": "skill_021",
+    "verb": "release",
+    "when": "the arm is folded after letting go",
+    "type": "enables"
+   },
+   {
+    "skill_id": "skill_042",
+    "verb": "press",
+    "when": "the hand is free again",
+    "type": "enables"
+   },
+   {
+    "skill_id": "skill_053",
+    "verb": "restore",
+    "when": "the robot drives on",
+    "type": "enables"
+   },
+   {
+    "skill_id": "skill_054",
+    "verb": "swap",
+    "when": "the robot drives on",
+    "type": "enables"
+   },
+   {
+    "skill_id": "skill_070",
+    "verb": "hide",
+    "when": "the robot leaves",
+    "type": "enables"
+   }
+  ],
+  "next": [
+   {
+    "skill_id": "skill_001",
+    "verb": "navigate",
+    "when": "the robot drives next",
+    "bind": {},
+    "reason": "a folded arm is the travel posture",
+    "type": "then"
+   }
+  ],
+  "fallback": [
+   {
+    "skill_id": "skill_004",
+    "verb": "retreat",
+    "when": "the fold collides with furniture",
+    "bind": {},
+    "reason": "More room around the base gives the fold a collision-free path.",
+    "type": "recover"
+   }
+  ],
+  "fallback_for": [
+   {
+    "skill_id": "skill_001",
+    "verb": "navigate",
+    "when": "navigation fails because the empty arm cannot fold",
+    "type": "recover"
+   }
+  ],
+  "alternative": []
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": []
+ },
+ "scope": {
+  "includes": [],
+  "excludes": []
+ },
+ "contract_id": "contract_017",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_009",
+   "args": {
+    "hand": {
+     "value": "right"
+    }
+   },
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"tuck\", {'hand': ...})"
+ }
+}

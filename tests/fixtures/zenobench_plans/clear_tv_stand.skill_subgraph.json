@@ -1,0 +1,35 @@
+{
+ "schema_version": 2,
+ "kind": "skill_subgraph",
+ "subgoal_id": "clear_tv_stand",
+ "nodes": [
+  {
+   "id": "n1",
+   "skill": "fetch",
+   "args": {
+    "object": {
+     "value": "juice_bottle"
+    },
+    "receptacle": {
+     "value": "SimpleBookcaseFactory_6105320_spawn_asset_9196243/surface_3"
+    }
+   },
+   "depends_on": []
+  },
+  {
+   "id": "n2",
+   "skill": "fetch",
+   "args": {
+    "object": {
+     "value": "tissue_box"
+    },
+    "receptacle": {
+     "value": "SimpleBookcaseFactory_6105320_spawn_asset_9196243/surface_3"
+    }
+   },
+   "depends_on": [
+    "n1"
+   ]
+  }
+ ]
+}

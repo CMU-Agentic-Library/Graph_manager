@@ -1,0 +1,329 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_001",
+ "name": "navigate-place",
+ "verb": "navigate",
+ "noun": "place",
+ "title": "Navigate to a place",
+ "group": "base_and_body",
+ "signature": "navigate(destination: place_ref)",
+ "action_predicate": {
+  "name": "navigate_place",
+  "verb": "navigate",
+  "noun": "place",
+  "arguments": [
+   "destination"
+  ]
+ },
+ "description": "Drive the holonomic base to a free stand-off pose next to a room, piece of furniture, support, articulated part or object. The arm is tucked when empty, or held in the compact carry pose with the load.",
+ "use_when": "The robot must be in another room or next to another piece of furniture.",
+ "not_to_be_confused_with": {
+  "approach": "approach fine-parks so the arm reaches one target; navigate only gets near.",
+  "retreat": "retreat moves straight back from a place without a destination."
+ },
+ "inputs": {
+  "destination": {
+   "type": "place_ref",
+   "required": true,
+   "description": "Where to go: a room, furniture, support, articulated part or object."
+  }
+ },
+ "required_inputs": [
+  "destination"
+ ],
+ "outputs": {
+  "base_pose": {
+   "type": "pose2d",
+   "description": "Measured base pose [x, y, yaw_deg] at arrival."
+  }
+ },
+ "applicability": {
+  "always": true,
+  "summary": "Always applicable."
+ },
+ "preconditions": [],
+ "postconditions": [
+  {
+   "predicate": "base_near(place=$destination)",
+   "name": "base_near",
+   "args": {
+    "place": "$destination"
+   },
+   "negated": false,
+   "meaning": "Base centre within 1.3 m of the place's footprint (inside the room for a room).",
+   "kind": "fluent",
+   "gt_sources": [
+    "base_pose",
+    "scene_annotation"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "base_near(place=$destination)",
+    "name": "base_near",
+    "args": {
+     "place": "$destination"
+    },
+    "negated": false,
+    "meaning": "Base centre within 1.3 m of the place's footprint (inside the room for a room).",
+    "kind": "fluent",
+    "gt_sources": [
+     "base_pose",
+     "scene_annotation"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   }
+  ]
+ },
+ "invalidates": [
+  "base_near(*)",
+  "reachable(*)",
+  "facing(*)",
+  "in_view(*)",
+  "base_clear_of(*)",
+  "pointing_at(*)",
+  "presenting(*)"
+ ],
+ "policy_paths": [
+  {
+   "path_id": "two_hand_carry",
+   "when": [
+    "robot.both_hold_same"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_097($destination) as plan",
+    "policy_058(@robot.right_object, #plan.pose)"
+   ],
+   "policies": [
+    "policy_058",
+    "policy_097"
+   ],
+   "note": "An object held by both grippers moves at the slow bimanual carry speed."
+  },
+  {
+   "path_id": "carry",
+   "when": [
+    "robot.right_held"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_097($destination) as plan",
+    "policy_002(#plan.pose, name=@robot.right_object, min_bottom_z=#plan.carry_bottom_z)"
+   ],
+   "policies": [
+    "policy_002",
+    "policy_097"
+   ],
+   "note": "Back off, lift the load to carry height, plan with extra clearance, drive slowly."
+  },
+  {
+   "path_id": "empty",
+   "when": [
+    "always (default path)"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_097($destination) as plan",
+    "policy_001(#plan.pose)"
+   ],
+   "policies": [
+    "policy_001",
+    "policy_097"
+   ],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [
+   {
+    "skill_id": "skill_004",
+    "verb": "retreat",
+    "when": "the robot must leave after backing out",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_006",
+    "verb": "stand",
+    "when": "the robot drives after low work",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_008",
+    "verb": "straighten",
+    "when": "the robot drives after a bent reach",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_009",
+    "verb": "tuck",
+    "when": "the robot drives next",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_010",
+    "verb": "reset",
+    "when": "after a failed manipulation, before driving on",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_013",
+    "verb": "search",
+    "when": "the found object must be fetched",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_017",
+    "verb": "pick",
+    "when": "the object must be carried elsewhere",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_023",
+    "verb": "lift",
+    "when": "the object is carried over furniture",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_041",
+    "verb": "close",
+    "when": "the robot leaves",
+    "type": "then"
+   }
+  ],
+  "next": [
+   {
+    "skill_id": "skill_002",
+    "verb": "approach",
+    "when": "a manipulation target is on the destination",
+    "bind": {
+     "target": "$destination"
+    },
+    "reason": "navigate leaves the base near; approach makes the target IK-reachable.",
+    "type": "enables"
+   },
+   {
+    "skill_id": "skill_011",
+    "verb": "look",
+    "when": "the destination must be observed first",
+    "bind": {
+     "target": "$destination"
+    },
+    "type": "then"
+   }
+  ],
+  "fallback": [
+   {
+    "skill_id": "skill_004",
+    "verb": "retreat",
+    "when": "navigation fails because the base or load is wedged against furniture",
+    "bind": {},
+    "reason": "Backing out frees the planner's start cell, then navigate again.",
+    "type": "recover"
+   },
+   {
+    "skill_id": "skill_009",
+    "verb": "tuck",
+    "when": "navigation fails because the empty arm cannot fold",
+    "bind": {
+     "hand": "right"
+    },
+    "reason": "A separately planned fold clears the arm before the base path.",
+    "type": "recover"
+   },
+   {
+    "skill_id": "skill_023",
+    "verb": "lift",
+    "when": "a carried object hangs too low for the doorway clearance",
+    "bind": {},
+    "reason": "Raising the load restores the carry clearance.",
+    "type": "recover"
+   }
+  ],
+  "fallback_for": [
+   {
+    "skill_id": "skill_002",
+    "verb": "approach",
+    "when": "no base pose near the current one reaches the target",
+    "type": "repair"
+   },
+   {
+    "skill_id": "skill_011",
+    "verb": "look",
+    "when": "the line of sight is blocked",
+    "type": "repair"
+   },
+   {
+    "skill_id": "skill_057",
+    "verb": "identify",
+    "when": "the object is not visible from here",
+    "type": "recover"
+   }
+  ],
+  "alternative": [
+   {
+    "skill_id": "skill_003",
+    "verb": "face",
+    "when": "turning in place is blocked by furniture",
+    "bind": {}
+   },
+   {
+    "skill_id": "skill_055",
+    "verb": "sidestep",
+    "when": "a larger move is needed",
+    "bind": {}
+   }
+  ]
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": [
+   "no free stand-off pose",
+   "no base path",
+   "carried object slipped (Dropped)"
+  ]
+ },
+ "scope": {
+  "includes": [
+   "stand-off pose search around the noun's footprint",
+   "A* base path",
+   "carry posture if loaded"
+  ],
+  "excludes": [
+   "arm reachability of a specific target",
+   "grasping"
+  ]
+ },
+ "contract_id": "contract_009",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_001",
+   "args": {
+    "destination": {
+     "ref": "<place>"
+    }
+   },
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"navigate\", {'destination': ...})"
+ }
+}

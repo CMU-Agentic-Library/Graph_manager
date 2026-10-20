@@ -1,0 +1,107 @@
+{
+ "schema_version": 2,
+ "kind": "skill_subgraph",
+ "subgoal_id": "shelve_books",
+ "nodes": [
+  {
+   "id": "n1",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "book_red"
+    }
+   },
+   "depends_on": []
+  },
+  {
+   "id": "n2",
+   "skill": "pick",
+   "args": {
+    "object": {
+     "value": "book_red"
+    }
+   },
+   "depends_on": [
+    "n1"
+   ]
+  },
+  {
+   "id": "n3",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "SimpleBookcaseFactory_6105320_spawn_asset_9196243/surface_3"
+    }
+   },
+   "depends_on": [
+    "n2"
+   ]
+  },
+  {
+   "id": "n4",
+   "skill": "place",
+   "args": {
+    "object": {
+     "value": "book_red"
+    },
+    "receptacle": {
+     "value": "SimpleBookcaseFactory_6105320_spawn_asset_9196243/surface_3"
+    }
+   },
+   "depends_on": [
+    "n3"
+   ]
+  },
+  {
+   "id": "n5",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "book_green"
+    }
+   },
+   "depends_on": [
+    "n4"
+   ]
+  },
+  {
+   "id": "n6",
+   "skill": "pick",
+   "args": {
+    "object": {
+     "value": "book_green"
+    }
+   },
+   "depends_on": [
+    "n5"
+   ]
+  },
+  {
+   "id": "n7",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "SimpleBookcaseFactory_2318999_spawn_asset_8416993/surface_2"
+    }
+   },
+   "depends_on": [
+    "n6"
+   ]
+  },
+  {
+   "id": "n8",
+   "skill": "place",
+   "args": {
+    "object": {
+     "value": "book_green"
+    },
+    "receptacle": {
+     "value": "SimpleBookcaseFactory_2318999_spawn_asset_8416993/surface_2"
+    }
+   },
+   "depends_on": [
+    "n7"
+   ]
+  }
+ ]
+}

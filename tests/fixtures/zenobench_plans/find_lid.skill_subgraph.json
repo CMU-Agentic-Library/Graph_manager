@@ -1,0 +1,17 @@
+{
+ "schema_version": 2,
+ "kind": "skill_subgraph",
+ "subgoal_id": "find_lid",
+ "nodes": [
+  {
+   "id": "n1",
+   "skill": "look",
+   "args": {
+    "target": {
+     "value": "pot_lid"
+    }
+   },
+   "depends_on": []
+  }
+ ]
+}

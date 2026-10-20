@@ -1,0 +1,272 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_019",
+ "name": "drop-object",
+ "verb": "drop",
+ "noun": "object",
+ "title": "Drop an object into a container",
+ "group": "grasp_and_hand",
+ "signature": "drop(object: object_ref, container: container_ref)",
+ "action_predicate": {
+  "name": "drop_object",
+  "verb": "drop",
+  "noun": "object",
+  "arguments": [
+   "object",
+   "container"
+  ]
+ },
+ "description": "Hold the object 5 cm above a container's opening, centred, and let go; the object falls in.",
+ "use_when": "A held object must go into an open container from above without a precise pose.",
+ "not_to_be_confused_with": {
+  "place": "place lowers the object onto the container floor before opening."
+ },
+ "inputs": {
+  "object": {
+   "type": "object_ref",
+   "required": true,
+   "description": "The held object."
+  },
+  "container": {
+   "type": "container_ref",
+   "required": true,
+   "description": "The open container."
+  }
+ },
+ "required_inputs": [
+  "object",
+  "container"
+ ],
+ "outputs": {},
+ "applicability": {
+  "always": false,
+  "summary": "Requires holding(hand=right, object=$object); base_near(place=$container); uncovered(container=$container)."
+ },
+ "preconditions": [
+  {
+   "predicate": "holding(hand=right, object=$object)",
+   "name": "holding",
+   "args": {
+    "hand": "right",
+    "object": "$object"
+   },
+   "negated": false,
+   "meaning": "The object is in the given gripper: fingers not shut, TCP-to-body distance unchanged since the grasp.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state",
+    "finger_joints",
+    "object_pose",
+    "arm_fk"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  },
+  {
+   "predicate": "base_near(place=$container)",
+   "name": "base_near",
+   "args": {
+    "place": "$container"
+   },
+   "negated": false,
+   "meaning": "Base centre within 1.3 m of the place's footprint (inside the room for a room).",
+   "kind": "fluent",
+   "gt_sources": [
+    "base_pose",
+    "scene_annotation"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  },
+  {
+   "predicate": "uncovered(container=$container)",
+   "name": "uncovered",
+   "args": {
+    "container": "$container"
+   },
+   "negated": false,
+   "meaning": "No lid rests on the container rim.",
+   "kind": "fluent",
+   "gt_sources": [
+    "object_pose",
+    "container_profile",
+    "asset_tags"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  }
+ ],
+ "postconditions": [
+  {
+   "predicate": "inside(object=$object, container=$container)",
+   "name": "inside",
+   "args": {
+    "object": "$object",
+    "container": "$container"
+   },
+   "negated": false,
+   "meaning": "Object centre inside the container's wall profile, between its floor and 3 cm above the rim.",
+   "kind": "fluent",
+   "gt_sources": [
+    "object_pose",
+    "container_profile"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  },
+  {
+   "predicate": "hand_empty(hand=right)",
+   "name": "hand_empty",
+   "args": {
+    "hand": "right"
+   },
+   "negated": false,
+   "meaning": "The given gripper holds nothing.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "inside(object=$object, container=$container)",
+    "name": "inside",
+    "args": {
+     "object": "$object",
+     "container": "$container"
+    },
+    "negated": false,
+    "meaning": "Object centre inside the container's wall profile, between its floor and 3 cm above the rim.",
+    "kind": "fluent",
+    "gt_sources": [
+     "object_pose",
+     "container_profile"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   },
+   {
+    "predicate": "hand_empty(hand=right)",
+    "name": "hand_empty",
+    "args": {
+     "hand": "right"
+    },
+    "negated": false,
+    "meaning": "The given gripper holds nothing.",
+    "kind": "fluent",
+    "gt_sources": [
+     "gripper_state"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   }
+  ]
+ },
+ "invalidates": [
+  "holding(right,$object)"
+ ],
+ "policy_paths": [
+  {
+   "path_id": "above_opening",
+   "when": [
+    "always (default path)"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_073($object, $container)"
+   ],
+   "policies": [
+    "policy_073"
+   ],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [
+   {
+    "skill_id": "skill_023",
+    "verb": "lift",
+    "when": "the object is released over a tall container",
+    "type": "enables"
+   },
+   {
+    "skill_id": "skill_063",
+    "verb": "hover",
+    "when": "the object is released into the container under it",
+    "type": "enables"
+   }
+  ],
+  "next": [
+   {
+    "skill_id": "skill_017",
+    "verb": "pick",
+    "when": "more items go into the same container",
+    "bind": {},
+    "reason": "the hand is free again",
+    "type": "enables"
+   }
+  ],
+  "fallback": [],
+  "fallback_for": [
+   {
+    "skill_id": "skill_018",
+    "verb": "place",
+    "when": "a deep container leaves no room to lower the hand inside",
+    "type": "substitute"
+   }
+  ],
+  "alternative": [
+   {
+    "skill_id": "skill_018",
+    "verb": "place",
+    "when": "a gentle release inside is needed",
+    "bind": {
+     "object": "$object",
+     "receptacle": "$container"
+    }
+   },
+   {
+    "skill_id": "skill_021",
+    "verb": "release",
+    "when": "the object should fall into a container",
+    "bind": {}
+   }
+  ]
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": []
+ },
+ "scope": {
+  "includes": [],
+  "excludes": []
+ },
+ "contract_id": "contract_027",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_019",
+   "args": {
+    "object": {
+     "ref": "<object>"
+    },
+    "container": {
+     "ref": "<container>"
+    }
+   },
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"drop\", {'object': ..., 'container': ...})"
+ }
+}

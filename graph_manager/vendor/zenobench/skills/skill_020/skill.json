@@ -1,0 +1,261 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_020",
+ "name": "stack-object",
+ "verb": "stack",
+ "noun": "object",
+ "title": "Stack an object on another",
+ "group": "grasp_and_hand",
+ "signature": "stack(object: object_ref, base: object_ref)",
+ "action_predicate": {
+  "name": "stack_object",
+  "verb": "stack",
+  "noun": "object",
+  "arguments": [
+   "object",
+   "base"
+  ]
+ },
+ "description": "Set the held object centred on the top face of another object (block on block, plate on plate).",
+ "use_when": "A held object must be put on top of another object.",
+ "not_to_be_confused_with": {
+  "place": "place targets a support or container; stack targets the top face of an object."
+ },
+ "inputs": {
+  "object": {
+   "type": "object_ref",
+   "required": true,
+   "description": "The held object."
+  },
+  "base": {
+   "type": "object_ref",
+   "required": true,
+   "description": "The object to stack onto."
+  }
+ },
+ "required_inputs": [
+  "object",
+  "base"
+ ],
+ "outputs": {},
+ "applicability": {
+  "always": false,
+  "summary": "Requires holding(hand=right, object=$object); base_near(place=$base); top_clear(object=$base)."
+ },
+ "preconditions": [
+  {
+   "predicate": "holding(hand=right, object=$object)",
+   "name": "holding",
+   "args": {
+    "hand": "right",
+    "object": "$object"
+   },
+   "negated": false,
+   "meaning": "The object is in the given gripper: fingers not shut, TCP-to-body distance unchanged since the grasp.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state",
+    "finger_joints",
+    "object_pose",
+    "arm_fk"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  },
+  {
+   "predicate": "base_near(place=$base)",
+   "name": "base_near",
+   "args": {
+    "place": "$base"
+   },
+   "negated": false,
+   "meaning": "Base centre within 1.3 m of the place's footprint (inside the room for a room).",
+   "kind": "fluent",
+   "gt_sources": [
+    "base_pose",
+    "scene_annotation"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  },
+  {
+   "predicate": "top_clear(object=$base)",
+   "name": "top_clear",
+   "args": {
+    "object": "$base"
+   },
+   "negated": false,
+   "meaning": "No other object rests on the object's top face.",
+   "kind": "fluent",
+   "gt_sources": [
+    "object_pose",
+    "asset_annotation"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  }
+ ],
+ "postconditions": [
+  {
+   "predicate": "on_top_of(object=$object, base=$base)",
+   "name": "on_top_of",
+   "args": {
+    "object": "$object",
+    "base": "$base"
+   },
+   "negated": false,
+   "meaning": "Object rests on the base object's top face: bottom within 2 cm of it, centre over its footprint.",
+   "kind": "fluent",
+   "gt_sources": [
+    "object_pose",
+    "asset_annotation"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  },
+  {
+   "predicate": "hand_empty(hand=right)",
+   "name": "hand_empty",
+   "args": {
+    "hand": "right"
+   },
+   "negated": false,
+   "meaning": "The given gripper holds nothing.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "on_top_of(object=$object, base=$base)",
+    "name": "on_top_of",
+    "args": {
+     "object": "$object",
+     "base": "$base"
+    },
+    "negated": false,
+    "meaning": "Object rests on the base object's top face: bottom within 2 cm of it, centre over its footprint.",
+    "kind": "fluent",
+    "gt_sources": [
+     "object_pose",
+     "asset_annotation"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   },
+   {
+    "predicate": "hand_empty(hand=right)",
+    "name": "hand_empty",
+    "args": {
+     "hand": "right"
+    },
+    "negated": false,
+    "meaning": "The given gripper holds nothing.",
+    "kind": "fluent",
+    "gt_sources": [
+     "gripper_state"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   }
+  ]
+ },
+ "invalidates": [
+  "holding(right,$object)",
+  "top_clear($base)"
+ ],
+ "policy_paths": [
+  {
+   "path_id": "top_face",
+   "when": [
+    "always (default path)"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_074($object, $base)"
+   ],
+   "policies": [
+    "policy_074"
+   ],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [
+   {
+    "skill_id": "skill_064",
+    "verb": "square",
+    "when": "squared blocks stack cleanly",
+    "type": "then"
+   }
+  ],
+  "next": [
+   {
+    "skill_id": "skill_017",
+    "verb": "pick",
+    "when": "a taller stack is built",
+    "bind": {},
+    "reason": "the hand is free for the next block",
+    "type": "enables"
+   }
+  ],
+  "fallback": [
+   {
+    "skill_id": "skill_017",
+    "verb": "pick",
+    "when": "the base's top is occupied: remove the top object first",
+    "bind": {},
+    "reason": "taking the top object off frees the base's top face",
+    "type": "recover"
+   }
+  ],
+  "fallback_for": [],
+  "alternative": [
+   {
+    "skill_id": "skill_018",
+    "verb": "place",
+    "when": "a support surface is acceptable instead",
+    "bind": {
+     "object": "$object"
+    }
+   }
+  ]
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": []
+ },
+ "scope": {
+  "includes": [],
+  "excludes": []
+ },
+ "contract_id": "contract_028",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_020",
+   "args": {
+    "object": {
+     "ref": "<object>"
+    },
+    "base": {
+     "ref": "<object>"
+    }
+   },
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"stack\", {'object': ..., 'base': ...})"
+ }
+}

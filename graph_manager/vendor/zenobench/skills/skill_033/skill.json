@@ -1,0 +1,212 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_033",
+ "name": "center-object",
+ "verb": "center",
+ "noun": "object",
+ "title": "Center an object on its support",
+ "group": "contact",
+ "signature": "center(object: object_ref, margin_m: positive_number)",
+ "action_predicate": {
+  "name": "center_object",
+  "verb": "center",
+  "noun": "object",
+  "arguments": [
+   "object",
+   "margin_m"
+  ]
+ },
+ "description": "Push an object back from the support edges until every edge margin is at least the requested value (secures an item left overhanging).",
+ "use_when": "An object near a support edge must be moved inward so it cannot fall.",
+ "not_to_be_confused_with": {
+  "push": "center moves the object away from the nearest edge by a margin."
+ },
+ "inputs": {
+  "object": {
+   "type": "object_ref",
+   "required": true,
+   "description": "The object near an edge."
+  },
+  "margin_m": {
+   "type": "positive_number",
+   "required": true,
+   "description": "Required margin to every edge.",
+   "default": 0.06
+  }
+ },
+ "required_inputs": [
+  "object",
+  "margin_m"
+ ],
+ "outputs": {},
+ "applicability": {
+  "always": false,
+  "summary": "Requires hand_empty(hand=right); base_near(place=$object)."
+ },
+ "preconditions": [
+  {
+   "predicate": "hand_empty(hand=right)",
+   "name": "hand_empty",
+   "args": {
+    "hand": "right"
+   },
+   "negated": false,
+   "meaning": "The given gripper holds nothing.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  },
+  {
+   "predicate": "base_near(place=$object)",
+   "name": "base_near",
+   "args": {
+    "place": "$object"
+   },
+   "negated": false,
+   "meaning": "Base centre within 1.3 m of the place's footprint (inside the room for a room).",
+   "kind": "fluent",
+   "gt_sources": [
+    "base_pose",
+    "scene_annotation"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  }
+ ],
+ "postconditions": [
+  {
+   "predicate": "away_from_edge(object=$object, margin_m=$margin_m)",
+   "name": "away_from_edge",
+   "args": {
+    "object": "$object",
+    "margin_m": "$margin_m"
+   },
+   "negated": false,
+   "meaning": "Object footprint at least the margin inside every edge of its support.",
+   "kind": "fluent",
+   "gt_sources": [
+    "object_pose",
+    "support_annotation"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "away_from_edge(object=$object, margin_m=$margin_m)",
+    "name": "away_from_edge",
+    "args": {
+     "object": "$object",
+     "margin_m": "$margin_m"
+    },
+    "negated": false,
+    "meaning": "Object footprint at least the margin inside every edge of its support.",
+    "kind": "fluent",
+    "gt_sources": [
+     "object_pose",
+     "support_annotation"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   }
+  ]
+ },
+ "invalidates": [
+  "edge_overhang($object)"
+ ],
+ "policy_paths": [
+  {
+   "path_id": "push_inward",
+   "when": [
+    "always (default path)"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_083($object, $margin_m)"
+   ],
+   "policies": [
+    "policy_083"
+   ],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [
+   {
+    "skill_id": "skill_028",
+    "verb": "flip",
+    "when": "the object is left overhanging the edge",
+    "type": "enables"
+   }
+  ],
+  "next": [
+   {
+    "skill_id": "skill_017",
+    "verb": "pick",
+    "when": "the secured object is grasped later",
+    "bind": {
+     "object": "$object"
+    },
+    "type": "then"
+   }
+  ],
+  "fallback": [],
+  "fallback_for": [
+   {
+    "skill_id": "skill_028",
+    "verb": "flip",
+    "when": "the flipped object landed too close to the edge",
+    "type": "recover"
+   }
+  ],
+  "alternative": [
+   {
+    "skill_id": "skill_029",
+    "verb": "push",
+    "when": "a specific direction is wanted",
+    "bind": {
+     "object": "$object"
+    }
+   }
+  ]
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": []
+ },
+ "scope": {
+  "includes": [],
+  "excludes": []
+ },
+ "contract_id": "contract_041",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_033",
+   "args": {
+    "object": {
+     "ref": "<object>"
+    },
+    "margin_m": {
+     "value": 0.06
+    }
+   },
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"center\", {'object': ..., 'margin_m': ...})"
+ }
+}

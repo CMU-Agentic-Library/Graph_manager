@@ -1,0 +1,17 @@
+{
+ "schema_version": 2,
+ "kind": "skill_subgraph",
+ "subgoal_id": "explore_living_room",
+ "nodes": [
+  {
+   "id": "n1",
+   "skill": "explore",
+   "args": {
+    "room": {
+     "value": "living_room_0_0"
+    }
+   },
+   "depends_on": []
+  }
+ ]
+}

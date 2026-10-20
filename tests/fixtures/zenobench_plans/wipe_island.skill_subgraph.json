@@ -1,0 +1,71 @@
+{
+ "schema_version": 2,
+ "kind": "skill_subgraph",
+ "subgoal_id": "wipe_island",
+ "nodes": [
+  {
+   "id": "n1",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "kitchen_sponge"
+    }
+   },
+   "depends_on": []
+  },
+  {
+   "id": "n2",
+   "skill": "pick",
+   "args": {
+    "object": {
+     "value": "kitchen_sponge"
+    }
+   },
+   "depends_on": [
+    "n1"
+   ]
+  },
+  {
+   "id": "n3",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "kitchen_island/top"
+    }
+   },
+   "depends_on": [
+    "n2"
+   ]
+  },
+  {
+   "id": "n4",
+   "skill": "wipe",
+   "args": {
+    "surface": {
+     "value": "kitchen_island/top"
+    },
+    "tool": {
+     "value": "kitchen_sponge"
+    }
+   },
+   "depends_on": [
+    "n3"
+   ]
+  },
+  {
+   "id": "n5",
+   "skill": "place",
+   "args": {
+    "object": {
+     "value": "kitchen_sponge"
+    },
+    "receptacle": {
+     "value": "kitchen_island/top"
+    }
+   },
+   "depends_on": [
+    "n4"
+   ]
+  }
+ ]
+}

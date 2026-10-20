@@ -1,0 +1,217 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_010",
+ "name": "reset-posture",
+ "verb": "reset",
+ "noun": "posture",
+ "title": "Reset the posture",
+ "group": "base_and_body",
+ "signature": "reset()",
+ "action_predicate": {
+  "name": "reset_posture",
+  "verb": "reset",
+  "noun": "posture",
+  "arguments": []
+ },
+ "description": "Return to the home posture: fingers open, arm folded, torso up, waist straight, by a collision-checked joint-space move. Used to recover from an unknown arm state.",
+ "use_when": "Start or end of a task, or after a failure, to return to a known posture.",
+ "not_to_be_confused_with": {
+  "tuck": "tuck only folds one arm; reset also restores torso and waist."
+ },
+ "inputs": {},
+ "required_inputs": [],
+ "outputs": {},
+ "applicability": {
+  "always": false,
+  "summary": "Requires hand_empty(hand=right)."
+ },
+ "preconditions": [
+  {
+   "predicate": "hand_empty(hand=right)",
+   "name": "hand_empty",
+   "args": {
+    "hand": "right"
+   },
+   "negated": false,
+   "meaning": "The given gripper holds nothing.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  }
+ ],
+ "postconditions": [
+  {
+   "predicate": "arm_stowed(hand=right)",
+   "name": "arm_stowed",
+   "args": {
+    "hand": "right"
+   },
+   "negated": false,
+   "meaning": "The arm is folded at its travel posture.",
+   "kind": "fluent",
+   "gt_sources": [
+    "arm_joints"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  },
+  {
+   "predicate": "torso_raised()",
+   "name": "torso_raised",
+   "args": {},
+   "negated": false,
+   "meaning": "Torso lift within 3 cm of its highest position (travel height).",
+   "kind": "fluent",
+   "gt_sources": [
+    "torso_joint"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  },
+  {
+   "predicate": "waist_straight()",
+   "name": "waist_straight",
+   "args": {},
+   "negated": false,
+   "meaning": "Waist pitch within 0.05 rad of upright.",
+   "kind": "fluent",
+   "gt_sources": [
+    "waist_joint"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "arm_stowed(hand=right)",
+    "name": "arm_stowed",
+    "args": {
+     "hand": "right"
+    },
+    "negated": false,
+    "meaning": "The arm is folded at its travel posture.",
+    "kind": "fluent",
+    "gt_sources": [
+     "arm_joints"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   },
+   {
+    "predicate": "torso_raised()",
+    "name": "torso_raised",
+    "args": {},
+    "negated": false,
+    "meaning": "Torso lift within 3 cm of its highest position (travel height).",
+    "kind": "fluent",
+    "gt_sources": [
+     "torso_joint"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   },
+   {
+    "predicate": "waist_straight()",
+    "name": "waist_straight",
+    "args": {},
+    "negated": false,
+    "meaning": "Waist pitch within 0.05 rad of upright.",
+    "kind": "fluent",
+    "gt_sources": [
+     "waist_joint"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   }
+  ]
+ },
+ "invalidates": [
+  "torso_lowered()",
+  "waist_bent(*)",
+  "reachable(*)",
+  "pointing_at(*)",
+  "in_view(*)"
+ ],
+ "policy_paths": [
+  {
+   "path_id": "joint_home",
+   "when": [
+    "always (default path)"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_040()",
+    "policy_003()",
+    "policy_095() as home",
+    "policy_039(#home.target)"
+   ],
+   "policies": [
+    "policy_003",
+    "policy_039",
+    "policy_040",
+    "policy_095"
+   ],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [],
+  "next": [
+   {
+    "skill_id": "skill_001",
+    "verb": "navigate",
+    "when": "after a failed manipulation, before driving on",
+    "bind": {},
+    "reason": "a known posture makes the base path plannable",
+    "type": "then"
+   }
+  ],
+  "fallback": [],
+  "fallback_for": [],
+  "alternative": [
+   {
+    "skill_id": "skill_006",
+    "verb": "stand",
+    "when": "the arm and waist must also be restored",
+    "bind": {}
+   },
+   {
+    "skill_id": "skill_008",
+    "verb": "straighten",
+    "when": "the arm and torso must also be restored",
+    "bind": {}
+   }
+  ]
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": []
+ },
+ "scope": {
+  "includes": [],
+  "excludes": []
+ },
+ "contract_id": "contract_018",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_010",
+   "args": {},
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"reset\", {})"
+ }
+}

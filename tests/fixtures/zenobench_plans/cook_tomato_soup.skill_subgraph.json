@@ -1,0 +1,215 @@
+{
+ "schema_version": 2,
+ "kind": "skill_subgraph",
+ "subgoal_id": "cook_tomato_soup",
+ "nodes": [
+  {
+   "id": "n1",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "handled_cooking_pot"
+    }
+   },
+   "depends_on": []
+  },
+  {
+   "id": "n2",
+   "skill": "uncover",
+   "args": {
+    "container": {
+     "value": "handled_cooking_pot"
+    }
+   },
+   "depends_on": [
+    "n1"
+   ]
+  },
+  {
+   "id": "n3",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "breakfast_spoon"
+    }
+   },
+   "depends_on": [
+    "n2"
+   ]
+  },
+  {
+   "id": "n4",
+   "skill": "pick",
+   "args": {
+    "object": {
+     "value": "breakfast_spoon"
+    }
+   },
+   "depends_on": [
+    "n3"
+   ]
+  },
+  {
+   "id": "n5",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "handled_cooking_pot"
+    }
+   },
+   "depends_on": [
+    "n4"
+   ]
+  },
+  {
+   "id": "n6",
+   "skill": "stir",
+   "args": {
+    "container": {
+     "value": "handled_cooking_pot"
+    },
+    "tool": {
+     "value": "breakfast_spoon"
+    }
+   },
+   "depends_on": [
+    "n5"
+   ]
+  },
+  {
+   "id": "n7",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "cherry_tomato_2"
+    }
+   },
+   "depends_on": [
+    "n6"
+   ]
+  },
+  {
+   "id": "n8",
+   "skill": "place",
+   "args": {
+    "object": {
+     "value": "breakfast_spoon"
+    },
+    "receptacle": {
+     "value": "mug"
+    }
+   },
+   "depends_on": [
+    "n7"
+   ]
+  },
+  {
+   "id": "n9",
+   "skill": "pick",
+   "args": {
+    "object": {
+     "value": "mug"
+    }
+   },
+   "depends_on": [
+    "n8"
+   ]
+  },
+  {
+   "id": "n10",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "kitchen_stove"
+    }
+   },
+   "depends_on": [
+    "n9"
+   ]
+  },
+  {
+   "id": "n11",
+   "skill": "place",
+   "args": {
+    "object": {
+     "value": "mug"
+    },
+    "receptacle": {
+     "value": "kitchen_stove/top"
+    }
+   },
+   "depends_on": [
+    "n10"
+   ]
+  },
+  {
+   "id": "n12",
+   "skill": "heat",
+   "args": {
+    "food": {
+     "value": "cherry_tomato_1"
+    },
+    "appliance": {
+     "value": "kitchen_stove"
+    },
+    "temp_c": {
+     "value": 60.0
+    }
+   },
+   "depends_on": [
+    "n11"
+   ]
+  },
+  {
+   "id": "n13",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "pot_lid"
+    }
+   },
+   "depends_on": [
+    "n12"
+   ]
+  },
+  {
+   "id": "n14",
+   "skill": "pick",
+   "args": {
+    "object": {
+     "value": "pot_lid"
+    }
+   },
+   "depends_on": [
+    "n13"
+   ]
+  },
+  {
+   "id": "n15",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "handled_cooking_pot"
+    }
+   },
+   "depends_on": [
+    "n14"
+   ]
+  },
+  {
+   "id": "n16",
+   "skill": "cover",
+   "args": {
+    "container": {
+     "value": "handled_cooking_pot"
+    },
+    "lid": {
+     "value": "pot_lid"
+    }
+   },
+   "depends_on": [
+    "n15"
+   ]
+  }
+ ]
+}

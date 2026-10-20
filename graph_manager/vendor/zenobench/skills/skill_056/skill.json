@@ -1,0 +1,149 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_056",
+ "name": "wait-duration",
+ "verb": "wait",
+ "noun": "duration",
+ "title": "Wait for a duration",
+ "group": "base_and_body",
+ "signature": "wait(seconds: positive_number)",
+ "action_predicate": {
+  "name": "wait_duration",
+  "verb": "wait",
+  "noun": "duration",
+  "arguments": [
+   "seconds"
+  ]
+ },
+ "description": "Do nothing for the given simulated time (an appliance cycle running, an object settling).",
+ "use_when": "Something must happen over time (cooling, settling) and the robot should not act.",
+ "not_to_be_confused_with": {
+  "heat": "heat waits for a measured temperature; wait for a fixed time."
+ },
+ "inputs": {
+  "seconds": {
+   "type": "positive_number",
+   "required": true,
+   "description": "How long to wait.",
+   "default": 5.0
+  }
+ },
+ "required_inputs": [
+  "seconds"
+ ],
+ "outputs": {},
+ "applicability": {
+  "always": true,
+  "summary": "Always applicable."
+ },
+ "preconditions": [],
+ "postconditions": [
+  {
+   "predicate": "waited(seconds=$seconds)",
+   "name": "waited",
+   "args": {
+    "seconds": "$seconds"
+   },
+   "negated": false,
+   "meaning": "At least the given simulated time passed during the Contract.",
+   "kind": "relative",
+   "gt_sources": [
+    "sim_clock"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "waited(seconds=$seconds)",
+    "name": "waited",
+    "args": {
+     "seconds": "$seconds"
+    },
+    "negated": false,
+    "meaning": "At least the given simulated time passed during the Contract.",
+    "kind": "relative",
+    "gt_sources": [
+     "sim_clock"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   }
+  ]
+ },
+ "invalidates": [],
+ "policy_paths": [
+  {
+   "path_id": "idle",
+   "when": [
+    "always (default path)"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_103($seconds)"
+   ],
+   "policies": [
+    "policy_103"
+   ],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [],
+  "next": [
+   {
+    "skill_id": "skill_040",
+    "verb": "open",
+    "when": "a cycle finished and the door is opened",
+    "bind": {},
+    "reason": "time passed",
+    "type": "then"
+   }
+  ],
+  "fallback": [],
+  "fallback_for": [
+   {
+    "skill_id": "skill_043",
+    "verb": "heat",
+    "when": "the food is still below the target when the time budget ends",
+    "type": "recover"
+   }
+  ],
+  "alternative": []
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": []
+ },
+ "scope": {
+  "includes": [],
+  "excludes": []
+ },
+ "contract_id": "contract_064",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_056",
+   "args": {
+    "seconds": {
+     "value": 5.0
+    }
+   },
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"wait\", {'seconds': ...})"
+ }
+}

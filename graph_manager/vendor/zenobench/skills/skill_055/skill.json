@@ -1,0 +1,171 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_055",
+ "name": "sidestep-base",
+ "verb": "sidestep",
+ "noun": "base",
+ "title": "Sidestep the base",
+ "group": "base_and_body",
+ "signature": "sidestep(distance_m: number)",
+ "action_predicate": {
+  "name": "sidestep_base",
+  "verb": "sidestep",
+  "noun": "base",
+  "arguments": [
+   "distance_m"
+  ]
+ },
+ "description": "Move the base sideways by a signed distance (left positive) without turning, also while carrying a load; aligns the arm with a target that is a little to the side.",
+ "use_when": "The robot must shift sideways a few centimetres without turning (align with a target).",
+ "not_to_be_confused_with": {
+  "retreat": "retreat moves straight back; sidestep moves sideways.",
+  "face": "face turns in place; sidestep keeps the heading."
+ },
+ "inputs": {
+  "distance_m": {
+   "type": "number",
+   "required": true,
+   "description": "Lateral displacement in metres (left > 0)."
+  }
+ },
+ "required_inputs": [
+  "distance_m"
+ ],
+ "outputs": {},
+ "applicability": {
+  "always": true,
+  "summary": "Always applicable."
+ },
+ "preconditions": [],
+ "postconditions": [
+  {
+   "predicate": "sidestepped(distance_m=$distance_m)",
+   "name": "sidestepped",
+   "args": {
+    "distance_m": "$distance_m"
+   },
+   "negated": false,
+   "meaning": "Base moved sideways by the signed distance (left > 0) within 3 cm, heading unchanged within 3 deg.",
+   "kind": "relative",
+   "gt_sources": [
+    "base_pose (before/after)"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "sidestepped(distance_m=$distance_m)",
+    "name": "sidestepped",
+    "args": {
+     "distance_m": "$distance_m"
+    },
+    "negated": false,
+    "meaning": "Base moved sideways by the signed distance (left > 0) within 3 cm, heading unchanged within 3 deg.",
+    "kind": "relative",
+    "gt_sources": [
+     "base_pose (before/after)"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   }
+  ]
+ },
+ "invalidates": [
+  "base_near(*)",
+  "reachable(*)",
+  "facing(*)",
+  "in_view(*)"
+ ],
+ "policy_paths": [
+  {
+   "path_id": "empty_tucked",
+   "when": [
+    "not robot.right_held",
+    "not robot.left_held",
+    "robot.right_arm_stowed"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_037(0.0, $distance_m)"
+   ],
+   "policies": [
+    "policy_037"
+   ],
+   "note": ""
+  },
+  {
+   "path_id": "loaded",
+   "when": [
+    "always (default path)"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_114($distance_m)"
+   ],
+   "policies": [
+    "policy_114"
+   ],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [],
+  "next": [
+   {
+    "skill_id": "skill_002",
+    "verb": "approach",
+    "when": "the target is now in front of the arm",
+    "bind": {},
+    "reason": "small lateral offset fixed",
+    "type": "then"
+   }
+  ],
+  "fallback": [],
+  "fallback_for": [],
+  "alternative": [
+   {
+    "skill_id": "skill_001",
+    "verb": "navigate",
+    "when": "a larger move is needed",
+    "bind": {}
+   }
+  ]
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": []
+ },
+ "scope": {
+  "includes": [],
+  "excludes": []
+ },
+ "contract_id": "contract_063",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_055",
+   "args": {
+    "distance_m": {
+     "value": "<number>"
+    }
+   },
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"sidestep\", {'distance_m': ...})"
+ }
+}

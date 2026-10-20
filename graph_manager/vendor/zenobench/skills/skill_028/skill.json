@@ -1,0 +1,223 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_028",
+ "name": "flip-object",
+ "verb": "flip",
+ "noun": "object",
+ "title": "Flip a flat object over",
+ "group": "grasp_and_hand",
+ "signature": "flip(object: object_ref)",
+ "action_predicate": {
+  "name": "flip_object",
+  "verb": "flip",
+  "noun": "object",
+  "arguments": [
+   "object"
+  ]
+ },
+ "description": "Turn a flat object upside down where it lies: slide it to an edge, pinch the overhang, lift, roll the hand 180 deg, lay it back and release.",
+ "use_when": "A flat object must be turned upside down.",
+ "not_to_be_confused_with": {
+  "rotate": "rotate turns about the vertical axis; flip turns the object upside down."
+ },
+ "inputs": {
+  "object": {
+   "type": "object_ref",
+   "required": true,
+   "description": "A flat object (book, plate, notebook) on a support."
+  }
+ },
+ "required_inputs": [
+  "object"
+ ],
+ "outputs": {},
+ "applicability": {
+  "always": false,
+  "summary": "Requires hand_empty(hand=right); base_near(place=$object)."
+ },
+ "preconditions": [
+  {
+   "predicate": "hand_empty(hand=right)",
+   "name": "hand_empty",
+   "args": {
+    "hand": "right"
+   },
+   "negated": false,
+   "meaning": "The given gripper holds nothing.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  },
+  {
+   "predicate": "base_near(place=$object)",
+   "name": "base_near",
+   "args": {
+    "place": "$object"
+   },
+   "negated": false,
+   "meaning": "Base centre within 1.3 m of the place's footprint (inside the room for a room).",
+   "kind": "fluent",
+   "gt_sources": [
+    "base_pose",
+    "scene_annotation"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  }
+ ],
+ "postconditions": [
+  {
+   "predicate": "flipped(object=$object)",
+   "name": "flipped",
+   "args": {
+    "object": "$object"
+   },
+   "negated": false,
+   "meaning": "Object's local z axis now points opposite to its direction at the start (dot <= -0.7).",
+   "kind": "relative",
+   "gt_sources": [
+    "object_pose (before/after)"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  },
+  {
+   "predicate": "hand_empty(hand=right)",
+   "name": "hand_empty",
+   "args": {
+    "hand": "right"
+   },
+   "negated": false,
+   "meaning": "The given gripper holds nothing.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "flipped(object=$object)",
+    "name": "flipped",
+    "args": {
+     "object": "$object"
+    },
+    "negated": false,
+    "meaning": "Object's local z axis now points opposite to its direction at the start (dot <= -0.7).",
+    "kind": "relative",
+    "gt_sources": [
+     "object_pose (before/after)"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   },
+   {
+    "predicate": "hand_empty(hand=right)",
+    "name": "hand_empty",
+    "args": {
+     "hand": "right"
+    },
+    "negated": false,
+    "meaning": "The given gripper holds nothing.",
+    "kind": "fluent",
+    "gt_sources": [
+     "gripper_state"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   }
+  ]
+ },
+ "invalidates": [],
+ "policy_paths": [
+  {
+   "path_id": "edge_roll",
+   "when": [
+    "object.flat"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_045($object)",
+    "policy_013($object)",
+    "policy_078($object)"
+   ],
+   "policies": [
+    "policy_013",
+    "policy_045",
+    "policy_078"
+   ],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [
+   {
+    "skill_id": "skill_031",
+    "verb": "expose",
+    "when": "turn the object over",
+    "type": "then"
+   }
+  ],
+  "next": [
+   {
+    "skill_id": "skill_033",
+    "verb": "center",
+    "when": "the object is left overhanging the edge",
+    "bind": {
+     "object": "$object"
+    },
+    "type": "enables"
+   }
+  ],
+  "fallback": [
+   {
+    "skill_id": "skill_033",
+    "verb": "center",
+    "when": "the flipped object landed too close to the edge",
+    "bind": {
+     "object": "$object"
+    },
+    "reason": "pushes it back from the edge",
+    "type": "recover"
+   }
+  ],
+  "fallback_for": [],
+  "alternative": []
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": []
+ },
+ "scope": {
+  "includes": [],
+  "excludes": []
+ },
+ "contract_id": "contract_036",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_028",
+   "args": {
+    "object": {
+     "ref": "<object>"
+    }
+   },
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"flip\", {'object': ...})"
+ }
+}

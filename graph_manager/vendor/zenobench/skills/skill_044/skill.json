@@ -1,0 +1,221 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_044",
+ "name": "chill-food",
+ "verb": "chill",
+ "noun": "food",
+ "title": "Chill food",
+ "group": "articulated_and_appliance",
+ "signature": "chill(food: object_ref, appliance: appliance_ref, temp_c: number)",
+ "action_predicate": {
+  "name": "chill_food",
+  "verb": "chill",
+  "noun": "food",
+  "arguments": [
+   "food",
+   "appliance",
+   "temp_c"
+  ]
+ },
+ "description": "Keep food in the closed refrigerator until it is at or below a target temperature.",
+ "use_when": "Food or a drink must cool in the refrigerator.",
+ "not_to_be_confused_with": {
+  "heat": "opposite direction, with the microwave or stove."
+ },
+ "inputs": {
+  "food": {
+   "type": "object_ref",
+   "required": true,
+   "description": "The food item with thermal state."
+  },
+  "appliance": {
+   "type": "appliance_ref",
+   "required": true,
+   "description": "The refrigerator.",
+   "default": "breakfast_fridge"
+  },
+  "temp_c": {
+   "type": "number",
+   "required": true,
+   "description": "Maximum temperature in degC.",
+   "default": 8.0
+  }
+ },
+ "required_inputs": [
+  "food",
+  "appliance",
+  "temp_c"
+ ],
+ "outputs": {
+  "temp_c": {
+   "type": "number",
+   "description": "Measured final temperature."
+  }
+ },
+ "applicability": {
+  "always": false,
+  "summary": "Requires in_appliance(object=$food, appliance=$appliance); is_closed(articulated=$appliance)."
+ },
+ "preconditions": [
+  {
+   "predicate": "in_appliance(object=$food, appliance=$appliance)",
+   "name": "in_appliance",
+   "args": {
+    "object": "$food",
+    "appliance": "$appliance"
+   },
+   "negated": false,
+   "meaning": "Object centre inside the appliance cavity box (microwave) or body box (refrigerator).",
+   "kind": "fluent",
+   "gt_sources": [
+    "object_pose",
+    "appliance_annotation"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  },
+  {
+   "predicate": "is_closed(articulated=$appliance)",
+   "name": "is_closed",
+   "args": {
+    "articulated": "$appliance"
+   },
+   "negated": false,
+   "meaning": "Joint within 0.10 rad (doors) or 4 cm (drawers) of closed.",
+   "kind": "fluent",
+   "gt_sources": [
+    "articulation_joint",
+    "articulation_annotation"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  }
+ ],
+ "postconditions": [
+  {
+   "predicate": "temperature_at_most(object=$food, temp_c=$temp_c)",
+   "name": "temperature_at_most",
+   "args": {
+    "object": "$food",
+    "temp_c": "$temp_c"
+   },
+   "negated": false,
+   "meaning": "Task-level food temperature at or below the threshold.",
+   "kind": "fluent",
+   "gt_sources": [
+    "thermal_state"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "temperature_at_most(object=$food, temp_c=$temp_c)",
+    "name": "temperature_at_most",
+    "args": {
+     "object": "$food",
+     "temp_c": "$temp_c"
+    },
+    "negated": false,
+    "meaning": "Task-level food temperature at or below the threshold.",
+    "kind": "fluent",
+    "gt_sources": [
+     "thermal_state"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   }
+  ]
+ },
+ "invalidates": [],
+ "policy_paths": [
+  {
+   "path_id": "fridge_wait",
+   "when": [
+    "appliance.category == 'refrigerator'"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_089($food, $temp_c, $appliance)"
+   ],
+   "policies": [
+    "policy_089"
+   ],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [
+   {
+    "skill_id": "skill_041",
+    "verb": "close",
+    "when": "the fridge must be closed while cooling",
+    "type": "enables"
+   }
+  ],
+  "next": [
+   {
+    "skill_id": "skill_040",
+    "verb": "open",
+    "when": "the chilled food is taken out",
+    "bind": {
+     "articulated": "$appliance"
+    },
+    "type": "then"
+   }
+  ],
+  "fallback": [
+   {
+    "skill_id": "skill_041",
+    "verb": "close",
+    "when": "the fridge door is open",
+    "bind": {
+     "articulated": "$appliance"
+    },
+    "type": "repair",
+    "repairs": "is_closed"
+   }
+  ],
+  "fallback_for": [],
+  "alternative": []
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": []
+ },
+ "scope": {
+  "includes": [],
+  "excludes": []
+ },
+ "contract_id": "contract_052",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_044",
+   "args": {
+    "food": {
+     "ref": "<object>"
+    },
+    "appliance": {
+     "ref": "<appliance>"
+    },
+    "temp_c": {
+     "value": 8.0
+    }
+   },
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"chill\", {'food': ..., 'appliance': ..., 'temp_c': ...})"
+ }
+}

@@ -1,0 +1,219 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_065",
+ "name": "touch-object",
+ "verb": "touch",
+ "noun": "object",
+ "title": "Touch an object",
+ "group": "contact",
+ "signature": "touch(object: object_ref)",
+ "action_predicate": {
+  "name": "touch_object",
+  "verb": "touch",
+  "noun": "object",
+  "arguments": [
+   "object"
+  ]
+ },
+ "description": "Bring the closed fingertips onto an object's top and back off without moving it (probe / indicate by contact).",
+ "use_when": "An object must be touched lightly (tap, confirm contact) without moving it.",
+ "not_to_be_confused_with": {
+  "push": "push moves the object; touch must not.",
+  "press": "press actuates a button."
+ },
+ "inputs": {
+  "object": {
+   "type": "object_ref",
+   "required": true,
+   "description": "The object to touch."
+  }
+ },
+ "required_inputs": [
+  "object"
+ ],
+ "outputs": {},
+ "applicability": {
+  "always": false,
+  "summary": "Requires hand_empty(hand=right); base_near(place=$object)."
+ },
+ "preconditions": [
+  {
+   "predicate": "hand_empty(hand=right)",
+   "name": "hand_empty",
+   "args": {
+    "hand": "right"
+   },
+   "negated": false,
+   "meaning": "The given gripper holds nothing.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  },
+  {
+   "predicate": "base_near(place=$object)",
+   "name": "base_near",
+   "args": {
+    "place": "$object"
+   },
+   "negated": false,
+   "meaning": "Base centre within 1.3 m of the place's footprint (inside the room for a room).",
+   "kind": "fluent",
+   "gt_sources": [
+    "base_pose",
+    "scene_annotation"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  }
+ ],
+ "postconditions": [
+  {
+   "predicate": "touched(object=$object)",
+   "name": "touched",
+   "args": {
+    "object": "$object"
+   },
+   "negated": false,
+   "meaning": "A measured fingertip contact with the object's top during the Contract; it moved < 1.5 cm.",
+   "kind": "relative",
+   "gt_sources": [
+    "event_log (fingertip contact)",
+    "object_pose (before/after)"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  },
+  {
+   "predicate": "hand_empty(hand=right)",
+   "name": "hand_empty",
+   "args": {
+    "hand": "right"
+   },
+   "negated": false,
+   "meaning": "The given gripper holds nothing.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "touched(object=$object)",
+    "name": "touched",
+    "args": {
+     "object": "$object"
+    },
+    "negated": false,
+    "meaning": "A measured fingertip contact with the object's top during the Contract; it moved < 1.5 cm.",
+    "kind": "relative",
+    "gt_sources": [
+     "event_log (fingertip contact)",
+     "object_pose (before/after)"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   },
+   {
+    "predicate": "hand_empty(hand=right)",
+    "name": "hand_empty",
+    "args": {
+     "hand": "right"
+    },
+    "negated": false,
+    "meaning": "The given gripper holds nothing.",
+    "kind": "fluent",
+    "gt_sources": [
+     "gripper_state"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   }
+  ]
+ },
+ "invalidates": [],
+ "policy_paths": [
+  {
+   "path_id": "fingertip_top",
+   "when": [
+    "always (default path)"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_107($object)"
+   ],
+   "policies": [
+    "policy_107"
+   ],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [],
+  "next": [
+   {
+    "skill_id": "skill_017",
+    "verb": "pick",
+    "when": "the touched object is then grasped",
+    "bind": {
+     "object": "$object"
+    },
+    "type": "enables"
+   }
+  ],
+  "fallback": [],
+  "fallback_for": [],
+  "alternative": [
+   {
+    "skill_id": "skill_015",
+    "verb": "point",
+    "when": "contact is not allowed",
+    "bind": {
+     "target": "$object"
+    }
+   },
+   {
+    "skill_id": "skill_066",
+    "verb": "knock",
+    "when": "an object, not a door, is to be tapped",
+    "bind": {}
+   }
+  ]
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": []
+ },
+ "scope": {
+  "includes": [],
+  "excludes": []
+ },
+ "contract_id": "contract_073",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_065",
+   "args": {
+    "object": {
+     "ref": "<object>"
+    }
+   },
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"touch\", {'object': ...})"
+ }
+}

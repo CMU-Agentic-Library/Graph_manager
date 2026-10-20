@@ -1,0 +1,27 @@
+{
+ "schema_version": 2,
+ "kind": "skill_subgraph",
+ "subgoal_id": "breakfast_setup",
+ "nodes": [
+  {
+   "id": "n1",
+   "skill": "arrange",
+   "args": {
+    "objects": {
+     "value": [
+      "plate",
+      "cup",
+      "spoon"
+     ]
+    },
+    "support": {
+     "value": "TableDiningFactory_1437886_spawn_asset_2104395/surface_2"
+    },
+    "max_dist_m": {
+     "value": 0.5
+    }
+   },
+   "depends_on": []
+  }
+ ]
+}

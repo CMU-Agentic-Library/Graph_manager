@@ -1,0 +1,271 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_029",
+ "name": "push-object",
+ "verb": "push",
+ "noun": "object",
+ "title": "Push an object",
+ "group": "contact",
+ "signature": "push(object: object_ref, direction_xy: unit_vec2, distance_m: positive_number)",
+ "action_predicate": {
+  "name": "push_object",
+  "verb": "push",
+  "noun": "object",
+  "arguments": [
+   "object",
+   "direction_xy",
+   "distance_m"
+  ]
+ },
+ "description": "Slide an object along its support in a direction with closed fingers: from behind when there is room, or by pressing on its top and dragging when it stands against a wall or closed edge.",
+ "use_when": "An object must slide along its support without grasping it.",
+ "not_to_be_confused_with": {
+  "pull": "pull drags toward the base to make an object reachable.",
+  "expose": "expose pushes until a graspable overhang exists.",
+  "separate": "separate pushes away from the nearest neighbour.",
+  "center": "center pushes away from the support edges.",
+  "roll": "roll makes a cylinder rotate instead of slide.",
+  "tip": "tip pushes high so the object falls over.",
+  "sweep": "sweep gathers several objects."
+ },
+ "inputs": {
+  "object": {
+   "type": "object_ref",
+   "required": true,
+   "description": "The object to slide."
+  },
+  "direction_xy": {
+   "type": "unit_vec2",
+   "required": true,
+   "description": "World horizontal direction."
+  },
+  "distance_m": {
+   "type": "positive_number",
+   "required": true,
+   "description": "Requested travel."
+  }
+ },
+ "required_inputs": [
+  "object",
+  "direction_xy",
+  "distance_m"
+ ],
+ "outputs": {
+  "moved_m": {
+   "type": "number",
+   "description": "Measured displacement along the direction."
+  }
+ },
+ "applicability": {
+  "always": false,
+  "summary": "Requires hand_empty(hand=right); base_near(place=$object)."
+ },
+ "preconditions": [
+  {
+   "predicate": "hand_empty(hand=right)",
+   "name": "hand_empty",
+   "args": {
+    "hand": "right"
+   },
+   "negated": false,
+   "meaning": "The given gripper holds nothing.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  },
+  {
+   "predicate": "base_near(place=$object)",
+   "name": "base_near",
+   "args": {
+    "place": "$object"
+   },
+   "negated": false,
+   "meaning": "Base centre within 1.3 m of the place's footprint (inside the room for a room).",
+   "kind": "fluent",
+   "gt_sources": [
+    "base_pose",
+    "scene_annotation"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  }
+ ],
+ "postconditions": [
+  {
+   "predicate": "object_moved(object=$object, direction_xy=$direction_xy, distance_m=$distance_m)",
+   "name": "object_moved",
+   "args": {
+    "object": "$object",
+    "direction_xy": "$direction_xy",
+    "distance_m": "$distance_m"
+   },
+   "negated": false,
+   "meaning": "Object displaced along the direction by at least half the requested distance.",
+   "kind": "relative",
+   "gt_sources": [
+    "object_pose (before/after)"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "object_moved(object=$object, direction_xy=$direction_xy, distance_m=$distance_m)",
+    "name": "object_moved",
+    "args": {
+     "object": "$object",
+     "direction_xy": "$direction_xy",
+     "distance_m": "$distance_m"
+    },
+    "negated": false,
+    "meaning": "Object displaced along the direction by at least half the requested distance.",
+    "kind": "relative",
+    "gt_sources": [
+     "object_pose (before/after)"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   }
+  ]
+ },
+ "invalidates": [
+  "edge_overhang($object)",
+  "grasp_clearance($object)",
+  "away_from_edge($object,*)",
+  "at_initial_place($object)"
+ ],
+ "policy_paths": [
+  {
+   "path_id": "drag_from_top",
+   "when": [
+    "object.near_closed_edge"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_041()",
+    "policy_044($object, @object.support, $direction_xy, $distance_m)"
+   ],
+   "policies": [
+    "policy_041",
+    "policy_044"
+   ],
+   "note": ""
+  },
+  {
+   "path_id": "thin_auto",
+   "when": [
+    "object.flat"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_026($object, @object.support, $direction_xy, $distance_m)"
+   ],
+   "policies": [
+    "policy_026"
+   ],
+   "note": "The dispatcher chooses push or drag for thin items."
+  },
+  {
+   "path_id": "from_behind",
+   "when": [
+    "always (default path)"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_041()",
+    "policy_043($object, @object.support, $direction_xy, $distance_m)"
+   ],
+   "policies": [
+    "policy_041",
+    "policy_043"
+   ],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [],
+  "next": [
+   {
+    "skill_id": "skill_017",
+    "verb": "pick",
+    "when": "the object was pushed into a graspable spot",
+    "bind": {
+     "object": "$object"
+    },
+    "type": "then"
+   }
+  ],
+  "fallback": [],
+  "fallback_for": [],
+  "alternative": [
+   {
+    "skill_id": "skill_030",
+    "verb": "pull",
+    "when": "the object should come toward the robot",
+    "bind": {}
+   },
+   {
+    "skill_id": "skill_033",
+    "verb": "center",
+    "when": "a specific direction is wanted",
+    "bind": {}
+   },
+   {
+    "skill_id": "skill_034",
+    "verb": "roll",
+    "when": "sliding is acceptable",
+    "bind": {}
+   },
+   {
+    "skill_id": "skill_067",
+    "verb": "sweep",
+    "when": "only one object has to move",
+    "bind": {}
+   }
+  ]
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": []
+ },
+ "scope": {
+  "includes": [],
+  "excludes": []
+ },
+ "contract_id": "contract_037",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_029",
+   "args": {
+    "object": {
+     "ref": "<object>"
+    },
+    "direction_xy": {
+     "value": "<unit_vec2>"
+    },
+    "distance_m": {
+     "value": "<positive_number>"
+    }
+   },
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"push\", {'object': ..., 'direction_xy': ..., 'distance_m': ...})"
+ }
+}

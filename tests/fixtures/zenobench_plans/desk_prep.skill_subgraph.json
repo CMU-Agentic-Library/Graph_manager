@@ -1,0 +1,158 @@
+{
+ "schema_version": 2,
+ "kind": "skill_subgraph",
+ "subgoal_id": "desk_prep",
+ "nodes": [
+  {
+   "id": "n1",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "notebook"
+    }
+   },
+   "depends_on": []
+  },
+  {
+   "id": "n2",
+   "skill": "pick",
+   "args": {
+    "object": {
+     "value": "notebook"
+    }
+   },
+   "depends_on": [
+    "n1"
+   ]
+  },
+  {
+   "id": "n3",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "SimpleDeskFactory_7424700_spawn_asset_8101679/surface_0"
+    }
+   },
+   "depends_on": [
+    "n2"
+   ]
+  },
+  {
+   "id": "n4",
+   "skill": "place",
+   "args": {
+    "object": {
+     "value": "notebook"
+    },
+    "receptacle": {
+     "value": "SimpleDeskFactory_7424700_spawn_asset_8101679/surface_0"
+    }
+   },
+   "depends_on": [
+    "n3"
+   ]
+  },
+  {
+   "id": "n5",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "pen"
+    }
+   },
+   "depends_on": [
+    "n4"
+   ]
+  },
+  {
+   "id": "n6",
+   "skill": "pick",
+   "args": {
+    "object": {
+     "value": "pen"
+    }
+   },
+   "depends_on": [
+    "n5"
+   ]
+  },
+  {
+   "id": "n7",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "SimpleDeskFactory_7424700_spawn_asset_8101679/surface_0"
+    }
+   },
+   "depends_on": [
+    "n6"
+   ]
+  },
+  {
+   "id": "n8",
+   "skill": "place",
+   "args": {
+    "object": {
+     "value": "pen"
+    },
+    "receptacle": {
+     "value": "SimpleDeskFactory_7424700_spawn_asset_8101679/surface_0"
+    }
+   },
+   "depends_on": [
+    "n7"
+   ]
+  },
+  {
+   "id": "n9",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "desk_mug"
+    }
+   },
+   "depends_on": [
+    "n8"
+   ]
+  },
+  {
+   "id": "n10",
+   "skill": "pick",
+   "args": {
+    "object": {
+     "value": "desk_mug"
+    }
+   },
+   "depends_on": [
+    "n9"
+   ]
+  },
+  {
+   "id": "n11",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "SimpleDeskFactory_7424700_spawn_asset_8101679/surface_0"
+    }
+   },
+   "depends_on": [
+    "n10"
+   ]
+  },
+  {
+   "id": "n12",
+   "skill": "place",
+   "args": {
+    "object": {
+     "value": "desk_mug"
+    },
+    "receptacle": {
+     "value": "SimpleDeskFactory_7424700_spawn_asset_8101679/surface_0"
+    }
+   },
+   "depends_on": [
+    "n11"
+   ]
+  }
+ ]
+}

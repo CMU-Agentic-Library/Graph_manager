@@ -1,0 +1,246 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_011",
+ "name": "look-target",
+ "verb": "look",
+ "noun": "target",
+ "title": "Look at a target",
+ "group": "perception_and_gesture",
+ "signature": "look(target: entity_ref)",
+ "action_predicate": {
+  "name": "look_target",
+  "verb": "look",
+  "noun": "target",
+  "arguments": [
+   "target"
+  ]
+ },
+ "description": "Aim the head camera at a target (turning the base if it is outside the head yaw range) and record every annotated object in view as observed.",
+ "use_when": "A known target must be brought into the head camera view.",
+ "not_to_be_confused_with": {
+  "inspect": "inspect reports a receptacle's contents; look only aims the camera.",
+  "search": "search visits several places to find an unseen object."
+ },
+ "inputs": {
+  "target": {
+   "type": "entity_ref",
+   "required": true,
+   "description": "What to look at."
+  }
+ },
+ "required_inputs": [
+  "target"
+ ],
+ "outputs": {
+  "seen": {
+   "type": "object_list",
+   "description": "Objects in the head camera frustum with clear line of sight."
+  }
+ },
+ "applicability": {
+  "always": true,
+  "summary": "Always applicable."
+ },
+ "preconditions": [],
+ "postconditions": [
+  {
+   "predicate": "in_view(target=$target)",
+   "name": "in_view",
+   "args": {
+    "target": "$target"
+   },
+   "negated": false,
+   "meaning": "Target point inside the head camera frustum, within 5 m, line of sight not blocked by furniture boxes.",
+   "kind": "fluent",
+   "gt_sources": [
+    "base_pose",
+    "head_joints",
+    "head_fk",
+    "collision_model"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  },
+  {
+   "predicate": "observed(target=$target)",
+   "name": "observed",
+   "args": {
+    "target": "$target"
+   },
+   "negated": false,
+   "meaning": "The robot saw the target in its head camera during this episode (set by look, search, inspect, explore).",
+   "kind": "memory",
+   "gt_sources": [
+    "robot_memory"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "in_view(target=$target)",
+    "name": "in_view",
+    "args": {
+     "target": "$target"
+    },
+    "negated": false,
+    "meaning": "Target point inside the head camera frustum, within 5 m, line of sight not blocked by furniture boxes.",
+    "kind": "fluent",
+    "gt_sources": [
+     "base_pose",
+     "head_joints",
+     "head_fk",
+     "collision_model"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   },
+   {
+    "predicate": "observed(target=$target)",
+    "name": "observed",
+    "args": {
+     "target": "$target"
+    },
+    "negated": false,
+    "meaning": "The robot saw the target in its head camera during this episode (set by look, search, inspect, explore).",
+    "kind": "memory",
+    "gt_sources": [
+     "robot_memory"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   }
+  ]
+ },
+ "invalidates": [
+  "in_view(*)"
+ ],
+ "policy_paths": [
+  {
+   "path_id": "head_only",
+   "when": [
+    "target.bearing_abs_deg <= 55"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_068($target)"
+   ],
+   "policies": [
+    "policy_068"
+   ],
+   "note": ""
+  },
+  {
+   "path_id": "turn_then_head",
+   "when": [
+    "always (default path)"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_066($target)",
+    "policy_068($target)"
+   ],
+   "policies": [
+    "policy_066",
+    "policy_068"
+   ],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [
+   {
+    "skill_id": "skill_001",
+    "verb": "navigate",
+    "when": "the destination must be observed first",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_003",
+    "verb": "face",
+    "when": "the target must be observed",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_061",
+    "verb": "nod",
+    "when": "the robot looks back at a target",
+    "type": "then"
+   }
+  ],
+  "next": [
+   {
+    "skill_id": "skill_002",
+    "verb": "approach",
+    "when": "the observed target will be manipulated",
+    "bind": {
+     "target": "$target"
+    },
+    "type": "then"
+   }
+  ],
+  "fallback": [
+   {
+    "skill_id": "skill_001",
+    "verb": "navigate",
+    "when": "the line of sight is blocked",
+    "bind": {
+     "destination": "$target"
+    },
+    "type": "repair"
+   }
+  ],
+  "fallback_for": [],
+  "alternative": [
+   {
+    "skill_id": "skill_012",
+    "verb": "inspect",
+    "when": "the target is a receptacle whose contents matter",
+    "bind": {
+     "receptacle": "$target"
+    }
+   },
+   {
+    "skill_id": "skill_015",
+    "verb": "point",
+    "when": "a gaze is enough to indicate the target",
+    "bind": {}
+   }
+  ]
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": []
+ },
+ "scope": {
+  "includes": [],
+  "excludes": []
+ },
+ "contract_id": "contract_019",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_011",
+   "args": {
+    "target": {
+     "ref": "<entity>"
+    }
+   },
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"look\", {'target': ...})"
+ }
+}

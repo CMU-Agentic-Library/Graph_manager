@@ -1,0 +1,23 @@
+{
+ "schema_version": 2,
+ "kind": "skill_subgraph",
+ "subgoal_id": "sweep_blocks",
+ "nodes": [
+  {
+   "id": "n1",
+   "skill": "sweep",
+   "args": {
+    "objects": {
+     "value": [
+      "wooden_block_a",
+      "wooden_block_b"
+     ]
+    },
+    "radius_m": {
+     "value": 0.12
+    }
+   },
+   "depends_on": []
+  }
+ ]
+}

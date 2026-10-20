@@ -1,0 +1,249 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_004",
+ "name": "retreat-obstacle",
+ "verb": "retreat",
+ "noun": "obstacle",
+ "title": "Retreat from an obstacle",
+ "group": "base_and_body",
+ "signature": "retreat(obstacle: place_ref, distance_m: positive_number)",
+ "action_predicate": {
+  "name": "retreat_obstacle",
+  "verb": "retreat",
+  "noun": "obstacle",
+  "arguments": [
+   "obstacle",
+   "distance_m"
+  ]
+ },
+ "description": "Back the base straight away from a piece of furniture, appliance or object until it is at least the given distance away; a held load stays held.",
+ "use_when": "The base is too close to open a door, turn, or start a path.",
+ "not_to_be_confused_with": {
+  "navigate": "retreat has no destination; it only increases clearance."
+ },
+ "inputs": {
+  "obstacle": {
+   "type": "place_ref",
+   "required": true,
+   "description": "What to back away from."
+  },
+  "distance_m": {
+   "type": "positive_number",
+   "required": true,
+   "description": "Required clearance from the obstacle footprint.",
+   "default": 0.4
+  }
+ },
+ "required_inputs": [
+  "obstacle",
+  "distance_m"
+ ],
+ "outputs": {
+  "moved_m": {
+   "type": "number",
+   "description": "Measured base displacement."
+  }
+ },
+ "applicability": {
+  "always": true,
+  "summary": "Always applicable."
+ },
+ "preconditions": [],
+ "postconditions": [
+  {
+   "predicate": "base_clear_of(place=$obstacle, distance_m=$distance_m)",
+   "name": "base_clear_of",
+   "args": {
+    "place": "$obstacle",
+    "distance_m": "$distance_m"
+   },
+   "negated": false,
+   "meaning": "Base centre at least the given distance from the place's footprint.",
+   "kind": "fluent",
+   "gt_sources": [
+    "base_pose",
+    "scene_annotation"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "base_clear_of(place=$obstacle, distance_m=$distance_m)",
+    "name": "base_clear_of",
+    "args": {
+     "place": "$obstacle",
+     "distance_m": "$distance_m"
+    },
+    "negated": false,
+    "meaning": "Base centre at least the given distance from the place's footprint.",
+    "kind": "fluent",
+    "gt_sources": [
+     "base_pose",
+     "scene_annotation"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   }
+  ]
+ },
+ "invalidates": [
+  "base_near(*)",
+  "reachable(*)",
+  "facing(*)",
+  "in_view(*)"
+ ],
+ "policy_paths": [
+  {
+   "path_id": "microwave_door_sweep",
+   "when": [
+    "obstacle.instance == 'kitchen_microwave'"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_030($obstacle)"
+   ],
+   "policies": [
+    "policy_030"
+   ],
+   "note": "The microwave's measured hinge-clearance pose (also when loaded)."
+  },
+  {
+   "path_id": "bimanual_or_left_load",
+   "when": [
+    "robot.left_held"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_067($obstacle, $distance_m)"
+   ],
+   "policies": [
+    "policy_067"
+   ],
+   "note": ""
+  },
+  {
+   "path_id": "loaded",
+   "when": [
+    "robot.right_held"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_035($distance_m)"
+   ],
+   "policies": [
+    "policy_035"
+   ],
+   "note": "Straight reverse with the right-hand load."
+  },
+  {
+   "path_id": "empty",
+   "when": [
+    "always (default path)"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_100($obstacle, $distance_m) as plan",
+    "policy_037(#plan.forward_m)"
+   ],
+   "policies": [
+    "policy_037",
+    "policy_100"
+   ],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [],
+  "next": [
+   {
+    "skill_id": "skill_001",
+    "verb": "navigate",
+    "when": "the robot must leave after backing out",
+    "bind": {},
+    "reason": "free start cell",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_040",
+    "verb": "open",
+    "when": "a door's swing needs room in front of the robot",
+    "bind": {
+     "articulated": "$obstacle"
+    },
+    "type": "then"
+   }
+  ],
+  "fallback": [],
+  "fallback_for": [
+   {
+    "skill_id": "skill_001",
+    "verb": "navigate",
+    "when": "navigation fails because the base or load is wedged against furniture",
+    "type": "recover"
+   },
+   {
+    "skill_id": "skill_009",
+    "verb": "tuck",
+    "when": "the fold collides with furniture",
+    "type": "recover"
+   },
+   {
+    "skill_id": "skill_040",
+    "verb": "open",
+    "when": "the door swing hits the base",
+    "type": "recover"
+   },
+   {
+    "skill_id": "skill_041",
+    "verb": "close",
+    "when": "the door swing hits the base",
+    "type": "recover"
+   }
+  ],
+  "alternative": []
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": [
+   "the path behind the base is blocked"
+  ]
+ },
+ "scope": {
+  "includes": [],
+  "excludes": []
+ },
+ "contract_id": "contract_012",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_004",
+   "args": {
+    "obstacle": {
+     "ref": "<place>"
+    },
+    "distance_m": {
+     "value": 0.4
+    }
+   },
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"retreat\", {'obstacle': ..., 'distance_m': ...})"
+ }
+}

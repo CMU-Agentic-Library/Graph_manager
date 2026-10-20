@@ -1,0 +1,295 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_038",
+ "name": "stir-container",
+ "verb": "stir",
+ "noun": "container",
+ "title": "Stir a container",
+ "group": "contact",
+ "signature": "stir(container: container_ref, tool: tool_ref)",
+ "action_predicate": {
+  "name": "stir_container",
+  "verb": "stir",
+  "noun": "container",
+  "arguments": [
+   "container",
+   "tool"
+  ]
+ },
+ "description": "Dip a held spoon's far end into a container and move it in a circle below the rim; succeeds after one full turn inside.",
+ "use_when": "The contents of a container must be stirred with a held utensil.",
+ "not_to_be_confused_with": {
+  "dip": "dip goes in and out without circling."
+ },
+ "inputs": {
+  "container": {
+   "type": "container_ref",
+   "required": true,
+   "description": "The pot or bowl to stir."
+  },
+  "tool": {
+   "type": "tool_ref",
+   "required": true,
+   "description": "The held utensil (spoon)."
+  }
+ },
+ "required_inputs": [
+  "container",
+  "tool"
+ ],
+ "outputs": {
+  "turns": {
+   "type": "number",
+   "description": "Measured turns of the tip inside the container."
+  }
+ },
+ "applicability": {
+  "always": false,
+  "summary": "Requires holding(hand=right, object=$tool); base_near(place=$container); uncovered(container=$container)."
+ },
+ "preconditions": [
+  {
+   "predicate": "holding(hand=right, object=$tool)",
+   "name": "holding",
+   "args": {
+    "hand": "right",
+    "object": "$tool"
+   },
+   "negated": false,
+   "meaning": "The object is in the given gripper: fingers not shut, TCP-to-body distance unchanged since the grasp.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state",
+    "finger_joints",
+    "object_pose",
+    "arm_fk"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  },
+  {
+   "predicate": "base_near(place=$container)",
+   "name": "base_near",
+   "args": {
+    "place": "$container"
+   },
+   "negated": false,
+   "meaning": "Base centre within 1.3 m of the place's footprint (inside the room for a room).",
+   "kind": "fluent",
+   "gt_sources": [
+    "base_pose",
+    "scene_annotation"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  },
+  {
+   "predicate": "uncovered(container=$container)",
+   "name": "uncovered",
+   "args": {
+    "container": "$container"
+   },
+   "negated": false,
+   "meaning": "No lid rests on the container rim.",
+   "kind": "fluent",
+   "gt_sources": [
+    "object_pose",
+    "container_profile",
+    "asset_tags"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  }
+ ],
+ "postconditions": [
+  {
+   "predicate": "stirred(container=$container)",
+   "name": "stirred",
+   "args": {
+    "container": "$container"
+   },
+   "negated": false,
+   "meaning": "A held utensil tip completed one full circle inside the container below its rim.",
+   "kind": "memory",
+   "gt_sources": [
+    "robot_memory (tool-tip samples)"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  },
+  {
+   "predicate": "holding(hand=right, object=$tool)",
+   "name": "holding",
+   "args": {
+    "hand": "right",
+    "object": "$tool"
+   },
+   "negated": false,
+   "meaning": "The object is in the given gripper: fingers not shut, TCP-to-body distance unchanged since the grasp.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state",
+    "finger_joints",
+    "object_pose",
+    "arm_fk"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "stirred(container=$container)",
+    "name": "stirred",
+    "args": {
+     "container": "$container"
+    },
+    "negated": false,
+    "meaning": "A held utensil tip completed one full circle inside the container below its rim.",
+    "kind": "memory",
+    "gt_sources": [
+     "robot_memory (tool-tip samples)"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   },
+   {
+    "predicate": "holding(hand=right, object=$tool)",
+    "name": "holding",
+    "args": {
+     "hand": "right",
+     "object": "$tool"
+    },
+    "negated": false,
+    "meaning": "The object is in the given gripper: fingers not shut, TCP-to-body distance unchanged since the grasp.",
+    "kind": "fluent",
+    "gt_sources": [
+     "gripper_state",
+     "finger_joints",
+     "object_pose",
+     "arm_fk"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   }
+  ]
+ },
+ "invalidates": [],
+ "policy_paths": [
+  {
+   "path_id": "circle_below_rim",
+   "when": [
+    "'utensil' in tool.tags"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_085($tool, $container)"
+   ],
+   "policies": [
+    "policy_085"
+   ],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [
+   {
+    "skill_id": "skill_027",
+    "verb": "brace",
+    "when": "the braced container is stirred",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_039",
+    "verb": "pour",
+    "when": "the poured food is stirred",
+    "type": "enables"
+   },
+   {
+    "skill_id": "skill_046",
+    "verb": "uncover",
+    "when": "the opened pot is stirred",
+    "type": "enables"
+   },
+   {
+    "skill_id": "skill_069",
+    "verb": "dip",
+    "when": "the utensil then stirs",
+    "type": "enables"
+   }
+  ],
+  "next": [
+   {
+    "skill_id": "skill_045",
+    "verb": "cover",
+    "when": "the pot is covered again",
+    "bind": {
+     "container": "$container"
+    },
+    "type": "enables"
+   },
+   {
+    "skill_id": "skill_043",
+    "verb": "heat",
+    "when": "the stirred food is heated",
+    "bind": {},
+    "reason": "stove path",
+    "type": "then"
+   }
+  ],
+  "fallback": [
+   {
+    "skill_id": "skill_027",
+    "verb": "brace",
+    "when": "the container slides while stirring",
+    "bind": {
+     "object": "$container"
+    },
+    "reason": "the left hand holds the pot still",
+    "type": "recover"
+   }
+  ],
+  "fallback_for": [],
+  "alternative": [
+   {
+    "skill_id": "skill_069",
+    "verb": "dip",
+    "when": "the contents must be mixed",
+    "bind": {}
+   }
+  ]
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": []
+ },
+ "scope": {
+  "includes": [],
+  "excludes": []
+ },
+ "contract_id": "contract_046",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_038",
+   "args": {
+    "container": {
+     "ref": "<container>"
+    },
+    "tool": {
+     "ref": "<tool>"
+    }
+   },
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"stir\", {'container': ..., 'tool': ...})"
+ }
+}

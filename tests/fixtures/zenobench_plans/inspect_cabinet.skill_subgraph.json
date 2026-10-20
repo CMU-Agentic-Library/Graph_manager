@@ -1,0 +1,17 @@
+{
+ "schema_version": 2,
+ "kind": "skill_subgraph",
+ "subgoal_id": "inspect_cabinet",
+ "nodes": [
+  {
+   "id": "n1",
+   "skill": "look",
+   "args": {
+    "target": {
+     "value": "KitchenCabinetFactory_7025538_spawn_asset_6631478"
+    }
+   },
+   "depends_on": []
+  }
+ ]
+}

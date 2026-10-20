@@ -1,0 +1,56 @@
+{
+ "schema_version": 2,
+ "kind": "skill_subgraph",
+ "subgoal_id": "stack_blocks",
+ "nodes": [
+  {
+   "id": "n1",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "wooden_block_b"
+    }
+   },
+   "depends_on": []
+  },
+  {
+   "id": "n2",
+   "skill": "pick",
+   "args": {
+    "object": {
+     "value": "wooden_block_b"
+    }
+   },
+   "depends_on": [
+    "n1"
+   ]
+  },
+  {
+   "id": "n3",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "wooden_block_a"
+    }
+   },
+   "depends_on": [
+    "n2"
+   ]
+  },
+  {
+   "id": "n4",
+   "skill": "stack",
+   "args": {
+    "object": {
+     "value": "wooden_block_b"
+    },
+    "base": {
+     "value": "wooden_block_a"
+    }
+   },
+   "depends_on": [
+    "n3"
+   ]
+  }
+ ]
+}

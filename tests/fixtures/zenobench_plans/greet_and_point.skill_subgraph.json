@@ -1,0 +1,33 @@
+{
+ "schema_version": 2,
+ "kind": "skill_subgraph",
+ "subgoal_id": "greet_and_point",
+ "nodes": [
+  {
+   "id": "n1",
+   "skill": "wave",
+   "args": {},
+   "depends_on": []
+  },
+  {
+   "id": "n2",
+   "skill": "nod",
+   "args": {},
+   "depends_on": [
+    "n1"
+   ]
+  },
+  {
+   "id": "n3",
+   "skill": "point",
+   "args": {
+    "target": {
+     "value": "trash_can"
+    }
+   },
+   "depends_on": [
+    "n2"
+   ]
+  }
+ ]
+}

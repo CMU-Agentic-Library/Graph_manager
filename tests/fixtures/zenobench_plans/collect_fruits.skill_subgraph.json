@@ -1,0 +1,107 @@
+{
+ "schema_version": 2,
+ "kind": "skill_subgraph",
+ "subgoal_id": "collect_fruits",
+ "nodes": [
+  {
+   "id": "n1",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "apple"
+    }
+   },
+   "depends_on": []
+  },
+  {
+   "id": "n2",
+   "skill": "pick",
+   "args": {
+    "object": {
+     "value": "apple"
+    }
+   },
+   "depends_on": [
+    "n1"
+   ]
+  },
+  {
+   "id": "n3",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "fruit_basket"
+    }
+   },
+   "depends_on": [
+    "n2"
+   ]
+  },
+  {
+   "id": "n4",
+   "skill": "place",
+   "args": {
+    "object": {
+     "value": "apple"
+    },
+    "receptacle": {
+     "value": "fruit_basket"
+    }
+   },
+   "depends_on": [
+    "n3"
+   ]
+  },
+  {
+   "id": "n5",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "orange"
+    }
+   },
+   "depends_on": [
+    "n4"
+   ]
+  },
+  {
+   "id": "n6",
+   "skill": "pick",
+   "args": {
+    "object": {
+     "value": "orange"
+    }
+   },
+   "depends_on": [
+    "n5"
+   ]
+  },
+  {
+   "id": "n7",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "apple"
+    }
+   },
+   "depends_on": [
+    "n6"
+   ]
+  },
+  {
+   "id": "n8",
+   "skill": "place",
+   "args": {
+    "object": {
+     "value": "orange"
+    },
+    "receptacle": {
+     "value": "fruit_basket"
+    }
+   },
+   "depends_on": [
+    "n7"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,41 @@
+{
+ "schema_version": 2,
+ "kind": "skill_subgraph",
+ "subgoal_id": "present_block",
+ "nodes": [
+  {
+   "id": "n1",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "wooden_block_a"
+    }
+   },
+   "depends_on": []
+  },
+  {
+   "id": "n2",
+   "skill": "pick",
+   "args": {
+    "object": {
+     "value": "wooden_block_a"
+    }
+   },
+   "depends_on": [
+    "n1"
+   ]
+  },
+  {
+   "id": "n3",
+   "skill": "present",
+   "args": {
+    "object": {
+     "value": "wooden_block_a"
+    }
+   },
+   "depends_on": [
+    "n2"
+   ]
+  }
+ ]
+}

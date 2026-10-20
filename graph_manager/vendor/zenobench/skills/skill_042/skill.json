@@ -1,0 +1,307 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_042",
+ "name": "press-button",
+ "verb": "press",
+ "noun": "button",
+ "title": "Press a button",
+ "group": "articulated_and_appliance",
+ "signature": "press(button: button_ref)",
+ "action_predicate": {
+  "name": "press_button",
+  "verb": "press",
+  "noun": "button",
+  "arguments": [
+   "button"
+  ]
+ },
+ "description": "Press an annotated appliance button with the closed fingertips and retract: the microwave door key, the microwave start key, or the stove power key (which toggles the burner).",
+ "use_when": "A button (microwave keys, stove power key) must be pressed.",
+ "not_to_be_confused_with": {
+  "heat": "heat guarantees a temperature; press guarantees only the key press.",
+  "open": "open guarantees the door is open."
+ },
+ "inputs": {
+  "button": {
+   "type": "button_ref",
+   "required": true,
+   "description": "E.g. kitchen_microwave/door_button, kitchen_stove/power_button."
+  }
+ },
+ "required_inputs": [
+  "button"
+ ],
+ "outputs": {},
+ "applicability": {
+  "always": false,
+  "summary": "Requires hand_empty(hand=right); base_near(place=@button.appliance). Depending on the bound nouns, the chosen path also needs: microwave_start_staged (button.button == 'start_button'): is_closed(articulated=@button.appliance)."
+ },
+ "preconditions": [
+  {
+   "predicate": "hand_empty(hand=right)",
+   "name": "hand_empty",
+   "args": {
+    "hand": "right"
+   },
+   "negated": false,
+   "meaning": "The given gripper holds nothing.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  },
+  {
+   "predicate": "base_near(place=@button.appliance)",
+   "name": "base_near",
+   "args": {
+    "place": "@button.appliance"
+   },
+   "negated": false,
+   "meaning": "Base centre within 1.3 m of the place's footprint (inside the room for a room).",
+   "kind": "fluent",
+   "gt_sources": [
+    "base_pose",
+    "scene_annotation"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  }
+ ],
+ "postconditions": [
+  {
+   "predicate": "button_pressed(button=$button)",
+   "name": "button_pressed",
+   "args": {
+    "button": "$button"
+   },
+   "negated": false,
+   "meaning": "A measured press of this button happened during the Contract.",
+   "kind": "relative",
+   "gt_sources": [
+    "event_log (measured fingertip contact)"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  },
+  {
+   "predicate": "hand_empty(hand=right)",
+   "name": "hand_empty",
+   "args": {
+    "hand": "right"
+   },
+   "negated": false,
+   "meaning": "The given gripper holds nothing.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "button_pressed(button=$button)",
+    "name": "button_pressed",
+    "args": {
+     "button": "$button"
+    },
+    "negated": false,
+    "meaning": "A measured press of this button happened during the Contract.",
+    "kind": "relative",
+    "gt_sources": [
+     "event_log (measured fingertip contact)"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   },
+   {
+    "predicate": "hand_empty(hand=right)",
+    "name": "hand_empty",
+    "args": {
+     "hand": "right"
+    },
+    "negated": false,
+    "meaning": "The given gripper holds nothing.",
+    "kind": "fluent",
+    "gt_sources": [
+     "gripper_state"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   },
+   {
+    "predicate": "heating(appliance=@button.appliance)",
+    "name": "heating",
+    "args": {
+     "appliance": "@button.appliance"
+    },
+    "negated": false,
+    "meaning": "The appliance's heat source is on (microwave cycle or stove burner).",
+    "kind": "fluent",
+    "gt_sources": [
+     "thermal_state"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "path microwave_start_staged"
+   }
+  ]
+ },
+ "invalidates": [
+  "arm_stowed(right)",
+  "reachable(*)"
+ ],
+ "policy_paths": [
+  {
+   "path_id": "microwave_start_staged",
+   "when": [
+    "button.button == 'start_button'"
+   ],
+   "extra_preconditions": [
+    {
+     "predicate": "is_closed(articulated=@button.appliance)",
+     "name": "is_closed",
+     "args": {
+      "articulated": "@button.appliance"
+     },
+     "negated": false,
+     "meaning": "Joint within 0.10 rad (doors) or 4 cm (drawers) of closed.",
+     "kind": "fluent",
+     "gt_sources": [
+      "articulation_joint",
+      "articulation_annotation"
+     ],
+     "checked": "before execution on live GT state; the Contract does not move if false"
+    }
+   ],
+   "extra_postconditions": [
+    {
+     "predicate": "heating(appliance=@button.appliance)",
+     "name": "heating",
+     "args": {
+      "appliance": "@button.appliance"
+     },
+     "negated": false,
+     "meaning": "The appliance's heat source is on (microwave cycle or stove burner).",
+     "kind": "fluent",
+     "gt_sources": [
+      "thermal_state"
+     ],
+     "checked": "after the policy chain on live GT state; the action is reported only if true"
+    }
+   ],
+   "chain": [
+    "policy_027(@button.appliance, button=start)",
+    "policy_028(@button.appliance, button=start)",
+    "policy_029(@button.appliance, button=start)"
+   ],
+   "policies": [
+    "policy_027",
+    "policy_028",
+    "policy_029"
+   ],
+   "note": ""
+  },
+  {
+   "path_id": "microwave_door_key",
+   "when": [
+    "button.button == 'door_button'"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_033(@button.appliance, button=door)"
+   ],
+   "policies": [
+    "policy_033"
+   ],
+   "note": ""
+  },
+  {
+   "path_id": "generic_key",
+   "when": [
+    "always (default path)"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_094($button)"
+   ],
+   "policies": [
+    "policy_094"
+   ],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [
+   {
+    "skill_id": "skill_002",
+    "verb": "approach",
+    "when": "the target is a button",
+    "type": "then"
+   }
+  ],
+  "next": [
+   {
+    "skill_id": "skill_043",
+    "verb": "heat",
+    "when": "the start key began a cycle",
+    "bind": {},
+    "reason": "heat then only waits",
+    "type": "enables"
+   },
+   {
+    "skill_id": "skill_009",
+    "verb": "tuck",
+    "when": "the hand is free again",
+    "bind": {
+     "hand": "right"
+    },
+    "type": "enables"
+   }
+  ],
+  "fallback": [],
+  "fallback_for": [],
+  "alternative": [
+   {
+    "skill_id": "skill_040",
+    "verb": "open",
+    "when": "the door key is pressed only to open the microwave door",
+    "bind": {}
+   }
+  ]
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": []
+ },
+ "scope": {
+  "includes": [],
+  "excludes": []
+ },
+ "contract_id": "contract_050",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_042",
+   "args": {
+    "button": {
+     "ref": "<button>"
+    }
+   },
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"press\", {'button': ...})"
+ }
+}

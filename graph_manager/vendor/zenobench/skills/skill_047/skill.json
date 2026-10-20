@@ -1,0 +1,317 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_047",
+ "name": "fetch-object",
+ "verb": "fetch",
+ "noun": "object",
+ "title": "Fetch an object to a receptacle",
+ "group": "multi_object",
+ "signature": "fetch(object: object_ref, receptacle: receptacle_ref)",
+ "action_predicate": {
+  "name": "fetch_object",
+  "verb": "fetch",
+  "noun": "object",
+  "arguments": [
+   "object",
+   "receptacle"
+  ]
+ },
+ "description": "Bring one object to a support or container: navigate to it, pick it (noun-selected grasp path), navigate to the receptacle and place it (noun-selected placement path). Each step is a verified Skill Contract.",
+ "use_when": "One object must be brought to a destination (navigate, pick, carry, place in one node).",
+ "not_to_be_confused_with": {
+  "restore": "restore's destination is the object's starting support.",
+  "collect": "collect moves a list into one container.",
+  "pick": "fetch also carries and places the object."
+ },
+ "inputs": {
+  "object": {
+   "type": "object_ref",
+   "required": true,
+   "description": "What to bring."
+  },
+  "receptacle": {
+   "type": "receptacle_ref",
+   "required": true,
+   "description": "Destination support or open container."
+  }
+ },
+ "required_inputs": [
+  "object",
+  "receptacle"
+ ],
+ "outputs": {},
+ "applicability": {
+  "always": false,
+  "summary": "Requires hand_empty(hand=right). Depending on the bound nouns, the chosen path also needs: to_container (receptacle.kind == 'object'): uncovered(container=$receptacle)."
+ },
+ "preconditions": [
+  {
+   "predicate": "hand_empty(hand=right)",
+   "name": "hand_empty",
+   "args": {
+    "hand": "right"
+   },
+   "negated": false,
+   "meaning": "The given gripper holds nothing.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  }
+ ],
+ "postconditions": [
+  {
+   "predicate": "hand_empty(hand=right)",
+   "name": "hand_empty",
+   "args": {
+    "hand": "right"
+   },
+   "negated": false,
+   "meaning": "The given gripper holds nothing.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "hand_empty(hand=right)",
+    "name": "hand_empty",
+    "args": {
+     "hand": "right"
+    },
+    "negated": false,
+    "meaning": "The given gripper holds nothing.",
+    "kind": "fluent",
+    "gt_sources": [
+     "gripper_state"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   },
+   {
+    "predicate": "inside(object=$object, container=$receptacle)",
+    "name": "inside",
+    "args": {
+     "object": "$object",
+     "container": "$receptacle"
+    },
+    "negated": false,
+    "meaning": "Object centre inside the container's wall profile, between its floor and 3 cm above the rim.",
+    "kind": "fluent",
+    "gt_sources": [
+     "object_pose",
+     "container_profile"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "path to_container"
+   },
+   {
+    "predicate": "on(object=$object, support=$receptacle)",
+    "name": "on",
+    "args": {
+     "object": "$object",
+     "support": "$receptacle"
+    },
+    "negated": false,
+    "meaning": "Object bottom within -2..+5 cm of the support height with its centre over the support box.",
+    "kind": "fluent",
+    "gt_sources": [
+     "object_pose",
+     "asset_annotation",
+     "support_annotation"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "path to_surface"
+   }
+  ]
+ },
+ "invalidates": [
+  "on($object,*)",
+  "inside($object,*)",
+  "at_initial_place($object)",
+  "base_near(*)",
+  "reachable(*)"
+ ],
+ "policy_paths": [
+  {
+   "path_id": "to_container",
+   "when": [
+    "receptacle.kind == 'object'"
+   ],
+   "extra_preconditions": [
+    {
+     "predicate": "uncovered(container=$receptacle)",
+     "name": "uncovered",
+     "args": {
+      "container": "$receptacle"
+     },
+     "negated": false,
+     "meaning": "No lid rests on the container rim.",
+     "kind": "fluent",
+     "gt_sources": [
+      "object_pose",
+      "container_profile",
+      "asset_tags"
+     ],
+     "checked": "before execution on live GT state; the Contract does not move if false"
+    }
+   ],
+   "extra_postconditions": [
+    {
+     "predicate": "inside(object=$object, container=$receptacle)",
+     "name": "inside",
+     "args": {
+      "object": "$object",
+      "container": "$receptacle"
+     },
+     "negated": false,
+     "meaning": "Object centre inside the container's wall profile, between its floor and 3 cm above the rim.",
+     "kind": "fluent",
+     "gt_sources": [
+      "object_pose",
+      "container_profile"
+     ],
+     "checked": "after the policy chain on live GT state; the action is reported only if true"
+    }
+   ],
+   "chain": [
+    "[navigate](destination=$object)",
+    "[pick](object=$object)",
+    "[navigate](destination=$receptacle)",
+    "[place](object=$object, receptacle=$receptacle)"
+   ],
+   "policies": [],
+   "note": ""
+  },
+  {
+   "path_id": "to_surface",
+   "when": [
+    "receptacle.kind == 'support'"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [
+    {
+     "predicate": "on(object=$object, support=$receptacle)",
+     "name": "on",
+     "args": {
+      "object": "$object",
+      "support": "$receptacle"
+     },
+     "negated": false,
+     "meaning": "Object bottom within -2..+5 cm of the support height with its centre over the support box.",
+     "kind": "fluent",
+     "gt_sources": [
+      "object_pose",
+      "asset_annotation",
+      "support_annotation"
+     ],
+     "checked": "after the policy chain on live GT state; the action is reported only if true"
+    }
+   ],
+   "chain": [
+    "[navigate](destination=$object)",
+    "[pick](object=$object)",
+    "[navigate](destination=$receptacle)",
+    "[place](object=$object, receptacle=$receptacle)"
+   ],
+   "policies": [],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [
+   {
+    "skill_id": "skill_047",
+    "verb": "fetch",
+    "when": "more objects go to the same place",
+    "type": "enables"
+   }
+  ],
+  "next": [
+   {
+    "skill_id": "skill_047",
+    "verb": "fetch",
+    "when": "more objects go to the same place",
+    "bind": {},
+    "reason": "the hand is free again",
+    "type": "enables"
+   }
+  ],
+  "fallback": [
+   {
+    "skill_id": "skill_013",
+    "verb": "search",
+    "when": "the object is not where expected",
+    "bind": {
+     "object": "$object"
+    },
+    "reason": "locates the object and reports its support",
+    "type": "recover"
+   }
+  ],
+  "fallback_for": [],
+  "alternative": [
+   {
+    "skill_id": "skill_053",
+    "verb": "restore",
+    "when": "the object should return to its starting support",
+    "bind": {
+     "object": "$object"
+    }
+   },
+   {
+    "skill_id": "skill_054",
+    "verb": "swap",
+    "when": "only one object needs to move",
+    "bind": {}
+   },
+   {
+    "skill_id": "skill_070",
+    "verb": "hide",
+    "when": "the object only needs to move",
+    "bind": {}
+   }
+  ]
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": []
+ },
+ "scope": {
+  "includes": [],
+  "excludes": []
+ },
+ "contract_id": "contract_055",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_047",
+   "args": {
+    "object": {
+     "ref": "<object>"
+    },
+    "receptacle": {
+     "ref": "<receptacle>"
+    }
+   },
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"fetch\", {'object': ..., 'receptacle': ...})"
+ }
+}

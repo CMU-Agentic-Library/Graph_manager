@@ -1,0 +1,169 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_007",
+ "name": "bend-waist",
+ "verb": "bend",
+ "noun": "waist",
+ "title": "Bend the waist",
+ "group": "base_and_body",
+ "signature": "bend(pitch_rad: positive_number?)",
+ "action_predicate": {
+  "name": "bend_waist",
+  "verb": "bend",
+  "noun": "waist",
+  "arguments": [
+   "pitch_rad"
+  ]
+ },
+ "description": "Pitch the waist forward to extend the reach over a deep surface.",
+ "use_when": "A target is just beyond arm reach over a counter and leaning forward helps.",
+ "not_to_be_confused_with": {
+  "crouch": "crouch lowers the torso; bend tilts the waist."
+ },
+ "inputs": {
+  "pitch_rad": {
+   "type": "positive_number",
+   "required": false,
+   "description": "Forward pitch in rad (max 0.69); omit for the maximum."
+  }
+ },
+ "required_inputs": [],
+ "outputs": {},
+ "applicability": {
+  "always": true,
+  "summary": "Always applicable."
+ },
+ "preconditions": [],
+ "postconditions": [
+  {
+   "predicate": "waist_bent(min_pitch_rad=0.2)",
+   "name": "waist_bent",
+   "args": {
+    "min_pitch_rad": 0.2
+   },
+   "negated": false,
+   "meaning": "Waist pitched forward by at least the given angle.",
+   "kind": "fluent",
+   "gt_sources": [
+    "waist_joint"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "waist_bent(min_pitch_rad=0.2)",
+    "name": "waist_bent",
+    "args": {
+     "min_pitch_rad": 0.2
+    },
+    "negated": false,
+    "meaning": "Waist pitched forward by at least the given angle.",
+    "kind": "fluent",
+    "gt_sources": [
+     "waist_joint"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   }
+  ]
+ },
+ "invalidates": [
+  "waist_straight()",
+  "reachable(*)",
+  "in_view(*)"
+ ],
+ "policy_paths": [
+  {
+   "path_id": "to_pitch",
+   "when": [
+    "args.pitch_rad"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_007($pitch_rad)"
+   ],
+   "policies": [
+    "policy_007"
+   ],
+   "note": ""
+  },
+  {
+   "path_id": "full",
+   "when": [
+    "always (default path)"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_008()"
+   ],
+   "policies": [
+    "policy_008"
+   ],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [],
+  "next": [
+   {
+    "skill_id": "skill_008",
+    "verb": "straighten",
+    "when": "the reach is done",
+    "bind": {},
+    "reason": "restore upright posture",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_002",
+    "verb": "approach",
+    "when": "the target was just out of reach",
+    "bind": {},
+    "reason": "extra reach",
+    "type": "then"
+   }
+  ],
+  "fallback": [],
+  "fallback_for": [
+   {
+    "skill_id": "skill_002",
+    "verb": "approach",
+    "when": "the target is just beyond the arm envelope",
+    "type": "recover"
+   }
+  ],
+  "alternative": []
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": []
+ },
+ "scope": {
+  "includes": [],
+  "excludes": []
+ },
+ "contract_id": "contract_015",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_007",
+   "args": {},
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"bend\", {})"
+ }
+}

@@ -1,0 +1,249 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_030",
+ "name": "pull-object",
+ "verb": "pull",
+ "noun": "object",
+ "title": "Pull an object closer",
+ "group": "contact",
+ "signature": "pull(object: object_ref, distance_m: positive_number)",
+ "action_predicate": {
+  "name": "pull_object",
+  "verb": "pull",
+  "noun": "object",
+  "arguments": [
+   "object",
+   "distance_m"
+  ]
+ },
+ "description": "Drag an object toward the robot with the pads pressed on its top until it is within reach (e.g. from the back of a deep counter); if the pads slide over a round or slippery top, the fingers hook the far side and push it toward the robot.",
+ "use_when": "An object is too far back on a deep support to grasp and must come closer.",
+ "not_to_be_confused_with": {
+  "push": "push moves the object away from the robot or sideways."
+ },
+ "inputs": {
+  "object": {
+   "type": "object_ref",
+   "required": true,
+   "description": "The object to drag."
+  },
+  "distance_m": {
+   "type": "positive_number",
+   "required": true,
+   "description": "Requested travel toward the base.",
+   "default": 0.15
+  }
+ },
+ "required_inputs": [
+  "object",
+  "distance_m"
+ ],
+ "outputs": {},
+ "applicability": {
+  "always": false,
+  "summary": "Requires hand_empty(hand=right); base_near(place=$object)."
+ },
+ "preconditions": [
+  {
+   "predicate": "hand_empty(hand=right)",
+   "name": "hand_empty",
+   "args": {
+    "hand": "right"
+   },
+   "negated": false,
+   "meaning": "The given gripper holds nothing.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  },
+  {
+   "predicate": "base_near(place=$object)",
+   "name": "base_near",
+   "args": {
+    "place": "$object"
+   },
+   "negated": false,
+   "meaning": "Base centre within 1.3 m of the place's footprint (inside the room for a room).",
+   "kind": "fluent",
+   "gt_sources": [
+    "base_pose",
+    "scene_annotation"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  }
+ ],
+ "postconditions": [
+  {
+   "predicate": "moved_toward_base(object=$object, distance_m=$distance_m)",
+   "name": "moved_toward_base",
+   "args": {
+    "object": "$object",
+    "distance_m": "$distance_m"
+   },
+   "negated": false,
+   "meaning": "Object's horizontal distance to the base decreased by at least half the requested distance.",
+   "kind": "relative",
+   "gt_sources": [
+    "object_pose (before/after)",
+    "base_pose"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  },
+  {
+   "predicate": "reachable(target=$object)",
+   "name": "reachable",
+   "args": {
+    "target": "$object"
+   },
+   "negated": false,
+   "meaning": "From the current base pose the right TCP has a collision-free IK solution 10 cm above the target (handle pre-grasp for doors, 8 cm in front of a button).",
+   "kind": "fluent",
+   "gt_sources": [
+    "base_pose",
+    "arm_ik",
+    "collision_model",
+    "object_pose",
+    "grasp_annotation"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "moved_toward_base(object=$object, distance_m=$distance_m)",
+    "name": "moved_toward_base",
+    "args": {
+     "object": "$object",
+     "distance_m": "$distance_m"
+    },
+    "negated": false,
+    "meaning": "Object's horizontal distance to the base decreased by at least half the requested distance.",
+    "kind": "relative",
+    "gt_sources": [
+     "object_pose (before/after)",
+     "base_pose"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   },
+   {
+    "predicate": "reachable(target=$object)",
+    "name": "reachable",
+    "args": {
+     "target": "$object"
+    },
+    "negated": false,
+    "meaning": "From the current base pose the right TCP has a collision-free IK solution 10 cm above the target (handle pre-grasp for doors, 8 cm in front of a button).",
+    "kind": "fluent",
+    "gt_sources": [
+     "base_pose",
+     "arm_ik",
+     "collision_model",
+     "object_pose",
+     "grasp_annotation"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   }
+  ]
+ },
+ "invalidates": [
+  "grasp_clearance($object)",
+  "at_initial_place($object)"
+ ],
+ "policy_paths": [
+  {
+   "path_id": "top_drag",
+   "when": [
+    "always (default path)"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_041()",
+    "policy_079($object, $distance_m)"
+   ],
+   "policies": [
+    "policy_041",
+    "policy_079"
+   ],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [],
+  "next": [
+   {
+    "skill_id": "skill_017",
+    "verb": "pick",
+    "when": "the object is now close enough to grasp",
+    "bind": {
+     "object": "$object"
+    },
+    "type": "then"
+   }
+  ],
+  "fallback": [],
+  "fallback_for": [
+   {
+    "skill_id": "skill_002",
+    "verb": "approach",
+    "when": "the object sits too deep on its support",
+    "type": "substitute"
+   },
+   {
+    "skill_id": "skill_017",
+    "verb": "pick",
+    "when": "the object sits too deep to reach",
+    "type": "recover"
+   }
+  ],
+  "alternative": [
+   {
+    "skill_id": "skill_029",
+    "verb": "push",
+    "when": "the object should come toward the robot",
+    "bind": {}
+   }
+  ]
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": []
+ },
+ "scope": {
+  "includes": [],
+  "excludes": []
+ },
+ "contract_id": "contract_038",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_030",
+   "args": {
+    "object": {
+     "ref": "<object>"
+    },
+    "distance_m": {
+     "value": 0.15
+    }
+   },
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"pull\", {'object': ..., 'distance_m': ...})"
+ }
+}

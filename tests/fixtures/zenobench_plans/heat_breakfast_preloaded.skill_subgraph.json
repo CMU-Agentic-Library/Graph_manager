@@ -1,0 +1,35 @@
+{
+ "schema_version": 2,
+ "kind": "skill_subgraph",
+ "subgoal_id": "heat_breakfast_preloaded",
+ "nodes": [
+  {
+   "id": "n1",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "kitchen_microwave"
+    }
+   },
+   "depends_on": []
+  },
+  {
+   "id": "n2",
+   "skill": "heat",
+   "args": {
+    "food": {
+     "value": "oatmeal"
+    },
+    "appliance": {
+     "value": "kitchen_microwave"
+    },
+    "temp_c": {
+     "value": 60.0
+    }
+   },
+   "depends_on": [
+    "n1"
+   ]
+  }
+ ]
+}

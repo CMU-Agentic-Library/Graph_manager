@@ -1,0 +1,246 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_037",
+ "name": "wipe-surface",
+ "verb": "wipe",
+ "noun": "surface",
+ "title": "Wipe a surface",
+ "group": "contact",
+ "signature": "wipe(surface: support_ref, tool: tool_ref)",
+ "action_predicate": {
+  "name": "wipe_surface",
+  "verb": "wipe",
+  "noun": "surface",
+  "arguments": [
+   "surface",
+   "tool"
+  ]
+ },
+ "description": "Press a held sponge on a support and sweep a 30 cm strip twice; succeeds when the sponge stayed in contact over at least half of the strip.",
+ "use_when": "A surface must be wiped with a held sponge or cloth.",
+ "not_to_be_confused_with": {
+  "sweep": "wipe uses a held tool on the surface itself."
+ },
+ "inputs": {
+  "surface": {
+   "type": "support_ref",
+   "required": true,
+   "description": "The support to clean."
+  },
+  "tool": {
+   "type": "tool_ref",
+   "required": true,
+   "description": "The held wiping tool (sponge)."
+  }
+ },
+ "required_inputs": [
+  "surface",
+  "tool"
+ ],
+ "outputs": {
+  "coverage": {
+   "type": "number",
+   "description": "Fraction of the strip wiped in contact."
+  }
+ },
+ "applicability": {
+  "always": false,
+  "summary": "Requires holding(hand=right, object=$tool); base_near(place=$surface)."
+ },
+ "preconditions": [
+  {
+   "predicate": "holding(hand=right, object=$tool)",
+   "name": "holding",
+   "args": {
+    "hand": "right",
+    "object": "$tool"
+   },
+   "negated": false,
+   "meaning": "The object is in the given gripper: fingers not shut, TCP-to-body distance unchanged since the grasp.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state",
+    "finger_joints",
+    "object_pose",
+    "arm_fk"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  },
+  {
+   "predicate": "base_near(place=$surface)",
+   "name": "base_near",
+   "args": {
+    "place": "$surface"
+   },
+   "negated": false,
+   "meaning": "Base centre within 1.3 m of the place's footprint (inside the room for a room).",
+   "kind": "fluent",
+   "gt_sources": [
+    "base_pose",
+    "scene_annotation"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  }
+ ],
+ "postconditions": [
+  {
+   "predicate": "wiped(support=$surface)",
+   "name": "wiped",
+   "args": {
+    "support": "$surface"
+   },
+   "negated": false,
+   "meaning": "A held wiping tool stayed in contact with at least 50 % of the requested strip of the support.",
+   "kind": "memory",
+   "gt_sources": [
+    "robot_memory (tool-bottom contact samples)"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  },
+  {
+   "predicate": "holding(hand=right, object=$tool)",
+   "name": "holding",
+   "args": {
+    "hand": "right",
+    "object": "$tool"
+   },
+   "negated": false,
+   "meaning": "The object is in the given gripper: fingers not shut, TCP-to-body distance unchanged since the grasp.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state",
+    "finger_joints",
+    "object_pose",
+    "arm_fk"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "wiped(support=$surface)",
+    "name": "wiped",
+    "args": {
+     "support": "$surface"
+    },
+    "negated": false,
+    "meaning": "A held wiping tool stayed in contact with at least 50 % of the requested strip of the support.",
+    "kind": "memory",
+    "gt_sources": [
+     "robot_memory (tool-bottom contact samples)"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   },
+   {
+    "predicate": "holding(hand=right, object=$tool)",
+    "name": "holding",
+    "args": {
+     "hand": "right",
+     "object": "$tool"
+    },
+    "negated": false,
+    "meaning": "The object is in the given gripper: fingers not shut, TCP-to-body distance unchanged since the grasp.",
+    "kind": "fluent",
+    "gt_sources": [
+     "gripper_state",
+     "finger_joints",
+     "object_pose",
+     "arm_fk"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   }
+  ]
+ },
+ "invalidates": [],
+ "policy_paths": [
+  {
+   "path_id": "sponge_strip",
+   "when": [
+    "'wiping_tool' in tool.tags"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_084($tool, $surface)"
+   ],
+   "policies": [
+    "policy_084"
+   ],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [
+   {
+    "skill_id": "skill_050",
+    "verb": "clear",
+    "when": "the cleared surface is wiped",
+    "type": "then"
+   }
+  ],
+  "next": [
+   {
+    "skill_id": "skill_018",
+    "verb": "place",
+    "when": "the sponge is put back",
+    "bind": {
+     "object": "$tool"
+    },
+    "type": "enables"
+   }
+  ],
+  "fallback": [
+   {
+    "skill_id": "skill_050",
+    "verb": "clear",
+    "when": "objects cover the surface",
+    "bind": {
+     "support": "$surface"
+    },
+    "reason": "no free strip exists until the surface is cleared",
+    "type": "recover"
+   }
+  ],
+  "fallback_for": [],
+  "alternative": []
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": []
+ },
+ "scope": {
+  "includes": [],
+  "excludes": []
+ },
+ "contract_id": "contract_045",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_037",
+   "args": {
+    "surface": {
+     "ref": "<support>"
+    },
+    "tool": {
+     "ref": "<tool>"
+    }
+   },
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"wipe\", {'surface': ..., 'tool': ...})"
+ }
+}

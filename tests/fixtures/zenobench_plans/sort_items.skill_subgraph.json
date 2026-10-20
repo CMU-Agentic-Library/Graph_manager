@@ -1,0 +1,35 @@
+{
+ "schema_version": 2,
+ "kind": "skill_subgraph",
+ "subgoal_id": "sort_items",
+ "nodes": [
+  {
+   "id": "n1",
+   "skill": "fetch",
+   "args": {
+    "object": {
+     "value": "soda_can"
+    },
+    "receptacle": {
+     "value": "trash_can"
+    }
+   },
+   "depends_on": []
+  },
+  {
+   "id": "n2",
+   "skill": "fetch",
+   "args": {
+    "object": {
+     "value": "wooden_block_b"
+    },
+    "receptacle": {
+     "value": "mug"
+    }
+   },
+   "depends_on": [
+    "n1"
+   ]
+  }
+ ]
+}

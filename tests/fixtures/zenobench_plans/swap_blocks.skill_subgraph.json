@@ -1,0 +1,20 @@
+{
+ "schema_version": 2,
+ "kind": "skill_subgraph",
+ "subgoal_id": "swap_blocks",
+ "nodes": [
+  {
+   "id": "n1",
+   "skill": "swap",
+   "args": {
+    "a": {
+     "value": "wooden_block_a"
+    },
+    "b": {
+     "value": "soda_can"
+    }
+   },
+   "depends_on": []
+  }
+ ]
+}

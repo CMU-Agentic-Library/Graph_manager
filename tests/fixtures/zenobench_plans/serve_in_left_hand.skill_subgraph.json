@@ -1,0 +1,53 @@
+{
+ "schema_version": 2,
+ "kind": "skill_subgraph",
+ "subgoal_id": "serve_in_left_hand",
+ "nodes": [
+  {
+   "id": "n1",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "wooden_block_a"
+    }
+   },
+   "depends_on": []
+  },
+  {
+   "id": "n2",
+   "skill": "brace",
+   "args": {
+    "object": {
+     "value": "wooden_block_a"
+    }
+   },
+   "depends_on": [
+    "n1"
+   ]
+  },
+  {
+   "id": "n3",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "KitchenCabinetFactory_7025538_spawn_asset_6631478"
+    }
+   },
+   "depends_on": [
+    "n2"
+   ]
+  },
+  {
+   "id": "n4",
+   "skill": "open",
+   "args": {
+    "articulated": {
+     "value": "KitchenCabinetFactory_7025538_spawn_asset_6631478"
+    }
+   },
+   "depends_on": [
+    "n3"
+   ]
+  }
+ ]
+}

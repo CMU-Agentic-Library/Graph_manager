@@ -1,0 +1,902 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_017",
+ "name": "pick-object",
+ "verb": "pick",
+ "noun": "object",
+ "title": "Pick an object",
+ "group": "grasp_and_hand",
+ "signature": "pick(object: object_ref, hands: hand?, grasp: tag?, pass_by: pose2d?)",
+ "action_predicate": {
+  "name": "pick_object",
+  "verb": "pick",
+  "noun": "object",
+  "arguments": [
+   "object",
+   "hands",
+   "grasp",
+   "pass_by"
+  ]
+ },
+ "description": "Grasp one object with the right gripper and lift it. The grasp path is chosen from the object's GT annotation and state: microwave cavity grasp, floor corner pinch, slide-to-edge + edge pinch for flat items, handle pinch, rectangular or round rim pinch, top pinch, or a two-handed lift for wide items.",
+ "use_when": "The robot must hold an object for any later hand action.",
+ "not_to_be_confused_with": {
+  "regrasp": "regrasp improves a grasp on an object that is already held.",
+  "uncover": "uncover lifts a lid off its container and keeps it.",
+  "fetch": "fetch also navigates and places."
+ },
+ "inputs": {
+  "object": {
+   "type": "object_ref",
+   "required": true,
+   "description": "The object to grasp."
+  },
+  "hands": {
+   "type": "hand",
+   "required": false,
+   "description": "\"both\" requests a two-handed lift for wide items.",
+   "enum": [
+    "right",
+    "both"
+   ]
+  },
+  "grasp": {
+   "type": "tag",
+   "required": false,
+   "description": "Optional grasp style to request: handle, rim, top or edge.",
+   "enum": [
+    "handle",
+    "rim",
+    "top",
+    "edge"
+   ]
+  },
+  "pass_by": {
+   "type": "pose2d",
+   "required": false,
+   "description": "Optional base waypoint: grasp while driving past."
+  }
+ },
+ "required_inputs": [
+  "object"
+ ],
+ "outputs": {
+  "grasp": {
+   "type": "hand",
+   "description": "Grasp route actually used."
+  },
+  "lift_m": {
+   "type": "number",
+   "description": "Measured lift of the object."
+  }
+ },
+ "applicability": {
+  "always": false,
+  "summary": "Requires hand_empty(hand=right); base_near(place=$object). Depending on the bound nouns, the chosen path also needs: microwave_cavity (object.location == 'microwave_cavity'): is_open(articulated=@object.appliance); inside_cabinet_or_fridge (object.location in ['refrigerator', 'cabinet']): is_open(articulated=@object.appliance); on_the_move (args.pass_by and 'top_pinch' in object.grasp_types): grasp_clearance(object=$object); two_hand_box (args.hands == 'both' and object.wide_box): hand_empty(hand=left); two_hand_flat (args.hands == 'both' and object.flat): hand_empty(hand=left); floor_top (object.on_floor and 'top_pinch' in object.grasp_types): on_floor(object=$object); flat_overhang_ready (object.flat and object.edge_ready): edge_overhang(object=$object); round_rim ('rim_pinch' in object.grasp_types): grasp_clearance(object=$object); top_pinch ('top_pinch' in object.grasp_types): grasp_clearance(object=$object)."
+ },
+ "preconditions": [
+  {
+   "predicate": "hand_empty(hand=right)",
+   "name": "hand_empty",
+   "args": {
+    "hand": "right"
+   },
+   "negated": false,
+   "meaning": "The given gripper holds nothing.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  },
+  {
+   "predicate": "base_near(place=$object)",
+   "name": "base_near",
+   "args": {
+    "place": "$object"
+   },
+   "negated": false,
+   "meaning": "Base centre within 1.3 m of the place's footprint (inside the room for a room).",
+   "kind": "fluent",
+   "gt_sources": [
+    "base_pose",
+    "scene_annotation"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  }
+ ],
+ "postconditions": [
+  {
+   "predicate": "holding(hand=right, object=$object)",
+   "name": "holding",
+   "args": {
+    "hand": "right",
+    "object": "$object"
+   },
+   "negated": false,
+   "meaning": "The object is in the given gripper: fingers not shut, TCP-to-body distance unchanged since the grasp.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state",
+    "finger_joints",
+    "object_pose",
+    "arm_fk"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "holding(hand=right, object=$object)",
+    "name": "holding",
+    "args": {
+     "hand": "right",
+     "object": "$object"
+    },
+    "negated": false,
+    "meaning": "The object is in the given gripper: fingers not shut, TCP-to-body distance unchanged since the grasp.",
+    "kind": "fluent",
+    "gt_sources": [
+     "gripper_state",
+     "finger_joints",
+     "object_pose",
+     "arm_fk"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   },
+   {
+    "predicate": "holding(hand=left, object=$object)",
+    "name": "holding",
+    "args": {
+     "hand": "left",
+     "object": "$object"
+    },
+    "negated": false,
+    "meaning": "The object is in the given gripper: fingers not shut, TCP-to-body distance unchanged since the grasp.",
+    "kind": "fluent",
+    "gt_sources": [
+     "gripper_state",
+     "finger_joints",
+     "object_pose",
+     "arm_fk"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "path two_hand_box"
+   },
+   {
+    "predicate": "holding(hand=left, object=$object)",
+    "name": "holding",
+    "args": {
+     "hand": "left",
+     "object": "$object"
+    },
+    "negated": false,
+    "meaning": "The object is in the given gripper: fingers not shut, TCP-to-body distance unchanged since the grasp.",
+    "kind": "fluent",
+    "gt_sources": [
+     "gripper_state",
+     "finger_joints",
+     "object_pose",
+     "arm_fk"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "path two_hand_flat"
+   }
+  ]
+ },
+ "invalidates": [
+  "on($object,*)",
+  "inside($object,*)",
+  "on_top_of($object,*)",
+  "on_floor($object)",
+  "hand_empty(right)",
+  "grasp_clearance($object)",
+  "edge_overhang($object)",
+  "at_initial_place($object)",
+  "arm_stowed(right)",
+  "in_appliance($object,*)",
+  "on_burner($object,*)",
+  "covered(*,$object)"
+ ],
+ "policy_paths": [
+  {
+   "path_id": "microwave_cavity",
+   "when": [
+    "object.location == 'microwave_cavity'"
+   ],
+   "extra_preconditions": [
+    {
+     "predicate": "is_open(articulated=@object.appliance)",
+     "name": "is_open",
+     "args": {
+      "articulated": "@object.appliance"
+     },
+     "negated": false,
+     "meaning": "Joint at least 60 % of the way from closed to its annotated open value.",
+     "kind": "fluent",
+     "gt_sources": [
+      "articulation_joint",
+      "articulation_annotation"
+     ],
+     "checked": "before execution on live GT state; the Contract does not move if false"
+    }
+   ],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_048($object, @object.appliance)"
+   ],
+   "policies": [
+    "policy_048"
+   ],
+   "note": "Front withdrawal through the open door."
+  },
+  {
+   "path_id": "inside_cabinet_or_fridge",
+   "when": [
+    "object.location in ['refrigerator', 'cabinet']"
+   ],
+   "extra_preconditions": [
+    {
+     "predicate": "is_open(articulated=@object.appliance)",
+     "name": "is_open",
+     "args": {
+      "articulated": "@object.appliance"
+     },
+     "negated": false,
+     "meaning": "Joint at least 60 % of the way from closed to its annotated open value.",
+     "kind": "fluent",
+     "gt_sources": [
+      "articulation_joint",
+      "articulation_annotation"
+     ],
+     "checked": "before execution on live GT state; the Contract does not move if false"
+    }
+   ],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_061($object)"
+   ],
+   "policies": [
+    "policy_061"
+   ],
+   "note": "Annotation-selected grasp through the opened door."
+  },
+  {
+   "path_id": "handle_requested",
+   "when": [
+    "args.grasp == 'handle'",
+    "'handle_pinch' in object.grasp_types",
+    "object.handle_collider"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_055($object)"
+   ],
+   "policies": [
+    "policy_055"
+   ],
+   "note": "Handle pinch on request; a container held by its handle can swing, so carry it gently."
+  },
+  {
+   "path_id": "on_the_move",
+   "when": [
+    "args.pass_by",
+    "'top_pinch' in object.grasp_types"
+   ],
+   "extra_preconditions": [
+    {
+     "predicate": "grasp_clearance(object=$object)",
+     "name": "grasp_clearance",
+     "args": {
+      "object": "$object"
+     },
+     "negated": false,
+     "meaning": "Some annotated pinch of the object has both finger slots (2.8 x 1.2 cm, at the pre-grasp opening) free of neighbours; objects without a pinch need 3.5 cm of free footprint gap.",
+     "kind": "fluent",
+     "gt_sources": [
+      "object_pose",
+      "asset_annotation"
+     ],
+     "checked": "before execution on live GT state; the Contract does not move if false"
+    }
+   ],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_052($object, $pass_by)"
+   ],
+   "policies": [
+    "policy_052"
+   ],
+   "note": ""
+  },
+  {
+   "path_id": "two_hand_box",
+   "when": [
+    "args.hands == 'both'",
+    "object.wide_box"
+   ],
+   "extra_preconditions": [
+    {
+     "predicate": "hand_empty(hand=left)",
+     "name": "hand_empty",
+     "args": {
+      "hand": "left"
+     },
+     "negated": false,
+     "meaning": "The given gripper holds nothing.",
+     "kind": "fluent",
+     "gt_sources": [
+      "gripper_state"
+     ],
+     "checked": "before execution on live GT state; the Contract does not move if false"
+    }
+   ],
+   "extra_postconditions": [
+    {
+     "predicate": "holding(hand=left, object=$object)",
+     "name": "holding",
+     "args": {
+      "hand": "left",
+      "object": "$object"
+     },
+     "negated": false,
+     "meaning": "The object is in the given gripper: fingers not shut, TCP-to-body distance unchanged since the grasp.",
+     "kind": "fluent",
+     "gt_sources": [
+      "gripper_state",
+      "finger_joints",
+      "object_pose",
+      "arm_fk"
+     ],
+     "checked": "after the policy chain on live GT state; the action is reported only if true"
+    }
+   ],
+   "chain": [
+    "policy_057($object)"
+   ],
+   "policies": [
+    "policy_057"
+   ],
+   "note": ""
+  },
+  {
+   "path_id": "two_hand_flat",
+   "when": [
+    "args.hands == 'both'",
+    "object.flat"
+   ],
+   "extra_preconditions": [
+    {
+     "predicate": "hand_empty(hand=left)",
+     "name": "hand_empty",
+     "args": {
+      "hand": "left"
+     },
+     "negated": false,
+     "meaning": "The given gripper holds nothing.",
+     "kind": "fluent",
+     "gt_sources": [
+      "gripper_state"
+     ],
+     "checked": "before execution on live GT state; the Contract does not move if false"
+    }
+   ],
+   "extra_postconditions": [
+    {
+     "predicate": "holding(hand=left, object=$object)",
+     "name": "holding",
+     "args": {
+      "hand": "left",
+      "object": "$object"
+     },
+     "negated": false,
+     "meaning": "The object is in the given gripper: fingers not shut, TCP-to-body distance unchanged since the grasp.",
+     "kind": "fluent",
+     "gt_sources": [
+      "gripper_state",
+      "finger_joints",
+      "object_pose",
+      "arm_fk"
+     ],
+     "checked": "after the policy chain on live GT state; the action is reported only if true"
+    }
+   ],
+   "chain": [
+    "policy_045($object)",
+    "policy_056($object)"
+   ],
+   "policies": [
+    "policy_045",
+    "policy_056"
+   ],
+   "note": ""
+  },
+  {
+   "path_id": "floor_top",
+   "when": [
+    "object.on_floor",
+    "'top_pinch' in object.grasp_types"
+   ],
+   "extra_preconditions": [
+    {
+     "predicate": "on_floor(object=$object)",
+     "name": "on_floor",
+     "args": {
+      "object": "$object"
+     },
+     "negated": false,
+     "meaning": "Object bottom below 5 cm.",
+     "kind": "fluent",
+     "gt_sources": [
+      "object_pose",
+      "asset_annotation"
+     ],
+     "checked": "before execution on live GT state; the Contract does not move if false"
+    }
+   ],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_065($object)",
+    "policy_042($object)",
+    "policy_010($object)"
+   ],
+   "policies": [
+    "policy_010",
+    "policy_042",
+    "policy_065"
+   ],
+   "note": "Approach, lower the torso and lean over the item, then pinch it from above. Flat objects lying on the floor (books, notebooks) have no pick path: the parallel gripper cannot get a pad under or across them."
+  },
+  {
+   "path_id": "flat_overhang_ready",
+   "when": [
+    "object.flat",
+    "object.edge_ready"
+   ],
+   "extra_preconditions": [
+    {
+     "predicate": "edge_overhang(object=$object)",
+     "name": "edge_overhang",
+     "args": {
+      "object": "$object"
+     },
+     "negated": false,
+     "meaning": "A flat object overhangs a support edge enough for an edge pinch (>= 5.5 cm) while its centre of mass stays 3.5 cm inside the edge.",
+     "kind": "fluent",
+     "gt_sources": [
+      "object_pose",
+      "asset_annotation",
+      "support_annotation"
+     ],
+     "checked": "before execution on live GT state; the Contract does not move if false"
+    }
+   ],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_013($object)"
+   ],
+   "policies": [
+    "policy_013"
+   ],
+   "note": "The overhang already exists (e.g. after expose): pinch it directly."
+  },
+  {
+   "path_id": "flat_edge",
+   "when": [
+    "object.flat"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_045($object)",
+    "policy_013($object)"
+   ],
+   "policies": [
+    "policy_013",
+    "policy_045"
+   ],
+   "note": "Slide the flat item until it overhangs a free edge, then pinch the overhang."
+  },
+  {
+   "path_id": "rect_rim",
+   "when": [
+    "'rim_pinch_rect' in object.grasp_types"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_012($object)"
+   ],
+   "policies": [
+    "policy_012"
+   ],
+   "note": ""
+  },
+  {
+   "path_id": "round_rim",
+   "when": [
+    "'rim_pinch' in object.grasp_types"
+   ],
+   "extra_preconditions": [
+    {
+     "predicate": "grasp_clearance(object=$object)",
+     "name": "grasp_clearance",
+     "args": {
+      "object": "$object"
+     },
+     "negated": false,
+     "meaning": "Some annotated pinch of the object has both finger slots (2.8 x 1.2 cm, at the pre-grasp opening) free of neighbours; objects without a pinch need 3.5 cm of free footprint gap.",
+     "kind": "fluent",
+     "gt_sources": [
+      "object_pose",
+      "asset_annotation"
+     ],
+     "checked": "before execution on live GT state; the Contract does not move if false"
+    }
+   ],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_011($object)"
+   ],
+   "policies": [
+    "policy_011"
+   ],
+   "note": "Preferred for cups, mugs, bowls and pots: a rim pinch does not let the vessel swing."
+  },
+  {
+   "path_id": "handle",
+   "when": [
+    "'handle_pinch' in object.grasp_types",
+    "object.handle_collider"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_055($object)"
+   ],
+   "policies": [
+    "policy_055"
+   ],
+   "note": ""
+  },
+  {
+   "path_id": "top_pinch",
+   "when": [
+    "'top_pinch' in object.grasp_types"
+   ],
+   "extra_preconditions": [
+    {
+     "predicate": "grasp_clearance(object=$object)",
+     "name": "grasp_clearance",
+     "args": {
+      "object": "$object"
+     },
+     "negated": false,
+     "meaning": "Some annotated pinch of the object has both finger slots (2.8 x 1.2 cm, at the pre-grasp opening) free of neighbours; objects without a pinch need 3.5 cm of free footprint gap.",
+     "kind": "fluent",
+     "gt_sources": [
+      "object_pose",
+      "asset_annotation"
+     ],
+     "checked": "before execution on live GT state; the Contract does not move if false"
+    }
+   ],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_010($object)"
+   ],
+   "policies": [
+    "policy_010"
+   ],
+   "note": ""
+  },
+  {
+   "path_id": "annotation_dispatch",
+   "when": [
+    "object.grasp_types"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_061($object)"
+   ],
+   "policies": [
+    "policy_061"
+   ],
+   "note": "Any other annotated pinch: the general dispatcher selects it."
+  }
+ ],
+ "relations": {
+  "previous": [
+   {
+    "skill_id": "skill_002",
+    "verb": "approach",
+    "when": "the target is an object to grasp",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_005",
+    "verb": "crouch",
+    "when": "the object is on the floor or a low shelf",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_012",
+    "verb": "inspect",
+    "when": "an object found inside must be taken out",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_019",
+    "verb": "drop",
+    "when": "more items go into the same container",
+    "type": "enables"
+   },
+   {
+    "skill_id": "skill_020",
+    "verb": "stack",
+    "when": "a taller stack is built",
+    "type": "enables"
+   },
+   {
+    "skill_id": "skill_022",
+    "verb": "handover",
+    "when": "a second object is picked with the free right hand",
+    "type": "enables"
+   },
+   {
+    "skill_id": "skill_029",
+    "verb": "push",
+    "when": "the object was pushed into a graspable spot",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_030",
+    "verb": "pull",
+    "when": "the object is now close enough to grasp",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_031",
+    "verb": "expose",
+    "when": "pinch the overhang",
+    "type": "enables"
+   },
+   {
+    "skill_id": "skill_032",
+    "verb": "separate",
+    "when": "grasp the freed object",
+    "type": "enables"
+   },
+   {
+    "skill_id": "skill_033",
+    "verb": "center",
+    "when": "the secured object is grasped later",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_034",
+    "verb": "roll",
+    "when": "the rolled object is then grasped",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_035",
+    "verb": "tip",
+    "when": "the lying object is pinched across its side",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_036",
+    "verb": "upright",
+    "when": "the standing object is then grasped by its top",
+    "type": "enables"
+   },
+   {
+    "skill_id": "skill_040",
+    "verb": "open",
+    "when": "an object inside must be taken out",
+    "type": "enables"
+   },
+   {
+    "skill_id": "skill_043",
+    "verb": "heat",
+    "when": "the heated food is served",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_046",
+    "verb": "uncover",
+    "when": "something inside is taken out",
+    "type": "enables"
+   },
+   {
+    "skill_id": "skill_058",
+    "verb": "measure",
+    "when": "the size decides the grasp",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_065",
+    "verb": "touch",
+    "when": "the touched object is then grasped",
+    "type": "enables"
+   },
+   {
+    "skill_id": "skill_068",
+    "verb": "stop",
+    "when": "the food is taken off the heat",
+    "type": "enables"
+   }
+  ],
+  "next": [
+   {
+    "skill_id": "skill_001",
+    "verb": "navigate",
+    "when": "the object must be carried elsewhere",
+    "bind": {},
+    "reason": "carry path is chosen from holding",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_018",
+    "verb": "place",
+    "when": "the object goes onto a surface or into a container",
+    "bind": {
+     "object": "$object"
+    },
+    "type": "enables"
+   },
+   {
+    "skill_id": "skill_023",
+    "verb": "lift",
+    "when": "the object must clear a high rim while carried",
+    "bind": {
+     "object": "$object"
+    },
+    "type": "enables"
+   }
+  ],
+  "fallback": [
+   {
+    "skill_id": "skill_031",
+    "verb": "expose",
+    "when": "a flat object cannot be pinched from the top: push it to the edge by hand, then pick the overhang",
+    "bind": {
+     "object": "$object"
+    },
+    "type": "repair",
+    "repairs": "edge_overhang"
+   },
+   {
+    "skill_id": "skill_032",
+    "verb": "separate",
+    "when": "fingers have no room beside the object (grasp_clearance false)",
+    "bind": {
+     "object": "$object"
+    },
+    "type": "repair",
+    "repairs": "grasp_clearance"
+   },
+   {
+    "skill_id": "skill_030",
+    "verb": "pull",
+    "when": "the object sits too deep to reach",
+    "bind": {
+     "object": "$object"
+    },
+    "reason": "dragging it toward the base brings it into the arm's envelope",
+    "type": "recover"
+   },
+   {
+    "skill_id": "skill_002",
+    "verb": "approach",
+    "when": "no grasp is reachable from base poses near the current one",
+    "bind": {
+     "target": "$object"
+    },
+    "reason": "a base pose with verified IK at the object",
+    "type": "recover"
+   },
+   {
+    "skill_id": "skill_036",
+    "verb": "upright",
+    "when": "a tall object fell over and its top pinch is gone",
+    "bind": {
+     "object": "$object"
+    },
+    "reason": "standing it up restores the annotated top pinch",
+    "type": "recover"
+   },
+   {
+    "skill_id": "skill_005",
+    "verb": "crouch",
+    "when": "the object is on the floor or a low shelf",
+    "bind": {},
+    "reason": "the lowered torso brings the gripper to floor height",
+    "type": "recover"
+   },
+   {
+    "skill_id": "skill_046",
+    "verb": "uncover",
+    "when": "the object to take is a lid-covered container's content",
+    "bind": {},
+    "reason": "the lid blocks every approach into the container",
+    "type": "recover"
+   },
+   {
+    "skill_id": "skill_040",
+    "verb": "open",
+    "when": "the object is inside a closed cabinet or appliance",
+    "bind": {},
+    "type": "repair",
+    "repairs": "is_open"
+   }
+  ],
+  "fallback_for": [
+   {
+    "skill_id": "skill_020",
+    "verb": "stack",
+    "when": "the base's top is occupied: remove the top object first",
+    "type": "recover"
+   }
+  ],
+  "alternative": [
+   {
+    "skill_id": "skill_026",
+    "verb": "regrasp",
+    "when": "the object is already in the hand but badly held",
+    "bind": {
+     "object": "$object"
+    }
+   }
+  ]
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": [
+   "no reachable grasp from any base pose",
+   "object not held after lift (slipped)",
+   "no free support edge for a flat object"
+  ]
+ },
+ "scope": {
+  "includes": [
+   "grasp route selection from GT annotation",
+   "base re-park for the chosen grasp",
+   "approach, close, lift, measured hold check"
+  ],
+  "excludes": [
+   "transport",
+   "placement"
+  ]
+ },
+ "contract_id": "contract_025",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_017",
+   "args": {
+    "object": {
+     "ref": "<object>"
+    }
+   },
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"pick\", {'object': ...})"
+ }
+}

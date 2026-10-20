@@ -1,0 +1,47 @@
+{
+ "schema_version": 2,
+ "kind": "skill_subgraph",
+ "subgoal_id": "hide_block",
+ "nodes": [
+  {
+   "id": "n1",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "handled_cooking_pot"
+    }
+   },
+   "depends_on": []
+  },
+  {
+   "id": "n2",
+   "skill": "uncover",
+   "args": {
+    "container": {
+     "value": "handled_cooking_pot"
+    }
+   },
+   "depends_on": [
+    "n1"
+   ]
+  },
+  {
+   "id": "n3",
+   "skill": "hide",
+   "args": {
+    "object": {
+     "value": "wooden_block_b"
+    },
+    "receptacle": {
+     "value": "handled_cooking_pot"
+    },
+    "lid": {
+     "value": "pot_lid"
+    }
+   },
+   "depends_on": [
+    "n2"
+   ]
+  }
+ ]
+}

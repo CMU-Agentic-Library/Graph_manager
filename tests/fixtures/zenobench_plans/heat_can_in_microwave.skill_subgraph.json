@@ -1,0 +1,122 @@
+{
+ "schema_version": 2,
+ "kind": "skill_subgraph",
+ "subgoal_id": "heat_can_in_microwave",
+ "nodes": [
+  {
+   "id": "n1",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "kitchen_microwave"
+    }
+   },
+   "depends_on": []
+  },
+  {
+   "id": "n2",
+   "skill": "open",
+   "args": {
+    "articulated": {
+     "value": "kitchen_microwave"
+    }
+   },
+   "depends_on": [
+    "n1"
+   ]
+  },
+  {
+   "id": "n3",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "soda_can"
+    }
+   },
+   "depends_on": [
+    "n2"
+   ]
+  },
+  {
+   "id": "n4",
+   "skill": "pick",
+   "args": {
+    "object": {
+     "value": "soda_can"
+    }
+   },
+   "depends_on": [
+    "n3"
+   ]
+  },
+  {
+   "id": "n5",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "kitchen_microwave"
+    }
+   },
+   "depends_on": [
+    "n4"
+   ]
+  },
+  {
+   "id": "n6",
+   "skill": "place",
+   "args": {
+    "object": {
+     "value": "soda_can"
+    },
+    "receptacle": {
+     "value": "kitchen_microwave/inside_floor"
+    }
+   },
+   "depends_on": [
+    "n5"
+   ]
+  },
+  {
+   "id": "n7",
+   "skill": "close",
+   "args": {
+    "articulated": {
+     "value": "kitchen_microwave"
+    }
+   },
+   "depends_on": [
+    "n6"
+   ]
+  },
+  {
+   "id": "n8",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "kitchen_microwave"
+    }
+   },
+   "depends_on": [
+    "n7"
+   ]
+  },
+  {
+   "id": "n9",
+   "skill": "heat",
+   "args": {
+    "food": {
+     "value": "soda_can"
+    },
+    "appliance": {
+     "value": "kitchen_microwave"
+    },
+    "temp_c": {
+     "value": 60.0
+    }
+   },
+   "depends_on": [
+    "n8"
+   ]
+  }
+ ]
+}

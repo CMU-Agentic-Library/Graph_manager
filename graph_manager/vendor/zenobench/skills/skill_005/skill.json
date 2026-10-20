@@ -1,0 +1,223 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_005",
+ "name": "crouch-torso",
+ "verb": "crouch",
+ "noun": "torso",
+ "title": "Crouch the torso",
+ "group": "base_and_body",
+ "signature": "crouch(height_m: number?)",
+ "action_predicate": {
+  "name": "crouch_torso",
+  "verb": "crouch",
+  "noun": "torso",
+  "arguments": [
+   "height_m"
+  ]
+ },
+ "description": "Lower the torso lift to its bottom (or a requested height) for floor and low-shelf work.",
+ "use_when": "The next target is low (floor, low shelf) or the head must look under something.",
+ "not_to_be_confused_with": {
+  "bend": "bend pitches the waist forward; crouch lowers the torso vertically."
+ },
+ "inputs": {
+  "height_m": {
+   "type": "number",
+   "required": false,
+   "description": "Optional torso joint target in [-0.54, 0]; omit for the lowest."
+  }
+ },
+ "required_inputs": [],
+ "outputs": {},
+ "applicability": {
+  "always": true,
+  "summary": "Always applicable."
+ },
+ "preconditions": [],
+ "postconditions": [
+  {
+   "predicate": "not torso_raised()",
+   "name": "torso_raised",
+   "args": {},
+   "negated": true,
+   "meaning": "Torso lift within 3 cm of its highest position (travel height).",
+   "kind": "fluent",
+   "gt_sources": [
+    "torso_joint"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "not torso_raised()",
+    "name": "torso_raised",
+    "args": {},
+    "negated": true,
+    "meaning": "Torso lift within 3 cm of its highest position (travel height).",
+    "kind": "fluent",
+    "gt_sources": [
+     "torso_joint"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   },
+   {
+    "predicate": "torso_at(height_m=$height_m)",
+    "name": "torso_at",
+    "args": {
+     "height_m": "$height_m"
+    },
+    "negated": false,
+    "meaning": "Torso lift joint within 2 cm of the requested position (0 = top, -0.54 = bottom).",
+    "kind": "fluent",
+    "gt_sources": [
+     "torso_joint"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "path to_height"
+   },
+   {
+    "predicate": "torso_lowered()",
+    "name": "torso_lowered",
+    "args": {},
+    "negated": false,
+    "meaning": "Torso lift within 3 cm of its lowest position (floor reach).",
+    "kind": "fluent",
+    "gt_sources": [
+     "torso_joint"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "path lowest"
+   }
+  ]
+ },
+ "invalidates": [
+  "torso_raised()",
+  "torso_lowered()",
+  "torso_at(*)",
+  "reachable(*)",
+  "in_view(*)"
+ ],
+ "policy_paths": [
+  {
+   "path_id": "to_height",
+   "when": [
+    "args.height_m"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [
+    {
+     "predicate": "torso_at(height_m=$height_m)",
+     "name": "torso_at",
+     "args": {
+      "height_m": "$height_m"
+     },
+     "negated": false,
+     "meaning": "Torso lift joint within 2 cm of the requested position (0 = top, -0.54 = bottom).",
+     "kind": "fluent",
+     "gt_sources": [
+      "torso_joint"
+     ],
+     "checked": "after the policy chain on live GT state; the action is reported only if true"
+    }
+   ],
+   "chain": [
+    "policy_004($height_m)"
+   ],
+   "policies": [
+    "policy_004"
+   ],
+   "note": ""
+  },
+  {
+   "path_id": "lowest",
+   "when": [
+    "always (default path)"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [
+    {
+     "predicate": "torso_lowered()",
+     "name": "torso_lowered",
+     "args": {},
+     "negated": false,
+     "meaning": "Torso lift within 3 cm of its lowest position (floor reach).",
+     "kind": "fluent",
+     "gt_sources": [
+      "torso_joint"
+     ],
+     "checked": "after the policy chain on live GT state; the action is reported only if true"
+    }
+   ],
+   "chain": [
+    "policy_005()"
+   ],
+   "policies": [
+    "policy_005"
+   ],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [],
+  "next": [
+   {
+    "skill_id": "skill_017",
+    "verb": "pick",
+    "when": "the object is on the floor or a low shelf",
+    "bind": {},
+    "reason": "floor reach",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_006",
+    "verb": "stand",
+    "when": "low work is done",
+    "bind": {},
+    "reason": "restore travel height",
+    "type": "then"
+   }
+  ],
+  "fallback": [],
+  "fallback_for": [
+   {
+    "skill_id": "skill_017",
+    "verb": "pick",
+    "when": "the object is on the floor or a low shelf",
+    "type": "recover"
+   }
+  ],
+  "alternative": []
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": []
+ },
+ "scope": {
+  "includes": [],
+  "excludes": []
+ },
+ "contract_id": "contract_013",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_005",
+   "args": {},
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"crouch\", {})"
+ }
+}

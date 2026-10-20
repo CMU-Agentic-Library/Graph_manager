@@ -1,0 +1,29 @@
+{
+ "schema_version": 2,
+ "kind": "skill_subgraph",
+ "subgoal_id": "flip_book",
+ "nodes": [
+  {
+   "id": "n1",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "paperback_book"
+    }
+   },
+   "depends_on": []
+  },
+  {
+   "id": "n2",
+   "skill": "flip",
+   "args": {
+    "object": {
+     "value": "paperback_book"
+    }
+   },
+   "depends_on": [
+    "n1"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,132 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_061",
+ "name": "nod-head",
+ "verb": "nod",
+ "noun": "head",
+ "title": "Nod the head",
+ "group": "perception_and_gesture",
+ "signature": "nod()",
+ "action_predicate": {
+  "name": "nod_head",
+  "verb": "nod",
+  "noun": "head",
+  "arguments": []
+ },
+ "description": "Pitch the head down and up twice (acknowledgement gesture).",
+ "use_when": "Acknowledging an instruction.",
+ "not_to_be_confused_with": {
+  "wave": "wave uses the arm; nod uses the head."
+ },
+ "inputs": {},
+ "required_inputs": [],
+ "outputs": {},
+ "applicability": {
+  "always": true,
+  "summary": "Always applicable."
+ },
+ "preconditions": [],
+ "postconditions": [
+  {
+   "predicate": "nodded()",
+   "name": "nodded",
+   "args": {},
+   "negated": false,
+   "meaning": "The head performed a measured nod (>= 2 pitch cycles of >= 0.2 rad).",
+   "kind": "memory",
+   "gt_sources": [
+    "robot_memory (head joint samples)"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "nodded()",
+    "name": "nodded",
+    "args": {},
+    "negated": false,
+    "meaning": "The head performed a measured nod (>= 2 pitch cycles of >= 0.2 rad).",
+    "kind": "memory",
+    "gt_sources": [
+     "robot_memory (head joint samples)"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   }
+  ]
+ },
+ "invalidates": [
+  "in_view(*)"
+ ],
+ "policy_paths": [
+  {
+   "path_id": "pitch_cycles",
+   "when": [
+    "always (default path)"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_105()"
+   ],
+   "policies": [
+    "policy_105"
+   ],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [],
+  "next": [
+   {
+    "skill_id": "skill_011",
+    "verb": "look",
+    "when": "the robot looks back at a target",
+    "bind": {},
+    "reason": "restores gaze",
+    "type": "then"
+   }
+  ],
+  "fallback": [],
+  "fallback_for": [],
+  "alternative": [
+   {
+    "skill_id": "skill_060",
+    "verb": "wave",
+    "when": "a bigger gesture is needed",
+    "bind": {}
+   }
+  ]
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": []
+ },
+ "scope": {
+  "includes": [],
+  "excludes": []
+ },
+ "contract_id": "contract_069",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_061",
+   "args": {},
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"nod\", {})"
+ }
+}

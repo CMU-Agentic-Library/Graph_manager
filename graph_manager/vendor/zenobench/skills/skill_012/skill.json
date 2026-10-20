@@ -1,0 +1,226 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_012",
+ "name": "inspect-receptacle",
+ "verb": "inspect",
+ "noun": "receptacle",
+ "title": "Inspect a receptacle",
+ "group": "perception_and_gesture",
+ "signature": "inspect(receptacle: entity_ref)",
+ "action_predicate": {
+  "name": "inspect_receptacle",
+  "verb": "inspect",
+  "noun": "receptacle",
+  "arguments": [
+   "receptacle"
+  ]
+ },
+ "description": "Look into a container, a cabinet, an appliance cavity or onto a support and report the objects inside or on it. A closed cabinet is opened for the look and closed again.",
+ "use_when": "The contents of a container or cabinet must be seen (opens it if needed).",
+ "not_to_be_confused_with": {
+  "look": "look reports nothing about contents.",
+  "search": "inspect examines one given receptacle; search chooses where to look."
+ },
+ "inputs": {
+  "receptacle": {
+   "type": "entity_ref",
+   "required": true,
+   "description": "Container, articulated cabinet/appliance or support to examine."
+  }
+ },
+ "required_inputs": [
+  "receptacle"
+ ],
+ "outputs": {
+  "contents": {
+   "type": "object_list",
+   "description": "Objects found inside/on the receptacle and visible."
+  }
+ },
+ "applicability": {
+  "always": false,
+  "summary": "Requires base_near(place=$receptacle). Depending on the bound nouns, the chosen path also needs: closed_cabinet (receptacle.kind == 'articulated' and not receptacle.is_open): hand_empty(hand=right)."
+ },
+ "preconditions": [
+  {
+   "predicate": "base_near(place=$receptacle)",
+   "name": "base_near",
+   "args": {
+    "place": "$receptacle"
+   },
+   "negated": false,
+   "meaning": "Base centre within 1.3 m of the place's footprint (inside the room for a room).",
+   "kind": "fluent",
+   "gt_sources": [
+    "base_pose",
+    "scene_annotation"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  }
+ ],
+ "postconditions": [
+  {
+   "predicate": "observed(target=$receptacle)",
+   "name": "observed",
+   "args": {
+    "target": "$receptacle"
+   },
+   "negated": false,
+   "meaning": "The robot saw the target in its head camera during this episode (set by look, search, inspect, explore).",
+   "kind": "memory",
+   "gt_sources": [
+    "robot_memory"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "observed(target=$receptacle)",
+    "name": "observed",
+    "args": {
+     "target": "$receptacle"
+    },
+    "negated": false,
+    "meaning": "The robot saw the target in its head camera during this episode (set by look, search, inspect, explore).",
+    "kind": "memory",
+    "gt_sources": [
+     "robot_memory"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   }
+  ]
+ },
+ "invalidates": [],
+ "policy_paths": [
+  {
+   "path_id": "closed_cabinet",
+   "when": [
+    "receptacle.kind == 'articulated'",
+    "not receptacle.is_open"
+   ],
+   "extra_preconditions": [
+    {
+     "predicate": "hand_empty(hand=right)",
+     "name": "hand_empty",
+     "args": {
+      "hand": "right"
+     },
+     "negated": false,
+     "meaning": "The given gripper holds nothing.",
+     "kind": "fluent",
+     "gt_sources": [
+      "gripper_state"
+     ],
+     "checked": "before execution on live GT state; the Contract does not move if false"
+    }
+   ],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_003()",
+    "policy_062($receptacle)",
+    "policy_088($receptacle)",
+    "policy_003()",
+    "policy_063($receptacle)"
+   ],
+   "policies": [
+    "policy_003",
+    "policy_062",
+    "policy_063",
+    "policy_088"
+   ],
+   "note": "Open with the annotation-selected route, look, close again."
+  },
+  {
+   "path_id": "open_view",
+   "when": [
+    "always (default path)"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_088($receptacle)"
+   ],
+   "policies": [
+    "policy_088"
+   ],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [],
+  "next": [
+   {
+    "skill_id": "skill_017",
+    "verb": "pick",
+    "when": "an object found inside must be taken out",
+    "bind": {},
+    "reason": "contents output names the object",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_051",
+    "verb": "empty",
+    "when": "every object inside must be removed",
+    "bind": {
+     "container": "$receptacle"
+    },
+    "type": "then"
+   }
+  ],
+  "fallback": [],
+  "fallback_for": [
+   {
+    "skill_id": "skill_013",
+    "verb": "search",
+    "when": "the object may be inside a closed cabinet",
+    "type": "substitute"
+   }
+  ],
+  "alternative": [
+   {
+    "skill_id": "skill_011",
+    "verb": "look",
+    "when": "only the receptacle itself must be seen",
+    "bind": {
+     "target": "$receptacle"
+    }
+   }
+  ]
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": []
+ },
+ "scope": {
+  "includes": [],
+  "excludes": []
+ },
+ "contract_id": "contract_020",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_012",
+   "args": {
+    "receptacle": {
+     "ref": "<entity>"
+    }
+   },
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"inspect\", {'receptacle': ...})"
+ }
+}

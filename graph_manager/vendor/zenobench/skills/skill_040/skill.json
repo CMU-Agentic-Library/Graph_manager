@@ -1,0 +1,428 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_040",
+ "name": "open-articulated",
+ "verb": "open",
+ "noun": "articulated",
+ "title": "Open a door or drawer",
+ "group": "articulated_and_appliance",
+ "signature": "open(articulated: articulated_ref)",
+ "action_predicate": {
+  "name": "open_articulated",
+  "verb": "open",
+  "noun": "articulated",
+  "arguments": [
+   "articulated"
+  ]
+ },
+ "description": "Open a door, drawer, refrigerator door or microwave door to its annotated open value. The path follows the part: powered microwave (door button + hinge), refrigerator handle, drawer handle pull, hinged door side-hook ride, or a door opened by the right hand while the left hand holds a load.",
+ "use_when": "A door, drawer or appliance must be opened before reaching inside.",
+ "not_to_be_confused_with": {
+  "press": "press only pushes a button; open guarantees the door is open."
+ },
+ "inputs": {
+  "articulated": {
+   "type": "articulated_ref",
+   "required": true,
+   "description": "The door, drawer or appliance door."
+  }
+ },
+ "required_inputs": [
+  "articulated"
+ ],
+ "outputs": {
+  "joint": {
+   "type": "number",
+   "description": "Measured joint value."
+  }
+ },
+ "applicability": {
+  "always": false,
+  "summary": "Requires base_near(place=$articulated). Depending on the bound nouns, the chosen path also needs: powered_microwave (articulated.powered): hand_empty(hand=right); left_holds_load (robot.left_held and articulated.type == 'revolute'): hand_empty(hand=right); refrigerator (articulated.category == 'refrigerator'): hand_empty(hand=right); drawer (articulated.type == 'prismatic'): hand_empty(hand=right); hinged_door (articulated.type == 'revolute'): hand_empty(hand=right)."
+ },
+ "preconditions": [
+  {
+   "predicate": "base_near(place=$articulated)",
+   "name": "base_near",
+   "args": {
+    "place": "$articulated"
+   },
+   "negated": false,
+   "meaning": "Base centre within 1.3 m of the place's footprint (inside the room for a room).",
+   "kind": "fluent",
+   "gt_sources": [
+    "base_pose",
+    "scene_annotation"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  }
+ ],
+ "postconditions": [
+  {
+   "predicate": "is_open(articulated=$articulated)",
+   "name": "is_open",
+   "args": {
+    "articulated": "$articulated"
+   },
+   "negated": false,
+   "meaning": "Joint at least 60 % of the way from closed to its annotated open value.",
+   "kind": "fluent",
+   "gt_sources": [
+    "articulation_joint",
+    "articulation_annotation"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "is_open(articulated=$articulated)",
+    "name": "is_open",
+    "args": {
+     "articulated": "$articulated"
+    },
+    "negated": false,
+    "meaning": "Joint at least 60 % of the way from closed to its annotated open value.",
+    "kind": "fluent",
+    "gt_sources": [
+     "articulation_joint",
+     "articulation_annotation"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   }
+  ]
+ },
+ "invalidates": [
+  "is_closed($articulated)",
+  "base_near(*)",
+  "reachable(*)",
+  "facing(*)"
+ ],
+ "policy_paths": [
+  {
+   "path_id": "powered_microwave",
+   "when": [
+    "articulated.powered"
+   ],
+   "extra_preconditions": [
+    {
+     "predicate": "hand_empty(hand=right)",
+     "name": "hand_empty",
+     "args": {
+      "hand": "right"
+     },
+     "negated": false,
+     "meaning": "The given gripper holds nothing.",
+     "kind": "fluent",
+     "gt_sources": [
+      "gripper_state"
+     ],
+     "checked": "before execution on live GT state; the Contract does not move if false"
+    }
+   ],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_024($articulated)"
+   ],
+   "policies": [
+    "policy_024"
+   ],
+   "note": ""
+  },
+  {
+   "path_id": "left_holds_load",
+   "when": [
+    "robot.left_held",
+    "articulated.type == 'revolute'"
+   ],
+   "extra_preconditions": [
+    {
+     "predicate": "hand_empty(hand=right)",
+     "name": "hand_empty",
+     "args": {
+      "hand": "right"
+     },
+     "negated": false,
+     "meaning": "The given gripper holds nothing.",
+     "kind": "fluent",
+     "gt_sources": [
+      "gripper_state"
+     ],
+     "checked": "before execution on live GT state; the Contract does not move if false"
+    }
+   ],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_060(@robot.left_object, $articulated)"
+   ],
+   "policies": [
+    "policy_060"
+   ],
+   "note": ""
+  },
+  {
+   "path_id": "refrigerator",
+   "when": [
+    "articulated.category == 'refrigerator'"
+   ],
+   "extra_preconditions": [
+    {
+     "predicate": "hand_empty(hand=right)",
+     "name": "hand_empty",
+     "args": {
+      "hand": "right"
+     },
+     "negated": false,
+     "meaning": "The given gripper holds nothing.",
+     "kind": "fluent",
+     "gt_sources": [
+      "gripper_state"
+     ],
+     "checked": "before execution on live GT state; the Contract does not move if false"
+    }
+   ],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_003()",
+    "policy_022($articulated, goal=@articulated.wide_open_q)"
+   ],
+   "policies": [
+    "policy_003",
+    "policy_022"
+   ],
+   "note": "Rides the door to 75 % of its annotated range (60 deg), wide enough to put a can on the shelf."
+  },
+  {
+   "path_id": "drawer",
+   "when": [
+    "articulated.type == 'prismatic'"
+   ],
+   "extra_preconditions": [
+    {
+     "predicate": "hand_empty(hand=right)",
+     "name": "hand_empty",
+     "args": {
+      "hand": "right"
+     },
+     "negated": false,
+     "meaning": "The given gripper holds nothing.",
+     "kind": "fluent",
+     "gt_sources": [
+      "gripper_state"
+     ],
+     "checked": "before execution on live GT state; the Contract does not move if false"
+    }
+   ],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_003()",
+    "policy_046($articulated)",
+    "policy_050($articulated)",
+    "policy_047($articulated)"
+   ],
+   "policies": [
+    "policy_003",
+    "policy_046",
+    "policy_047",
+    "policy_050"
+   ],
+   "note": ""
+  },
+  {
+   "path_id": "hinged_door",
+   "when": [
+    "articulated.type == 'revolute'"
+   ],
+   "extra_preconditions": [
+    {
+     "predicate": "hand_empty(hand=right)",
+     "name": "hand_empty",
+     "args": {
+      "hand": "right"
+     },
+     "negated": false,
+     "meaning": "The given gripper holds nothing.",
+     "kind": "fluent",
+     "gt_sources": [
+      "gripper_state"
+     ],
+     "checked": "before execution on live GT state; the Contract does not move if false"
+    }
+   ],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_003()",
+    "policy_046($articulated)",
+    "policy_049($articulated)",
+    "policy_047($articulated)"
+   ],
+   "policies": [
+    "policy_003",
+    "policy_046",
+    "policy_047",
+    "policy_049"
+   ],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [
+   {
+    "skill_id": "skill_002",
+    "verb": "approach",
+    "when": "the target is a door or drawer",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_004",
+    "verb": "retreat",
+    "when": "a door's swing needs room in front of the robot",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_022",
+    "verb": "handover",
+    "when": "the right hand must open a door while the left carries the load",
+    "type": "enables"
+   },
+   {
+    "skill_id": "skill_043",
+    "verb": "heat",
+    "when": "the heated food is taken out of the microwave",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_044",
+    "verb": "chill",
+    "when": "the chilled food is taken out",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_056",
+    "verb": "wait",
+    "when": "a cycle finished and the door is opened",
+    "type": "then"
+   },
+   {
+    "skill_id": "skill_066",
+    "verb": "knock",
+    "when": "the door is opened after knocking",
+    "type": "then"
+   }
+  ],
+  "next": [
+   {
+    "skill_id": "skill_017",
+    "verb": "pick",
+    "when": "an object inside must be taken out",
+    "bind": {},
+    "reason": "is_open is a cavity-pick precondition",
+    "type": "enables"
+   },
+   {
+    "skill_id": "skill_018",
+    "verb": "place",
+    "when": "an object must go inside",
+    "bind": {},
+    "reason": "is_open is a cavity-place precondition",
+    "type": "enables"
+   },
+   {
+    "skill_id": "skill_041",
+    "verb": "close",
+    "when": "the door must be shut afterwards",
+    "bind": {
+     "articulated": "$articulated"
+    },
+    "type": "then"
+   }
+  ],
+  "fallback": [
+   {
+    "skill_id": "skill_004",
+    "verb": "retreat",
+    "when": "the door swing hits the base",
+    "bind": {
+     "obstacle": "$articulated"
+    },
+    "reason": "room for the door's sweep",
+    "type": "recover"
+   },
+   {
+    "skill_id": "skill_022",
+    "verb": "handover",
+    "when": "the right hand still holds a load",
+    "bind": {},
+    "type": "repair",
+    "repairs": "hand_empty"
+   },
+   {
+    "skill_id": "skill_002",
+    "verb": "approach",
+    "when": "the handle is out of reach",
+    "bind": {
+     "target": "$articulated"
+    },
+    "reason": "a base pose with verified IK at the handle",
+    "type": "recover"
+   }
+  ],
+  "fallback_for": [
+   {
+    "skill_id": "skill_017",
+    "verb": "pick",
+    "when": "the object is inside a closed cabinet or appliance",
+    "type": "repair"
+   },
+   {
+    "skill_id": "skill_018",
+    "verb": "place",
+    "when": "the receptacle is behind a closed door",
+    "type": "repair"
+   }
+  ],
+  "alternative": [
+   {
+    "skill_id": "skill_042",
+    "verb": "press",
+    "when": "the door key is pressed only to open the microwave door",
+    "bind": {}
+   }
+  ]
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": []
+ },
+ "scope": {
+  "includes": [],
+  "excludes": []
+ },
+ "contract_id": "contract_048",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_040",
+   "args": {
+    "articulated": {
+     "ref": "<articulated>"
+    }
+   },
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"open\", {'articulated': ...})"
+ }
+}

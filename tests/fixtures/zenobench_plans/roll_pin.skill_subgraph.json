@@ -1,0 +1,32 @@
+{
+ "schema_version": 2,
+ "kind": "skill_subgraph",
+ "subgoal_id": "roll_pin",
+ "nodes": [
+  {
+   "id": "n1",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "rolling_pin"
+    }
+   },
+   "depends_on": []
+  },
+  {
+   "id": "n2",
+   "skill": "roll",
+   "args": {
+    "object": {
+     "value": "rolling_pin"
+    },
+    "distance_m": {
+     "value": 0.1
+    }
+   },
+   "depends_on": [
+    "n1"
+   ]
+  }
+ ]
+}

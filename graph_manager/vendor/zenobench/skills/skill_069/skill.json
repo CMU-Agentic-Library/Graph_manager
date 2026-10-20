@@ -1,0 +1,250 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_069",
+ "name": "dip-utensil",
+ "verb": "dip",
+ "noun": "utensil",
+ "title": "Dip a utensil",
+ "group": "contact",
+ "signature": "dip(tool: tool_ref, container: container_ref)",
+ "action_predicate": {
+  "name": "dip_utensil",
+  "verb": "dip",
+  "noun": "utensil",
+  "arguments": [
+   "tool",
+   "container"
+  ]
+ },
+ "description": "Lower a held spoon's far end into a container below its rim, hold it there and lift it out.",
+ "use_when": "A held utensil must go into a container briefly (taste, wet).",
+ "not_to_be_confused_with": {
+  "stir": "stir circles inside the container; dip goes in and out once."
+ },
+ "inputs": {
+  "tool": {
+   "type": "tool_ref",
+   "required": true,
+   "description": "The held utensil."
+  },
+  "container": {
+   "type": "container_ref",
+   "required": true,
+   "description": "The pot or bowl."
+  }
+ },
+ "required_inputs": [
+  "tool",
+  "container"
+ ],
+ "outputs": {},
+ "applicability": {
+  "always": false,
+  "summary": "Requires holding(hand=right, object=$tool); base_near(place=$container); uncovered(container=$container)."
+ },
+ "preconditions": [
+  {
+   "predicate": "holding(hand=right, object=$tool)",
+   "name": "holding",
+   "args": {
+    "hand": "right",
+    "object": "$tool"
+   },
+   "negated": false,
+   "meaning": "The object is in the given gripper: fingers not shut, TCP-to-body distance unchanged since the grasp.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state",
+    "finger_joints",
+    "object_pose",
+    "arm_fk"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  },
+  {
+   "predicate": "base_near(place=$container)",
+   "name": "base_near",
+   "args": {
+    "place": "$container"
+   },
+   "negated": false,
+   "meaning": "Base centre within 1.3 m of the place's footprint (inside the room for a room).",
+   "kind": "fluent",
+   "gt_sources": [
+    "base_pose",
+    "scene_annotation"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  },
+  {
+   "predicate": "uncovered(container=$container)",
+   "name": "uncovered",
+   "args": {
+    "container": "$container"
+   },
+   "negated": false,
+   "meaning": "No lid rests on the container rim.",
+   "kind": "fluent",
+   "gt_sources": [
+    "object_pose",
+    "container_profile",
+    "asset_tags"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  }
+ ],
+ "postconditions": [
+  {
+   "predicate": "dipped(container=$container)",
+   "name": "dipped",
+   "args": {
+    "container": "$container"
+   },
+   "negated": false,
+   "meaning": "A held utensil tip entered the container below its rim and came back out.",
+   "kind": "memory",
+   "gt_sources": [
+    "robot_memory (tool-tip samples)"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  },
+  {
+   "predicate": "holding(hand=right, object=$tool)",
+   "name": "holding",
+   "args": {
+    "hand": "right",
+    "object": "$tool"
+   },
+   "negated": false,
+   "meaning": "The object is in the given gripper: fingers not shut, TCP-to-body distance unchanged since the grasp.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state",
+    "finger_joints",
+    "object_pose",
+    "arm_fk"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "dipped(container=$container)",
+    "name": "dipped",
+    "args": {
+     "container": "$container"
+    },
+    "negated": false,
+    "meaning": "A held utensil tip entered the container below its rim and came back out.",
+    "kind": "memory",
+    "gt_sources": [
+     "robot_memory (tool-tip samples)"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   },
+   {
+    "predicate": "holding(hand=right, object=$tool)",
+    "name": "holding",
+    "args": {
+     "hand": "right",
+     "object": "$tool"
+    },
+    "negated": false,
+    "meaning": "The object is in the given gripper: fingers not shut, TCP-to-body distance unchanged since the grasp.",
+    "kind": "fluent",
+    "gt_sources": [
+     "gripper_state",
+     "finger_joints",
+     "object_pose",
+     "arm_fk"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   }
+  ]
+ },
+ "invalidates": [],
+ "policy_paths": [
+  {
+   "path_id": "tip_below_rim",
+   "when": [
+    "'utensil' in tool.tags"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_113($tool, $container)"
+   ],
+   "policies": [
+    "policy_113"
+   ],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [],
+  "next": [
+   {
+    "skill_id": "skill_038",
+    "verb": "stir",
+    "when": "the utensil then stirs",
+    "bind": {
+     "tool": "$tool",
+     "container": "$container"
+    },
+    "type": "enables"
+   }
+  ],
+  "fallback": [],
+  "fallback_for": [],
+  "alternative": [
+   {
+    "skill_id": "skill_038",
+    "verb": "stir",
+    "when": "the contents must be mixed",
+    "bind": {
+     "tool": "$tool",
+     "container": "$container"
+    }
+   }
+  ]
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": []
+ },
+ "scope": {
+  "includes": [],
+  "excludes": []
+ },
+ "contract_id": "contract_077",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_069",
+   "args": {
+    "tool": {
+     "ref": "<tool>"
+    },
+    "container": {
+     "ref": "<container>"
+    }
+   },
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"dip\", {'tool': ..., 'container': ...})"
+ }
+}

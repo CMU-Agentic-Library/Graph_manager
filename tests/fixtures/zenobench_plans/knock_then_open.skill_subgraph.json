@@ -1,0 +1,41 @@
+{
+ "schema_version": 2,
+ "kind": "skill_subgraph",
+ "subgoal_id": "knock_then_open",
+ "nodes": [
+  {
+   "id": "n1",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "KitchenCabinetFactory_7025538_spawn_asset_6631478"
+    }
+   },
+   "depends_on": []
+  },
+  {
+   "id": "n2",
+   "skill": "knock",
+   "args": {
+    "articulated": {
+     "value": "KitchenCabinetFactory_7025538_spawn_asset_6631478"
+    }
+   },
+   "depends_on": [
+    "n1"
+   ]
+  },
+  {
+   "id": "n3",
+   "skill": "open",
+   "args": {
+    "articulated": {
+     "value": "KitchenCabinetFactory_7025538_spawn_asset_6631478"
+    }
+   },
+   "depends_on": [
+    "n2"
+   ]
+  }
+ ]
+}

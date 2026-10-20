@@ -1,0 +1,257 @@
+{
+ "schema_version": 2,
+ "kind": "skill_subgraph",
+ "subgoal_id": "heat_breakfast",
+ "nodes": [
+  {
+   "id": "n1",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "breakfast_fridge"
+    }
+   },
+   "depends_on": []
+  },
+  {
+   "id": "n2",
+   "skill": "open",
+   "args": {
+    "articulated": {
+     "value": "breakfast_fridge"
+    }
+   },
+   "depends_on": [
+    "n1"
+   ]
+  },
+  {
+   "id": "n3",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "kitchen_microwave"
+    }
+   },
+   "depends_on": [
+    "n2"
+   ]
+  },
+  {
+   "id": "n4",
+   "skill": "open",
+   "args": {
+    "articulated": {
+     "value": "kitchen_microwave"
+    }
+   },
+   "depends_on": [
+    "n3"
+   ]
+  },
+  {
+   "id": "n5",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "oatmeal"
+    }
+   },
+   "depends_on": [
+    "n4"
+   ]
+  },
+  {
+   "id": "n6",
+   "skill": "pick",
+   "args": {
+    "object": {
+     "value": "oatmeal"
+    }
+   },
+   "depends_on": [
+    "n5"
+   ]
+  },
+  {
+   "id": "n7",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "kitchen_microwave"
+    }
+   },
+   "depends_on": [
+    "n6"
+   ]
+  },
+  {
+   "id": "n8",
+   "skill": "place",
+   "args": {
+    "object": {
+     "value": "oatmeal"
+    },
+    "receptacle": {
+     "value": "kitchen_microwave/inside_floor"
+    }
+   },
+   "depends_on": [
+    "n7"
+   ]
+  },
+  {
+   "id": "n9",
+   "skill": "close",
+   "args": {
+    "articulated": {
+     "value": "kitchen_microwave"
+    }
+   },
+   "depends_on": [
+    "n8"
+   ]
+  },
+  {
+   "id": "n10",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "kitchen_microwave"
+    }
+   },
+   "depends_on": [
+    "n9"
+   ]
+  },
+  {
+   "id": "n11",
+   "skill": "heat",
+   "args": {
+    "food": {
+     "value": "oatmeal"
+    },
+    "appliance": {
+     "value": "kitchen_microwave"
+    },
+    "temp_c": {
+     "value": 60.0
+    }
+   },
+   "depends_on": [
+    "n10"
+   ]
+  },
+  {
+   "id": "n12",
+   "skill": "open",
+   "args": {
+    "articulated": {
+     "value": "kitchen_microwave"
+    }
+   },
+   "depends_on": [
+    "n11"
+   ]
+  },
+  {
+   "id": "n13",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "oatmeal"
+    }
+   },
+   "depends_on": [
+    "n12"
+   ]
+  },
+  {
+   "id": "n14",
+   "skill": "pick",
+   "args": {
+    "object": {
+     "value": "oatmeal"
+    }
+   },
+   "depends_on": [
+    "n13"
+   ]
+  },
+  {
+   "id": "n15",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "TableDiningFactory_1437886_spawn_asset_2104395/surface_2"
+    }
+   },
+   "depends_on": [
+    "n14"
+   ]
+  },
+  {
+   "id": "n16",
+   "skill": "place",
+   "args": {
+    "object": {
+     "value": "oatmeal"
+    },
+    "receptacle": {
+     "value": "TableDiningFactory_1437886_spawn_asset_2104395/surface_2"
+    }
+   },
+   "depends_on": [
+    "n15"
+   ]
+  },
+  {
+   "id": "n17",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "breakfast_fridge"
+    }
+   },
+   "depends_on": [
+    "n16"
+   ]
+  },
+  {
+   "id": "n18",
+   "skill": "close",
+   "args": {
+    "articulated": {
+     "value": "breakfast_fridge"
+    }
+   },
+   "depends_on": [
+    "n17"
+   ]
+  },
+  {
+   "id": "n19",
+   "skill": "navigate",
+   "args": {
+    "destination": {
+     "value": "kitchen_microwave"
+    }
+   },
+   "depends_on": [
+    "n18"
+   ]
+  },
+  {
+   "id": "n20",
+   "skill": "close",
+   "args": {
+    "articulated": {
+     "value": "kitchen_microwave"
+    }
+   },
+   "depends_on": [
+    "n19"
+   ]
+  }
+ ]
+}

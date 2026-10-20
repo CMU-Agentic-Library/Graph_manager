@@ -1,0 +1,299 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_046",
+ "name": "uncover-container",
+ "verb": "uncover",
+ "noun": "container",
+ "title": "Uncover a container",
+ "group": "articulated_and_appliance",
+ "signature": "uncover(container: container_ref)",
+ "action_predicate": {
+  "name": "uncover_container",
+  "verb": "uncover",
+  "noun": "container",
+  "arguments": [
+   "container"
+  ]
+ },
+ "description": "Lift the lid off a container by its knob and set it down beside the container: on the same support when it has room, else on the nearest counter-height support; the lid noun is found from GT (the lid resting on the rim).",
+ "use_when": "A lid must be removed before reaching into or pouring into a container.",
+ "not_to_be_confused_with": {
+  "pick": "uncover also puts the lid aside."
+ },
+ "inputs": {
+  "container": {
+   "type": "container_ref",
+   "required": true,
+   "description": "The covered container."
+  }
+ },
+ "required_inputs": [
+  "container"
+ ],
+ "outputs": {
+  "lid": {
+   "type": "lid_ref",
+   "description": "The lid that was removed."
+  }
+ },
+ "applicability": {
+  "always": false,
+  "summary": "Requires hand_empty(hand=right); base_near(place=$container)."
+ },
+ "preconditions": [
+  {
+   "predicate": "hand_empty(hand=right)",
+   "name": "hand_empty",
+   "args": {
+    "hand": "right"
+   },
+   "negated": false,
+   "meaning": "The given gripper holds nothing.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  },
+  {
+   "predicate": "base_near(place=$container)",
+   "name": "base_near",
+   "args": {
+    "place": "$container"
+   },
+   "negated": false,
+   "meaning": "Base centre within 1.3 m of the place's footprint (inside the room for a room).",
+   "kind": "fluent",
+   "gt_sources": [
+    "base_pose",
+    "scene_annotation"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  }
+ ],
+ "postconditions": [
+  {
+   "predicate": "uncovered(container=$container)",
+   "name": "uncovered",
+   "args": {
+    "container": "$container"
+   },
+   "negated": false,
+   "meaning": "No lid rests on the container rim.",
+   "kind": "fluent",
+   "gt_sources": [
+    "object_pose",
+    "container_profile",
+    "asset_tags"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  },
+  {
+   "predicate": "hand_empty(hand=right)",
+   "name": "hand_empty",
+   "args": {
+    "hand": "right"
+   },
+   "negated": false,
+   "meaning": "The given gripper holds nothing.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "uncovered(container=$container)",
+    "name": "uncovered",
+    "args": {
+     "container": "$container"
+    },
+    "negated": false,
+    "meaning": "No lid rests on the container rim.",
+    "kind": "fluent",
+    "gt_sources": [
+     "object_pose",
+     "container_profile",
+     "asset_tags"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   },
+   {
+    "predicate": "hand_empty(hand=right)",
+    "name": "hand_empty",
+    "args": {
+     "hand": "right"
+    },
+    "negated": false,
+    "meaning": "The given gripper holds nothing.",
+    "kind": "fluent",
+    "gt_sources": [
+     "gripper_state"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   },
+   {
+    "predicate": "on(object=@container.lid, support=@container.aside_support)",
+    "name": "on",
+    "args": {
+     "object": "@container.lid",
+     "support": "@container.aside_support"
+    },
+    "negated": false,
+    "meaning": "Object bottom within -2..+5 cm of the support height with its centre over the support box.",
+    "kind": "fluent",
+    "gt_sources": [
+     "object_pose",
+     "asset_annotation",
+     "support_annotation"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "path knob_lift_aside"
+   }
+  ]
+ },
+ "invalidates": [
+  "covered($container,*)"
+ ],
+ "policy_paths": [
+  {
+   "path_id": "knob_lift_aside",
+   "when": [
+    "container.lid"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [
+    {
+     "predicate": "on(object=@container.lid, support=@container.aside_support)",
+     "name": "on",
+     "args": {
+      "object": "@container.lid",
+      "support": "@container.aside_support"
+     },
+     "negated": false,
+     "meaning": "Object bottom within -2..+5 cm of the support height with its centre over the support box.",
+     "kind": "fluent",
+     "gt_sources": [
+      "object_pose",
+      "asset_annotation",
+      "support_annotation"
+     ],
+     "checked": "after the policy chain on live GT state; the action is reported only if true"
+    }
+   ],
+   "chain": [
+    "policy_010(@container.lid)",
+    "policy_015(@container.lid, @container.aside_support)"
+   ],
+   "policies": [
+    "policy_010",
+    "policy_015"
+   ],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [],
+  "next": [
+   {
+    "skill_id": "skill_039",
+    "verb": "pour",
+    "when": "food is poured into the opened pot",
+    "bind": {
+     "target": "$container"
+    },
+    "type": "enables"
+   },
+   {
+    "skill_id": "skill_038",
+    "verb": "stir",
+    "when": "the opened pot is stirred",
+    "bind": {
+     "container": "$container"
+    },
+    "type": "enables"
+   },
+   {
+    "skill_id": "skill_017",
+    "verb": "pick",
+    "when": "something inside is taken out",
+    "bind": {},
+    "reason": "the opening is free",
+    "type": "enables"
+   }
+  ],
+  "fallback": [],
+  "fallback_for": [
+   {
+    "skill_id": "skill_017",
+    "verb": "pick",
+    "when": "the object to take is a lid-covered container's content",
+    "type": "recover"
+   },
+   {
+    "skill_id": "skill_018",
+    "verb": "place",
+    "when": "the container has its lid on",
+    "type": "repair"
+   },
+   {
+    "skill_id": "skill_039",
+    "verb": "pour",
+    "when": "the target has its lid on",
+    "type": "repair"
+   },
+   {
+    "skill_id": "skill_051",
+    "verb": "empty",
+    "when": "the container has its lid on",
+    "type": "repair"
+   }
+  ],
+  "alternative": [
+   {
+    "skill_id": "skill_045",
+    "verb": "cover",
+    "when": "opposite effect",
+    "bind": {}
+   }
+  ]
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": []
+ },
+ "scope": {
+  "includes": [],
+  "excludes": []
+ },
+ "contract_id": "contract_054",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_046",
+   "args": {
+    "container": {
+     "ref": "<container>"
+    }
+   },
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"uncover\", {'container': ...})"
+ }
+}

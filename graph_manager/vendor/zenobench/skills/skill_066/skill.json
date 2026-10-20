@@ -1,0 +1,227 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_066",
+ "name": "knock-articulated",
+ "verb": "knock",
+ "noun": "articulated",
+ "title": "Knock on a door",
+ "group": "contact",
+ "signature": "knock(articulated: articulated_ref)",
+ "action_predicate": {
+  "name": "knock_articulated",
+  "verb": "knock",
+  "noun": "articulated",
+  "arguments": [
+   "articulated"
+  ]
+ },
+ "description": "Tap a closed door or drawer panel twice with the closed fingertips beside its handle; the panel must stay closed.",
+ "use_when": "A closed door must be knocked on (check, signal) without opening it.",
+ "not_to_be_confused_with": {
+  "open": "knock must leave the door closed."
+ },
+ "inputs": {
+  "articulated": {
+   "type": "articulated_ref",
+   "required": true,
+   "description": "The closed door or drawer."
+  }
+ },
+ "required_inputs": [
+  "articulated"
+ ],
+ "outputs": {},
+ "applicability": {
+  "always": false,
+  "summary": "Requires hand_empty(hand=right); base_near(place=$articulated); is_closed(articulated=$articulated)."
+ },
+ "preconditions": [
+  {
+   "predicate": "hand_empty(hand=right)",
+   "name": "hand_empty",
+   "args": {
+    "hand": "right"
+   },
+   "negated": false,
+   "meaning": "The given gripper holds nothing.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  },
+  {
+   "predicate": "base_near(place=$articulated)",
+   "name": "base_near",
+   "args": {
+    "place": "$articulated"
+   },
+   "negated": false,
+   "meaning": "Base centre within 1.3 m of the place's footprint (inside the room for a room).",
+   "kind": "fluent",
+   "gt_sources": [
+    "base_pose",
+    "scene_annotation"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  },
+  {
+   "predicate": "is_closed(articulated=$articulated)",
+   "name": "is_closed",
+   "args": {
+    "articulated": "$articulated"
+   },
+   "negated": false,
+   "meaning": "Joint within 0.10 rad (doors) or 4 cm (drawers) of closed.",
+   "kind": "fluent",
+   "gt_sources": [
+    "articulation_joint",
+    "articulation_annotation"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  }
+ ],
+ "postconditions": [
+  {
+   "predicate": "knocked(articulated=$articulated)",
+   "name": "knocked",
+   "args": {
+    "articulated": "$articulated"
+   },
+   "negated": false,
+   "meaning": "Two measured fingertip contacts on the closed panel during the Contract; the joint moved < 0.05.",
+   "kind": "relative",
+   "gt_sources": [
+    "event_log (fingertip contact)",
+    "articulation_joint"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  },
+  {
+   "predicate": "is_closed(articulated=$articulated)",
+   "name": "is_closed",
+   "args": {
+    "articulated": "$articulated"
+   },
+   "negated": false,
+   "meaning": "Joint within 0.10 rad (doors) or 4 cm (drawers) of closed.",
+   "kind": "fluent",
+   "gt_sources": [
+    "articulation_joint",
+    "articulation_annotation"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "knocked(articulated=$articulated)",
+    "name": "knocked",
+    "args": {
+     "articulated": "$articulated"
+    },
+    "negated": false,
+    "meaning": "Two measured fingertip contacts on the closed panel during the Contract; the joint moved < 0.05.",
+    "kind": "relative",
+    "gt_sources": [
+     "event_log (fingertip contact)",
+     "articulation_joint"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   },
+   {
+    "predicate": "is_closed(articulated=$articulated)",
+    "name": "is_closed",
+    "args": {
+     "articulated": "$articulated"
+    },
+    "negated": false,
+    "meaning": "Joint within 0.10 rad (doors) or 4 cm (drawers) of closed.",
+    "kind": "fluent",
+    "gt_sources": [
+     "articulation_joint",
+     "articulation_annotation"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   }
+  ]
+ },
+ "invalidates": [],
+ "policy_paths": [
+  {
+   "path_id": "panel_taps",
+   "when": [
+    "articulated.has_handle"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_106($articulated)"
+   ],
+   "policies": [
+    "policy_106"
+   ],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [],
+  "next": [
+   {
+    "skill_id": "skill_040",
+    "verb": "open",
+    "when": "the door is opened after knocking",
+    "bind": {
+     "articulated": "$articulated"
+    },
+    "type": "then"
+   }
+  ],
+  "fallback": [],
+  "fallback_for": [],
+  "alternative": [
+   {
+    "skill_id": "skill_065",
+    "verb": "touch",
+    "when": "an object, not a door, is to be tapped",
+    "bind": {}
+   }
+  ]
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": []
+ },
+ "scope": {
+  "includes": [],
+  "excludes": []
+ },
+ "contract_id": "contract_074",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_066",
+   "args": {
+    "articulated": {
+     "ref": "<articulated>"
+    }
+   },
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"knock\", {'articulated': ...})"
+ }
+}

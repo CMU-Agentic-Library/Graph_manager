@@ -1,0 +1,217 @@
+{
+ "schema_version": 2,
+ "kind": "skill_node",
+ "skill_id": "skill_064",
+ "name": "square-object",
+ "verb": "square",
+ "noun": "object",
+ "title": "Square an object",
+ "group": "grasp_and_hand",
+ "signature": "square(object: object_ref)",
+ "action_predicate": {
+  "name": "square_object",
+  "verb": "square",
+  "noun": "object",
+  "arguments": [
+   "object"
+  ]
+ },
+ "description": "Align an object's edges with its support's edges (yaw within 5 deg): pick it, turn it by the measured yaw error and set it back down at the same spot.",
+ "use_when": "An object must be rotated so its sides align with the support edges.",
+ "not_to_be_confused_with": {
+  "rotate": "rotate turns a held object by a requested angle; square finds the angle itself."
+ },
+ "inputs": {
+  "object": {
+   "type": "object_ref",
+   "required": true,
+   "description": "An object resting on a support."
+  }
+ },
+ "required_inputs": [
+  "object"
+ ],
+ "outputs": {},
+ "applicability": {
+  "always": false,
+  "summary": "Requires hand_empty(hand=right); base_near(place=$object)."
+ },
+ "preconditions": [
+  {
+   "predicate": "hand_empty(hand=right)",
+   "name": "hand_empty",
+   "args": {
+    "hand": "right"
+   },
+   "negated": false,
+   "meaning": "The given gripper holds nothing.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  },
+  {
+   "predicate": "base_near(place=$object)",
+   "name": "base_near",
+   "args": {
+    "place": "$object"
+   },
+   "negated": false,
+   "meaning": "Base centre within 1.3 m of the place's footprint (inside the room for a room).",
+   "kind": "fluent",
+   "gt_sources": [
+    "base_pose",
+    "scene_annotation"
+   ],
+   "checked": "before execution on live GT state; the Contract does not move if false"
+  }
+ ],
+ "postconditions": [
+  {
+   "predicate": "squared(object=$object)",
+   "name": "squared",
+   "args": {
+    "object": "$object"
+   },
+   "negated": false,
+   "meaning": "Object yaw within 5 deg of the support's axes (edges parallel), resting on a support.",
+   "kind": "fluent",
+   "gt_sources": [
+    "object_pose",
+    "support_annotation"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  },
+  {
+   "predicate": "hand_empty(hand=right)",
+   "name": "hand_empty",
+   "args": {
+    "hand": "right"
+   },
+   "negated": false,
+   "meaning": "The given gripper holds nothing.",
+   "kind": "fluent",
+   "gt_sources": [
+    "gripper_state"
+   ],
+   "checked": "after the policy chain on live GT state; the action is reported only if true"
+  }
+ ],
+ "verifier": {
+  "how": "after the policy chain, every listed predicate is evaluated on ground-truth simulator state (object poses, joint values, finger gaps, head-camera geometry, thermal state, event log); the node succeeds only if all hold for the selected path",
+  "checks": [
+   {
+    "predicate": "squared(object=$object)",
+    "name": "squared",
+    "args": {
+     "object": "$object"
+    },
+    "negated": false,
+    "meaning": "Object yaw within 5 deg of the support's axes (edges parallel), resting on a support.",
+    "kind": "fluent",
+    "gt_sources": [
+     "object_pose",
+     "support_annotation"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   },
+   {
+    "predicate": "hand_empty(hand=right)",
+    "name": "hand_empty",
+    "args": {
+     "hand": "right"
+    },
+    "negated": false,
+    "meaning": "The given gripper holds nothing.",
+    "kind": "fluent",
+    "gt_sources": [
+     "gripper_state"
+    ],
+    "checked": "after the policy chain on live GT state; the action is reported only if true",
+    "scope": "all paths"
+   }
+  ]
+ },
+ "invalidates": [],
+ "policy_paths": [
+  {
+   "path_id": "pick_rotate_place",
+   "when": [
+    "'top_pinch' in object.grasp_types"
+   ],
+   "extra_preconditions": [],
+   "extra_postconditions": [],
+   "chain": [
+    "policy_108($object) as sq",
+    "policy_010($object)",
+    "policy_075($object, #sq.degrees)",
+    "policy_015($object, @object.support, hint=#sq.xy)"
+   ],
+   "policies": [
+    "policy_010",
+    "policy_015",
+    "policy_075",
+    "policy_108"
+   ],
+   "note": ""
+  }
+ ],
+ "relations": {
+  "previous": [],
+  "next": [
+   {
+    "skill_id": "skill_020",
+    "verb": "stack",
+    "when": "squared blocks stack cleanly",
+    "bind": {},
+    "reason": "aligned faces",
+    "type": "then"
+   }
+  ],
+  "fallback": [],
+  "fallback_for": [],
+  "alternative": [
+   {
+    "skill_id": "skill_025",
+    "verb": "rotate",
+    "when": "the object is already in the hand",
+    "bind": {
+     "object": "$object"
+    }
+   }
+  ]
+ },
+ "failure": {
+  "codes": [
+   "INPUT_MISSING",
+   "NOUN_INVALID",
+   "PRECONDITION_FAILED",
+   "NO_PATH",
+   "POLICY_FAILED",
+   "SUBSKILL_FAILED",
+   "POSTCONDITION_FAILED"
+  ],
+  "on_failure": "stop; return the error code and every measured pre- and postcondition; nothing is retried or repaired, the planner chooses what to do.",
+  "typical": []
+ },
+ "scope": {
+  "includes": [],
+  "excludes": []
+ },
+ "contract_id": "contract_072",
+ "invocation": {
+  "skill_subgraph_node": {
+   "id": "n1",
+   "skill_id": "skill_064",
+   "args": {
+    "object": {
+     "ref": "<object>"
+    }
+   },
+   "depends_on": []
+  },
+  "python": "SkillContractRunner(rig).run(\"square\", {'object': ...})"
+ }
+}

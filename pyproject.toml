@@ -19,7 +19,12 @@ graph-manager-plan = "graph_manager.cli:main"
 include = ["graph_manager*", "skill_library"]
 
 [tool.setuptools.package-data]
-graph_manager = ["harness_profile/*.yml"]
+graph_manager = [
+    "harness_profile/*.yml",
+    "vendor/zenobench/COMMIT",
+    "vendor/zenobench/tasks.json",
+    "vendor/zenobench/skills/*/*",
+]
 skill_library = ["skill_library.json"]
 
 [tool.ruff]
