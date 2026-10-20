@@ -1,6 +1,6 @@
 ---
 name: rotate-object
-description: Turn the held object about the vertical axis by the requested angle (e.g. align a book's spine).
+description: "Turn the held object about the vertical axis by the requested angle (e.g. align a book's spine)."
 ---
 
 # Rotate a held object (`skill_025`)

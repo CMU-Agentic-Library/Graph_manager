@@ -1,6 +1,6 @@
 ---
 name: crouch-torso
-description: Lower the torso lift to its bottom (or a requested height) for floor and low-shelf work.
+description: "Lower the torso lift to its bottom (or a requested height) for floor and low-shelf work."
 ---
 
 # Crouch the torso (`skill_005`)

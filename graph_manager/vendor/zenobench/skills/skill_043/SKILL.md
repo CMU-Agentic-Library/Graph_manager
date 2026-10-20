@@ -1,6 +1,6 @@
 ---
 name: heat-food
-description: Bring food to a target temperature with an appliance and switch the heat off: in the closed microwave (start key + wait) or in a pot on the stove burner (power key on, wait, power key off).
+description: "Bring food to a target temperature with an appliance and switch the heat off: in the closed microwave (start key + wait) or in a pot on the stove burner (power key on, wait, power key off)."
 ---
 
 # Heat food (`skill_043`)

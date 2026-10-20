@@ -1,6 +1,6 @@
 ---
 name: approach-target
-description: Park the base where the right arm has a collision-free IK solution at the target's reach pose: 10 cm above an object or support, the handle pre-grasp of a door or drawer, 8 cm in front of a button.
+description: "Park the base where the right arm has a collision-free IK solution at the target's reach pose: 10 cm above an object or support, the handle pre-grasp of a door or drawer, 8 cm in front of a button."
 ---
 
 # Approach a manipulation target (`skill_002`)

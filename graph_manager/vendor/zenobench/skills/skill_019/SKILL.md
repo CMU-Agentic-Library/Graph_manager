@@ -1,6 +1,6 @@
 ---
 name: drop-object
-description: Hold the object 5 cm above a container's opening, centred, and let go; the object falls in.
+description: "Hold the object 5 cm above a container's opening, centred, and let go; the object falls in."
 ---
 
 # Drop an object into a container (`skill_019`)

@@ -1,6 +1,6 @@
 ---
 name: explore-room
-description: Cover a room from up to three viewpoints with a left/centre/right head sweep; succeeds when at least 75 % of the room's supports and objects were seen.
+description: "Cover a room from up to three viewpoints with a left/centre/right head sweep; succeeds when at least 75 % of the room's supports and objects were seen."
 ---
 
 # Explore a room (`skill_014`)

@@ -1,6 +1,6 @@
 ---
 name: nod-head
-description: Pitch the head down and up twice (acknowledgement gesture).
+description: "Pitch the head down and up twice (acknowledgement gesture)."
 ---
 
 # Nod the head (`skill_061`)

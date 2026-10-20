@@ -1,6 +1,6 @@
 ---
 name: cover-container
-description: Lay the held lid centred on the container rim (within 3 cm, tilt <= 12 deg) and release it.
+description: "Lay the held lid centred on the container rim (within 3 cm, tilt <= 12 deg) and release it."
 ---
 
 # Cover a container with a lid (`skill_045`)

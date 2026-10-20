@@ -1,6 +1,6 @@
 ---
 name: sidestep-base
-description: Move the base sideways by a signed distance (left positive) without turning, also while carrying a load; aligns the arm with a target that is a little to the side.
+description: "Move the base sideways by a signed distance (left positive) without turning, also while carrying a load; aligns the arm with a target that is a little to the side."
 ---
 
 # Sidestep the base (`skill_055`)

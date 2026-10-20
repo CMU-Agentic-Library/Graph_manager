@@ -1,6 +1,6 @@
 ---
 name: wipe-surface
-description: Press a held sponge on a support and sweep a 30 cm strip twice; succeeds when the sponge stayed in contact over at least half of the strip.
+description: "Press a held sponge on a support and sweep a 30 cm strip twice; succeeds when the sponge stayed in contact over at least half of the strip."
 ---
 
 # Wipe a surface (`skill_037`)

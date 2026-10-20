@@ -1,6 +1,6 @@
 ---
 name: lift-object
-description: Raise the held object until its bottom is at least the given world height (e.g. above a bin rim or a furniture edge before carrying).
+description: "Raise the held object until its bottom is at least the given world height (e.g. above a bin rim or a furniture edge before carrying)."
 ---
 
 # Lift a held object (`skill_023`)

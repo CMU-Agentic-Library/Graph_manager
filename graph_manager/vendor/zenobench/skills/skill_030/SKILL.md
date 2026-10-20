@@ -1,6 +1,6 @@
 ---
 name: pull-object
-description: Drag an object toward the robot with the pads pressed on its top until it is within reach (e.g. from the back of a deep counter); if the pads slide over a round or slippery top, the fingers hook the far side and push it toward the robot.
+description: "Drag an object toward the robot with the pads pressed on its top until it is within reach (e.g. from the back of a deep counter); if the pads slide over a round or slippery top, the fingers hook the far side and push it toward the robot."
 ---
 
 # Pull an object closer (`skill_030`)

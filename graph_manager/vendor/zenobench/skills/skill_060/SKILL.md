@@ -1,6 +1,6 @@
 ---
 name: wave-hand
-description: Raise the empty right hand at head height and swing it (greeting / attention gesture).
+description: "Raise the empty right hand at head height and swing it (greeting / attention gesture)."
 ---
 
 # Wave the hand (`skill_060`)

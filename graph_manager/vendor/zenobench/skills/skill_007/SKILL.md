@@ -1,6 +1,6 @@
 ---
 name: bend-waist
-description: Pitch the waist forward to extend the reach over a deep surface.
+description: "Pitch the waist forward to extend the reach over a deep surface."
 ---
 
 # Bend the waist (`skill_007`)

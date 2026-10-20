@@ -1,6 +1,6 @@
 ---
 name: clear-support
-description: Remove every object from a support surface to a destination receptacle.
+description: "Remove every object from a support surface to a destination receptacle."
 ---
 
 # Clear a support (`skill_050`)

@@ -1,6 +1,6 @@
 ---
 name: point-target
-description: Point the closed right fingers at a target (finger axis within 8 deg) to indicate it.
+description: "Point the closed right fingers at a target (finger axis within 8 deg) to indicate it."
 ---
 
 # Point at a target (`skill_015`)

@@ -1,6 +1,6 @@
 ---
 name: shake-object
-description: Oscillate the held object sideways three times (settle or loosen contents) while keeping the grasp.
+description: "Oscillate the held object sideways three times (settle or loosen contents) while keeping the grasp."
 ---
 
 # Shake a held object (`skill_062`)

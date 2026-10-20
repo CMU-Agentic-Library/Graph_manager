@@ -1,6 +1,6 @@
 ---
 name: knock-articulated
-description: Tap a closed door or drawer panel twice with the closed fingertips beside its handle; the panel must stay closed.
+description: "Tap a closed door or drawer panel twice with the closed fingertips beside its handle; the panel must stay closed."
 ---
 
 # Knock on a door (`skill_066`)

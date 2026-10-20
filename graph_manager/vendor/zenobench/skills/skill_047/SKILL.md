@@ -1,6 +1,6 @@
 ---
 name: fetch-object
-description: Bring one object to a support or container: navigate to it, pick it (noun-selected grasp path), navigate to the receptacle and place it (noun-selected placement path). Each step is a verified Skill Contract.
+description: "Bring one object to a support or container: navigate to it, pick it (noun-selected grasp path), navigate to the receptacle and place it (noun-selected placement path). Each step is a verified Skill Contract."
 ---
 
 # Fetch an object to a receptacle (`skill_047`)

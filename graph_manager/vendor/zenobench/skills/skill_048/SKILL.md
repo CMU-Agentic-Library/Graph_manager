@@ -1,6 +1,6 @@
 ---
 name: collect-objects
-description: Put every listed object into one container (fetch each in turn).
+description: "Put every listed object into one container (fetch each in turn)."
 ---
 
 # Collect objects into a container (`skill_048`)

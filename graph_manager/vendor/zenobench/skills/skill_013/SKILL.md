@@ -1,6 +1,6 @@
 ---
 name: search-object
-description: Find an object whose location is unknown: visit the supports of a room in order of distance and aim the head at each surface until the object is seen.
+description: "Find an object whose location is unknown: visit the supports of a room in order of distance and aim the head at each surface until the object is seen."
 ---
 
 # Search for an object (`skill_013`)

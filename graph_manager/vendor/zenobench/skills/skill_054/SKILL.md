@@ -1,6 +1,6 @@
 ---
 name: swap-objects
-description: Exchange the positions of two objects on their supports via a free buffer spot.
+description: "Exchange the positions of two objects on their supports via a free buffer spot."
 ---
 
 # Swap two objects (`skill_054`)

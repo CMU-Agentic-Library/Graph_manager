@@ -1,6 +1,6 @@
 ---
 name: reset-posture
-description: Return to the home posture: fingers open, arm folded, torso up, waist straight, by a collision-checked joint-space move. Used to recover from an unknown arm state.
+description: "Return to the home posture: fingers open, arm folded, torso up, waist straight, by a collision-checked joint-space move. Used to recover from an unknown arm state."
 ---
 
 # Reset the posture (`skill_010`)

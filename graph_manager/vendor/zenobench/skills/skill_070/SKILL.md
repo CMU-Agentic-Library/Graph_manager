@@ -1,6 +1,6 @@
 ---
 name: hide-object
-description: Make an object invisible from outside: put it into a container and cover that container with its lid, or put it on a shelf inside a cabinet and close the cabinet.
+description: "Make an object invisible from outside: put it into a container and cover that container with its lid, or put it on a shelf inside a cabinet and close the cabinet."
 ---
 
 # Hide an object (`skill_070`)

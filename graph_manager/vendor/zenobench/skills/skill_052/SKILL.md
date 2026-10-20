@@ -1,6 +1,6 @@
 ---
 name: arrange-objects
-description: Place the listed objects on one support so that they are pairwise within a distance (a place setting).
+description: "Place the listed objects on one support so that they are pairwise within a distance (a place setting)."
 ---
 
 # Arrange objects together (`skill_052`)

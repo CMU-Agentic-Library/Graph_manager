@@ -1,6 +1,6 @@
 ---
 name: stack-object
-description: Set the held object centred on the top face of another object (block on block, plate on plate).
+description: "Set the held object centred on the top face of another object (block on block, plate on plate)."
 ---
 
 # Stack an object on another (`skill_020`)

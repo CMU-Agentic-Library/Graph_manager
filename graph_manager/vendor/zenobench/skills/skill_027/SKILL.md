@@ -1,6 +1,6 @@
 ---
 name: brace-object
-description: Pinch a resting container with the left gripper so it cannot slide while the right hand stirs, wipes or pours into it.
+description: "Pinch a resting container with the left gripper so it cannot slide while the right hand stirs, wipes or pours into it."
 ---
 
 # Brace an object with the left hand (`skill_027`)

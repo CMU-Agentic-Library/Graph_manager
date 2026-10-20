@@ -1,6 +1,6 @@
 ---
 name: tip-object
-description: Push a standing tall object near its top so it falls onto its side on the same support (lays down a carton or bottle that is too tall to top-pinch).
+description: "Push a standing tall object near its top so it falls onto its side on the same support (lays down a carton or bottle that is too tall to top-pinch)."
 ---
 
 # Tip an object over (`skill_035`)

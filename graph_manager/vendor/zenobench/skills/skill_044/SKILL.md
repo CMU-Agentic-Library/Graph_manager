@@ -1,6 +1,6 @@
 ---
 name: chill-food
-description: Keep food in the closed refrigerator until it is at or below a target temperature.
+description: "Keep food in the closed refrigerator until it is at or below a target temperature."
 ---
 
 # Chill food (`skill_044`)

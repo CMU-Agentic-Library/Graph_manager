@@ -1,6 +1,6 @@
 ---
 name: dip-utensil
-description: Lower a held spoon's far end into a container below its rim, hold it there and lift it out.
+description: "Lower a held spoon's far end into a container below its rim, hold it there and lift it out."
 ---
 
 # Dip a utensil (`skill_069`)

@@ -1,6 +1,6 @@
 ---
 name: regrasp-object
-description: Set the held object down on a support and grasp it again with a fresh, centred grasp (recovery when the object has pivoted in the pinch).
+description: "Set the held object down on a support and grasp it again with a fresh, centred grasp (recovery when the object has pivoted in the pinch)."
 ---
 
 # Regrasp a held object (`skill_026`)

@@ -1,6 +1,6 @@
 ---
 name: present-object
-description: Hold the carried object in front of the body at 0.9-1.4 m height, inside the head camera view.
+description: "Hold the carried object in front of the body at 0.9-1.4 m height, inside the head camera view."
 ---
 
 # Present a held object (`skill_016`)

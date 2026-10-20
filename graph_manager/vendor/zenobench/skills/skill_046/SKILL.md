@@ -1,6 +1,6 @@
 ---
 name: uncover-container
-description: Lift the lid off a container by its knob and set it down beside the container: on the same support when it has room, else on the nearest counter-height support; the lid noun is found from GT (the lid resting on the rim).
+description: "Lift the lid off a container by its knob and set it down beside the container: on the same support when it has room, else on the nearest counter-height support; the lid noun is found from GT (the lid resting on the rim)."
 ---
 
 # Uncover a container (`skill_046`)

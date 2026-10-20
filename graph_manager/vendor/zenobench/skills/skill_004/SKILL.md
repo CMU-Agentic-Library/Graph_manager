@@ -1,6 +1,6 @@
 ---
 name: retreat-obstacle
-description: Back the base straight away from a piece of furniture, appliance or object until it is at least the given distance away; a held load stays held.
+description: "Back the base straight away from a piece of furniture, appliance or object until it is at least the given distance away; a held load stays held."
 ---
 
 # Retreat from an obstacle (`skill_004`)

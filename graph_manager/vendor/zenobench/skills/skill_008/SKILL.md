@@ -1,6 +1,6 @@
 ---
 name: straighten-waist
-description: Return the waist pitch to upright.
+description: "Return the waist pitch to upright."
 ---
 
 # Straighten the waist (`skill_008`)

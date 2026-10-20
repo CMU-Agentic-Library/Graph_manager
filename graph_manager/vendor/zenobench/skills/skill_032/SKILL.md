@@ -1,6 +1,6 @@
 ---
 name: separate-object
-description: Push an object straight away from its closest neighbour until there is room for a finger (>= 3.5 cm gap) without leaving the support.
+description: "Push an object straight away from its closest neighbour until there is room for a finger (>= 3.5 cm gap) without leaving the support."
 ---
 
 # Separate an object from its neighbour (`skill_032`)

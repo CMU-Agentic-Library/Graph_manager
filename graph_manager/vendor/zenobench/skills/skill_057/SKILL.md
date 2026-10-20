@@ -1,6 +1,6 @@
 ---
 name: identify-object
-description: Look at an object and report its category and tags (asset annotation) once it is in the head camera view.
+description: "Look at an object and report its category and tags (asset annotation) once it is in the head camera view."
 ---
 
 # Identify an object (`skill_057`)

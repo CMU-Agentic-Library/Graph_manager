@@ -1,6 +1,6 @@
 ---
 name: tuck-arm
-description: Fold an empty arm to its travel posture along a collision-checked path.
+description: "Fold an empty arm to its travel posture along a collision-checked path."
 ---
 
 # Tuck an arm (`skill_009`)

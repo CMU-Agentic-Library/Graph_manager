@@ -1,6 +1,6 @@
 ---
 name: stand-torso
-description: Raise the torso lift to its top travel height.
+description: "Raise the torso lift to its top travel height."
 ---
 
 # Stand up to full height (`skill_006`)

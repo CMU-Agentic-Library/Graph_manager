@@ -1,6 +1,6 @@
 ---
 name: flip-object
-description: Turn a flat object upside down where it lies: slide it to an edge, pinch the overhang, lift, roll the hand 180 deg, lay it back and release.
+description: "Turn a flat object upside down where it lies: slide it to an edge, pinch the overhang, lift, roll the hand 180 deg, lay it back and release."
 ---
 
 # Flip a flat object over (`skill_028`)

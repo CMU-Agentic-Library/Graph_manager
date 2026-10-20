@@ -1,6 +1,6 @@
 ---
 name: push-object
-description: Slide an object along its support in a direction with closed fingers: from behind when there is room, or by pressing on its top and dragging when it stands against a wall or closed edge.
+description: "Slide an object along its support in a direction with closed fingers: from behind when there is room, or by pressing on its top and dragging when it stands against a wall or closed edge."
 ---
 
 # Push an object (`skill_029`)

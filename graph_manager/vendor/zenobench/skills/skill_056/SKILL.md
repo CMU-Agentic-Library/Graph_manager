@@ -1,6 +1,6 @@
 ---
 name: wait-duration
-description: Do nothing for the given simulated time (an appliance cycle running, an object settling).
+description: "Do nothing for the given simulated time (an appliance cycle running, an object settling)."
 ---
 
 # Wait for a duration (`skill_056`)

@@ -1,6 +1,6 @@
 ---
 name: count-category
-description: Sweep the head from the current place and count the visible objects whose asset or tag matches.
+description: "Sweep the head from the current place and count the visible objects whose asset or tag matches."
 ---
 
 # Count objects of a category (`skill_059`)

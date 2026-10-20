@@ -1,6 +1,6 @@
 ---
 name: face-target
-description: Rotate the base in place until it faces the target (heading error <= 20 deg).
+description: "Rotate the base in place until it faces the target (heading error <= 20 deg)."
 ---
 
 # Face a target (`skill_003`)

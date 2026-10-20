@@ -1,6 +1,6 @@
 ---
 name: place-object
-description: Put the right-held object down on a support surface or into an open container and release it. The path follows the receptacle and grasp: microwave cavity (insert, release, withdraw), container, edge-held flat object slid back over an edge, ordinary surface (optionally near a hint point), or while driving past.
+description: "Put the right-held object down on a support surface or into an open container and release it. The path follows the receptacle and grasp: microwave cavity (insert, release, withdraw), container, edge-held flat object slid back over an edge, ordinary surface (optionally near a hint point), or while driving past."
 ---
 
 # Place a held object (`skill_018`)

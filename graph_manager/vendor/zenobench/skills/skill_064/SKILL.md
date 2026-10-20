@@ -1,6 +1,6 @@
 ---
 name: square-object
-description: Align an object's edges with its support's edges (yaw within 5 deg): pick it, turn it by the measured yaw error and set it back down at the same spot.
+description: "Align an object's edges with its support's edges (yaw within 5 deg): pick it, turn it by the measured yaw error and set it back down at the same spot."
 ---
 
 # Square an object (`skill_064`)

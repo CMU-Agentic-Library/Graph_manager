@@ -1,6 +1,6 @@
 ---
 name: expose-object
-description: Push a flat object (book, plate, notebook) until it overhangs a free support edge by >= 5.5 cm while its centre of mass stays on the support, so the overhang can be pinched.
+description: "Push a flat object (book, plate, notebook) until it overhangs a free support edge by >= 5.5 cm while its centre of mass stays on the support, so the overhang can be pinched."
 ---
 
 # Expose a grasp edge (`skill_031`)

@@ -1,6 +1,6 @@
 ---
 name: hover-object
-description: Hold the carried object centred 6 cm above a target (a container opening, a spot on a surface) without releasing it, e.g. to show or to align before a drop.
+description: "Hold the carried object centred 6 cm above a target (a container opening, a spot on a surface) without releasing it, e.g. to show or to align before a drop."
 ---
 
 # Hover a held object over a target (`skill_063`)

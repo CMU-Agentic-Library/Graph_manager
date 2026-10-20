@@ -1,6 +1,6 @@
 ---
 name: close-articulated
-description: Close a door, drawer or appliance door to within 0.10 rad / 4 cm of closed. A powered microwave door closes from its hinge-clearance pose, also while the robot carries a load.
+description: "Close a door, drawer or appliance door to within 0.10 rad / 4 cm of closed. A powered microwave door closes from its hinge-clearance pose, also while the robot carries a load."
 ---
 
 # Close a door or drawer (`skill_041`)

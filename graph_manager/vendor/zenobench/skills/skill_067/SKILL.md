@@ -1,6 +1,6 @@
 ---
 name: sweep-objects
-description: Push several objects on one support toward their centroid until they form a cluster (radius 12 cm), without grasping them.
+description: "Push several objects on one support toward their centroid until they form a cluster (radius 12 cm), without grasping them."
 ---
 
 # Sweep objects together (`skill_067`)

@@ -1,6 +1,6 @@
 ---
 name: look-target
-description: Aim the head camera at a target (turning the base if it is outside the head yaw range) and record every annotated object in view as observed.
+description: "Aim the head camera at a target (turning the base if it is outside the head yaw range) and record every annotated object in view as observed."
 ---
 
 # Look at a target (`skill_011`)

@@ -1,6 +1,6 @@
 ---
 name: stir-container
-description: Dip a held spoon's far end into a container and move it in a circle below the rim; succeeds after one full turn inside.
+description: "Dip a held spoon's far end into a container and move it in a circle below the rim; succeeds after one full turn inside."
 ---
 
 # Stir a container (`skill_038`)

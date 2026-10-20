@@ -1,6 +1,6 @@
 ---
 name: upright-object
-description: Make a lying object stand: pinch it, rotate its local up axis to vertical in the hand, and set it down upright on the same support.
+description: "Make a lying object stand: pinch it, rotate its local up axis to vertical in the hand, and set it down upright on the same support."
 ---
 
 # Stand an object upright (`skill_036`)

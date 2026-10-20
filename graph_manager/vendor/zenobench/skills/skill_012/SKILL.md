@@ -1,6 +1,6 @@
 ---
 name: inspect-receptacle
-description: Look into a container, a cabinet, an appliance cavity or onto a support and report the objects inside or on it. A closed cabinet is opened for the look and closed again.
+description: "Look into a container, a cabinet, an appliance cavity or onto a support and report the objects inside or on it. A closed cabinet is opened for the look and closed again."
 ---
 
 # Inspect a receptacle (`skill_012`)

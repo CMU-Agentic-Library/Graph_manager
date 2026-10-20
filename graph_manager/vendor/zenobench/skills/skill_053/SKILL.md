@@ -1,6 +1,6 @@
 ---
 name: restore-object
-description: Return an object to the support it occupied at the start of the episode.
+description: "Return an object to the support it occupied at the start of the episode."
 ---
 
 # Restore an object to its place (`skill_053`)

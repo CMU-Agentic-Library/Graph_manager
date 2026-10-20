@@ -1,6 +1,6 @@
 ---
 name: sort-objects
-description: Put each listed object into the container mapped to its category tag (e.g. fruit -> basket, toy -> toy box).
+description: "Put each listed object into the container mapped to its category tag (e.g. fruit -> basket, toy -> toy box)."
 ---
 
 # Sort objects by category (`skill_049`)

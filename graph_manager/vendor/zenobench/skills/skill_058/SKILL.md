@@ -1,6 +1,6 @@
 ---
 name: measure-object
-description: Look at an object and report its current axis-aligned size.
+description: "Look at an object and report its current axis-aligned size."
 ---
 
 # Measure an object (`skill_058`)

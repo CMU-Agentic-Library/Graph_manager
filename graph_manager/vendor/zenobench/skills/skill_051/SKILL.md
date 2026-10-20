@@ -1,6 +1,6 @@
 ---
 name: empty-container
-description: Take every object out of a container and put it on/into a destination receptacle.
+description: "Take every object out of a container and put it on/into a destination receptacle."
 ---
 
 # Empty a container (`skill_051`)

@@ -1,6 +1,6 @@
 ---
 name: pour-contents
-description: Hold the cup's far lip over a container, turn the cup about that lip up to 90 deg and return it upright; succeeds when at least half of the loose items that were in the cup are inside the target. A rim-held cup tilts away from the pinch; a handle-held cup rolls sideways about the forearm.
+description: "Hold the cup's far lip over a container, turn the cup about that lip up to 90 deg and return it upright; succeeds when at least half of the loose items that were in the cup are inside the target. A rim-held cup tilts away from the pinch; a handle-held cup rolls sideways about the forearm."
 ---
 
 # Pour contents into a container (`skill_039`)

@@ -1,6 +1,6 @@
 ---
 name: handover-object
-description: Transfer a right-held object into the left gripper and open the right gripper.
+description: "Transfer a right-held object into the left gripper and open the right gripper."
 ---
 
 # Hand an object over to the left hand (`skill_022`)

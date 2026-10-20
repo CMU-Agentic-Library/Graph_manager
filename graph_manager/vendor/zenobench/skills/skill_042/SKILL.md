@@ -1,6 +1,6 @@
 ---
 name: press-button
-description: Press an annotated appliance button with the closed fingertips and retract: the microwave door key, the microwave start key, or the stove power key (which toggles the burner).
+description: "Press an annotated appliance button with the closed fingertips and retract: the microwave door key, the microwave start key, or the stove power key (which toggles the burner)."
 ---
 
 # Press a button (`skill_042`)

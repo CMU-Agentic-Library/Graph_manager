@@ -1,6 +1,6 @@
 ---
 name: lower-object
-description: Move the held object down until its bottom is at most the given height (e.g. under a low shelf clearance).
+description: "Move the held object down until its bottom is at most the given height (e.g. under a low shelf clearance)."
 ---
 
 # Lower a held object (`skill_024`)

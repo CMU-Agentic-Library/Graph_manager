@@ -1,6 +1,6 @@
 ---
 name: touch-object
-description: Bring the closed fingertips onto an object's top and back off without moving it (probe / indicate by contact).
+description: "Bring the closed fingertips onto an object's top and back off without moving it (probe / indicate by contact)."
 ---
 
 # Touch an object (`skill_065`)

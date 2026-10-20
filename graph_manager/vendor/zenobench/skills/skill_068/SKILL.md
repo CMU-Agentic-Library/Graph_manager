@@ -1,6 +1,6 @@
 ---
 name: stop-appliance
-description: Switch an appliance's heat off: press the stove power key off, or open the microwave door, which ends its cycle.
+description: "Switch an appliance's heat off: press the stove power key off, or open the microwave door, which ends its cycle."
 ---
 
 # Stop an appliance (`skill_068`)

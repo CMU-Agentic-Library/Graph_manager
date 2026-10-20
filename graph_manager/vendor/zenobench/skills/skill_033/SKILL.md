@@ -1,6 +1,6 @@
 ---
 name: center-object
-description: Push an object back from the support edges until every edge margin is at least the requested value (secures an item left overhanging).
+description: "Push an object back from the support edges until every edge margin is at least the requested value (secures an item left overhanging)."
 ---
 
 # Center an object on its support (`skill_033`)

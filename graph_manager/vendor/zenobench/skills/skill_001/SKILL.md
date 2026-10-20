@@ -1,6 +1,6 @@
 ---
 name: navigate-place
-description: Drive the holonomic base to a free stand-off pose next to a room, piece of furniture, support, articulated part or object. The arm is tucked when empty, or held in the compact carry pose with the load.
+description: "Drive the holonomic base to a free stand-off pose next to a room, piece of furniture, support, articulated part or object. The arm is tucked when empty, or held in the compact carry pose with the load."
 ---
 
 # Navigate to a place (`skill_001`)
