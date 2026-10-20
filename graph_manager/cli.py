@@ -7,16 +7,18 @@ import sys
 from pathlib import Path
 
 from .adapters.deepseek_harness_sdk import DeepSeekHarnessSession
-from .adapters.skill_library_json import JsonSkillLibraryRepository
+from .adapters.zenobench_library import DEFAULT_ROOT, ZenoBenchLibrary
 from .application.errors import PlanningFailure
 from .application.planning_service import PlanningService
-from .plan_inputs import DEFAULT_LIBRARY, add_request_arguments, read_request
+from .plan_inputs import add_request_arguments, read_request
 
 
 def run(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Generate and validate a task Skill plan")
     add_request_arguments(parser)
-    parser.add_argument("--library", type=Path, default=DEFAULT_LIBRARY)
+    parser.add_argument(
+        "--zenobench-root", type=Path, default=DEFAULT_ROOT, help="synced ZenoBench library"
+    )
     parser.add_argument(
         "--dsh-home", required=True, type=Path, help="local Harness state directory"
     )
@@ -38,9 +40,11 @@ def run(argv: list[str] | None = None) -> int:
         for patch_file in args.patch:
             if not patch_file.is_file():
                 raise ValueError(f"Harness patch does not exist: {patch_file}")
+        library = ZenoBenchLibrary(args.zenobench_root)
         with DeepSeekHarnessSession(
             dsh_home=args.dsh_home,
             cwd=args.workspace,
+            skills_dir=library.skills_dir,
             model=args.model,
             provider=args.provider,
             profile=args.profile,
@@ -51,15 +55,14 @@ def run(argv: list[str] | None = None) -> int:
             session_id=args.session_id,
             turn_timeout_seconds=args.turn_timeout_seconds,
         ) as session:
-            service = PlanningService(
-                JsonSkillLibraryRepository(args.library), session, args.max_attempts
-            )
+            service = PlanningService(library, session, args.max_attempts)
             try:
                 result = service.run(request).to_json()
                 exit_code = 0
             except PlanningFailure as exc:
                 result = exc.to_json()
                 exit_code = 1
+            result["skill_library"] = {"source": "ZenoBench", "commit": library.commit}
             result["runtime"] = {
                 "backend": "deepseek_harness",
                 "profile": args.profile,

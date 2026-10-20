@@ -8,7 +8,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from graph_manager.adapters.deepseek_harness_sdk import DeepSeekHarnessSession
-from graph_manager.adapters.skill_library_json import JsonSkillLibraryRepository
+from graph_manager.adapters.zenobench_library import ZenoBenchLibrary
 from graph_manager.application.errors import PlanningFailure
 from graph_manager.application.planning_service import PlanningService
 from graph_manager.domain.models import PlanningRequest
@@ -18,18 +18,20 @@ ROOT = Path(__file__).resolve().parents[1]
 SKILLS = ROOT / "graph_manager" / "vendor" / "zenobench" / "skills"
 
 
-def valid_plan(skill_id="skill_004"):
+def valid_plan(skill="pick"):
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "kind": "task_plan",
         "subgoals": [{"id": "sg_1", "goal": "Hold apple"}],
         "subgraphs": [
             {
+                "schema_version": 2,
+                "kind": "skill_subgraph",
                 "subgoal_id": "sg_1",
                 "nodes": [
                     {
                         "id": "n1",
-                        "skill_id": skill_id,
+                        "skill": skill,
                         "args": {"object": {"ref": "apple"}},
                         "depends_on": [],
                     }
@@ -125,17 +127,16 @@ class DeepSeekHarnessSessionTest(unittest.TestCase):
             json.dumps(valid_plan("made_up_skill")),
             json.dumps(valid_plan()),
         ]
-        repository = JsonSkillLibraryRepository(ROOT / "skill_library" / "skill_library.json")
+        repository = ZenoBenchLibrary()
         with self.session() as session:
             result = PlanningService(repository, session).run(PlanningRequest("Hold apple"))
         inputs = FakeHarness.instances[0].session.inputs
         self.assertEqual(2, len(inputs))
         self.assertIn("Hold apple", inputs[0])
-        self.assertIn("skill_009", inputs[0])
         feedback = json.loads(inputs[1])
         self.assertEqual("validation_feedback", feedback["kind"])
         self.assertEqual("unknown_skill", feedback["errors"][0]["code"])
-        self.assertEqual("$.subgraphs[0].nodes[0].skill_id", feedback["errors"][0]["path"])
+        self.assertEqual("$.subgraphs[0].nodes[0].skill", feedback["errors"][0]["path"])
         self.assertEqual(2, len(result.attempts))
 
     def test_truncated_sdk_turn_preserves_partial_output_for_repair(self):
@@ -269,7 +270,7 @@ class DeepSeekHarnessSessionTest(unittest.TestCase):
             SimpleNamespace(final_response='{"partial":', finish_reason="max-tokens"),
             json.dumps(valid_plan()),
         ]
-        repository = JsonSkillLibraryRepository(ROOT / "skill_library" / "skill_library.json")
+        repository = ZenoBenchLibrary()
         with self.session() as session:
             result = PlanningService(repository, session).run(PlanningRequest("Hold apple"))
         feedback = json.loads(FakeHarness.instances[0].session.inputs[1])
@@ -278,7 +279,7 @@ class DeepSeekHarnessSessionTest(unittest.TestCase):
 
     def test_service_rejects_after_bounded_attempts(self):
         FakeHarness.outputs = [json.dumps(valid_plan("bad-1")), json.dumps(valid_plan("bad-2"))]
-        repository = JsonSkillLibraryRepository(ROOT / "skill_library" / "skill_library.json")
+        repository = ZenoBenchLibrary()
         with self.session() as session:
             with self.assertRaises(PlanningFailure) as caught:
                 PlanningService(repository, session, max_attempts=2).run(

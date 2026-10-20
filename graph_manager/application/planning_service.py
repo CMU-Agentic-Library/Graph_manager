@@ -7,7 +7,7 @@ from ..domain.models import (
     ProposalValidationError,
     ValidationIssue,
 )
-from ..domain.task_plan_validation import validate_task_plan
+from ..domain.task_plan import validate_task_plan
 from ..ports import ModelPortError, PlanningSessionPort, SkillLibraryPort
 from .errors import PlanningFailure
 from .input_builder import PlanningInputBuilder
@@ -29,8 +29,8 @@ class PlanningService:
         self.input_builder = input_builder or PlanningInputBuilder()
 
     def run(self, request: PlanningRequest) -> PlanningResult:
-        library = self.repository.load()
-        turn = self.input_builder.initial(request, library)
+        catalog = self.repository.load()
+        turn = self.input_builder.initial(request)
         attempts: list[PlanAttempt] = []
 
         for attempt_number in range(self.max_attempts):
@@ -53,7 +53,7 @@ class PlanningService:
                 raise PlanningFailure((issue,), tuple(attempts)) from exc
 
             try:
-                plan = validate_task_plan(raw_text, library, request.entity_catalog, request.state)
+                plan = validate_task_plan(raw_text, catalog)
             except ProposalValidationError as exc:
                 attempts.append(PlanAttempt(raw_text, exc.issues))
                 if attempt_number + 1 == self.max_attempts:
@@ -62,6 +62,6 @@ class PlanningService:
                 continue
 
             attempts.append(PlanAttempt(raw_text, ()))
-            return PlanningResult(plan, tuple(attempts), request.entity_catalog is not None)
+            return PlanningResult(plan, tuple(attempts))
 
         raise AssertionError("positive max_attempts guarantees a return or raise")

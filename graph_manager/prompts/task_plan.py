@@ -1,48 +1,32 @@
-"""Instructions and corrective feedback for one complete task plan."""
+"""Instructions and corrective feedback for one complete schema 2 task plan."""
 
 import json
 
 from ..domain.models import PlanningRequest, ValidationIssue
 
 SYSTEM_INSTRUCTION = (
-    "You plan robot tasks with the supplied public Skill Library. "
+    "You plan robot tasks with the ZenoBench skills listed in your skill catalog. "
+    "Load a skill to read its full instructions before you use it in a plan. "
     "Return exactly one JSON object and no markdown. "
-    "The object has schema_version=1, kind=task_plan, a nonempty subgoals array, "
+    "The object has schema_version=2, kind=task_plan, a nonempty subgoals array, "
     "and a subgraphs array. Each subgoal has id and goal. "
-    "Each subgraph has subgoal_id and a nonempty nodes array. "
-    "Each node has id, skill_id, args, and depends_on. "
-    "There must be exactly one subgraph per subgoal. "
-    "Use only Skill IDs and input names from the Library. "
-    "Node dependencies refer to node IDs in that subgraph and must form a DAG. "
-    "Every Contract input key must appear; OptionalVector2 may be null. "
-    "Do not claim that physical preconditions have been verified."
+    "Give exactly one subgraph per subgoal. Each subgraph has schema_version=2, "
+    "kind=skill_subgraph, subgoal_id, and a nonempty nodes array. "
+    "Each node has id, skill (the skill's verb, such as pick), args, and depends_on. "
+    'Each argument is {"ref": scene name}, {"value": literal}, or '
+    '{"from": "<node id>.<output>"} for a measured output of an earlier node in the '
+    "same subgraph; list that node in depends_on. "
+    "Use scene names exactly as the observation gives them. "
+    "Node dependencies must form a DAG."
 )
 
 
-def initial_context(request: PlanningRequest, library: dict) -> str:
-    sections = [
-        "Task goal:\n" + request.goal,
-        "Complete public Skill Library JSON:\n" + json.dumps(library, ensure_ascii=False),
-    ]
+def initial_context(request: PlanningRequest) -> str:
+    sections = ["Task goal:\n" + request.goal]
     if request.observation is not None:
-        sections.append("Current observation text:\n" + request.observation)
+        sections.append("Current observation:\n" + request.observation)
     if request.image is not None:
         sections.append("A current scene image is attached.")
-    if request.entity_catalog is not None:
-        sections.append(
-            "GT entity catalog (use exact IDs in refs):\n"
-            + json.dumps(request.entity_catalog.to_json(), ensure_ascii=False)
-        )
-    else:
-        sections.append(
-            'Entity IDs are not provided. Use {"ref":"referring expression"} for entity inputs; '
-            "these references remain unresolved until grounding."
-        )
-    if request.state is not None:
-        sections.append(
-            "Verified current state facts:\n"
-            + json.dumps(request.state.to_json(), ensure_ascii=False)
-        )
     return "\n\n".join(sections)
 
 

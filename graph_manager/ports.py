@@ -3,6 +3,7 @@
 from typing import Protocol
 
 from .domain.env_types import ContractCall, ExecutionReply, ExpStatus, GoalCheck, StartedTask
+from .domain.skills import SkillCatalog
 
 
 class PlanningSessionPort(Protocol):
@@ -15,7 +16,7 @@ class PlanningSessionPort(Protocol):
 
 
 class SkillLibraryPort(Protocol):
-    def load(self) -> dict:
+    def load(self) -> SkillCatalog:
         raise NotImplementedError
 
 

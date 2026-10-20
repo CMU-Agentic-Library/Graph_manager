@@ -11,7 +11,7 @@ class PlanningFailure(Exception):
 
     def to_json(self) -> dict:
         return {
-            "schema_version": 1,
+            "schema_version": 2,
             "kind": "planning_result",
             "status": "rejected",
             "issues": [issue.to_json() for issue in self.issues],

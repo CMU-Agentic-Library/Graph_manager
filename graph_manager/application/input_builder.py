@@ -14,9 +14,9 @@ class ModelTurn:
 
 
 class PlanningInputBuilder:
-    def initial(self, request: PlanningRequest, library: dict) -> ModelTurn:
+    def initial(self, request: PlanningRequest) -> ModelTurn:
         return ModelTurn(
-            text=SYSTEM_INSTRUCTION + "\n\n" + initial_context(request, library),
+            text=SYSTEM_INSTRUCTION + "\n\n" + initial_context(request),
             image=request.image,
             image_mime=request.image_mime,
         )
