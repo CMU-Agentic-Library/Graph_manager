@@ -31,3 +31,14 @@ class ZenoBenchLibrary:
     def task_ids(self) -> tuple[str, ...]:
         data = json.loads((self.root / "tasks.json").read_text(encoding="utf-8"))
         return tuple(task["id"] for task in data["tasks"])
+
+    def predicate_meanings(self) -> dict[str, str]:
+        """Predicate name -> plain-language meaning, from every skill's conditions."""
+        meanings: dict[str, str] = {}
+        for path in sorted(self.skills_dir.glob("*/skill.json")):
+            data = json.loads(path.read_text(encoding="utf-8"))
+            for condition in (*data.get("preconditions", ()), *data.get("postconditions", ())):
+                name, meaning = condition.get("name"), condition.get("meaning")
+                if isinstance(name, str) and isinstance(meaning, str) and meaning:
+                    meanings.setdefault(name, meaning)
+        return meanings

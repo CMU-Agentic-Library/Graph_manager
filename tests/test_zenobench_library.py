@@ -48,6 +48,12 @@ class ZenoBenchLibraryTest(unittest.TestCase):
         self.assertIsNone(self.catalog.verb_for_name("fetch"))
         self.assertIsNone(self.catalog.resolve("fetch-object"))
 
+    def test_predicate_meanings_come_from_skill_conditions(self):
+        meanings = self.library.predicate_meanings()
+        self.assertEqual("The given gripper holds nothing.", meanings["hand_empty"])
+        self.assertIn("holding", meanings)
+        self.assertTrue(all(isinstance(text, str) and text for text in meanings.values()))
+
 
 if __name__ == "__main__":
     unittest.main()
