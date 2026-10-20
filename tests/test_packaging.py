@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class PackagingTest(unittest.TestCase):
-    def test_wheel_contains_default_skill_library(self):
+    def test_wheel_contains_synced_zenobench_library(self):
         with tempfile.TemporaryDirectory() as directory:
             result = subprocess.run(
                 ["uv", "build", "--wheel", "--out-dir", directory],
@@ -23,7 +23,13 @@ class PackagingTest(unittest.TestCase):
             wheels = list(Path(directory).glob("*.whl"))
             self.assertEqual(1, len(wheels))
             with ZipFile(wheels[0]) as wheel:
-                self.assertIn("skill_library/skill_library.json", wheel.namelist())
+                names = wheel.namelist()
+                vendor = "graph_manager/vendor/zenobench/"
+                self.assertIn(vendor + "COMMIT", names)
+                self.assertIn(vendor + "tasks.json", names)
+                self.assertIn(vendor + "skills/skill_017/SKILL.md", names)
+                self.assertIn(vendor + "skills/skill_017/skill.json", names)
+                self.assertFalse(any(name.startswith("skill_library/") for name in names))
 
 
 if __name__ == "__main__":

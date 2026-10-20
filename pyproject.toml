@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "graph-manager"
 version = "0.1.0"
-description = "Skill graph planning and validation for ZenoBench"
+description = "Skill graph planning and execution for ZenoBench"
 requires-python = ">=3.12"
 dependencies = ["deepseek-harness-sdk==0.1.5rc1"]
 
@@ -16,7 +16,7 @@ dev = ["ruff"]
 graph-manager-plan = "graph_manager.cli:main"
 
 [tool.setuptools.packages.find]
-include = ["graph_manager*", "skill_library"]
+include = ["graph_manager*"]
 
 [tool.setuptools.package-data]
 graph_manager = [
@@ -25,7 +25,6 @@ graph_manager = [
     "vendor/zenobench/tasks.json",
     "vendor/zenobench/skills/*/*",
 ]
-skill_library = ["skill_library.json"]
 
 [tool.ruff]
 target-version = "py312"
