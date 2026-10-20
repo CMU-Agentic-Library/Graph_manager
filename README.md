@@ -72,9 +72,21 @@ export LAB_VLM_API_KEY=dummy
 
 The output records the plan, every attempt, the ZenoBench commit, and the Harness session ID.
 
-## Execution
+## Closed-loop runs
 
-`adapters/env_http.py` is the client for the ZenoBench environment service (interface v2: `initial_task`, `do_contract`, `check_task`, `observe`). `application/execution/graph_executor.py` runs one validated subgraph: it sends nodes in dependency order as `do_contract` batches, starts a new batch when a node reads a `from` output of the current batch, fills that output from the earlier reply, and stops at the first failed contract. The closed loop that replans after each Subgoal is the next step.
+`graph-manager-run` runs tasks against the ZenoBench environment service (interface v2). For each task it calls `initial_task`, asks the model for a complete plan, and runs one Subgoal at a time. After each Subgoal the model receives every contract result (error codes and false conditions explained in plain language), the new camera images, the scene objects, and the robot state. It replies with `{"kind": "continue"}`, a `task_plan` for the remaining work, or `{"kind": "finish"}`; `continue` is refused after a failure and when no Subgoal remains. The run ends with `check_task`. The evaluator's `task_status` is logged but never shown to the model.
+
+```bash
+.venv/bin/python scripts/smoke_env.py --env-url http://HOST:8800 probe   # reachability, no simulator
+export LAB_VLM_API_KEY=dummy
+.venv/bin/graph-manager-run --all --env-url http://HOST:8800 --out runs/2026-10-21 \
+  --dsh-home run/dsh-home --provider lab-vlm --model YOUR_SERVED_VLM_NAME \
+  --patch run/local-vlm.patch.yml
+```
+
+Each task gets `result.json` and one `attempt_N/` directory per exp with `trajectory.jsonl` and the camera images; `summary.json` gives the counts and the success rate over decided tasks. Rerunning the same command keeps decided tasks and reruns errors. A task whose model call fails without any output (a timeout, an unreachable model server) is recorded as an error, not a failure, so it is rerun as well. A released exp restarts the task in a new exp and a new Harness session (at most twice); `503 BUSY` is retried every 30 seconds for up to 15 minutes.
+
+`adapters/env_http.py` is the environment client. `application/execution/graph_executor.py` sends a Subgoal's nodes in dependency order as `do_contract` batches and fills `from` arguments from earlier outputs. `application/orchestration/` holds the episode loop, the batch runner, and the trajectory records.
 
 ### Code layout
 
@@ -86,3 +98,5 @@ The output records the plan, every attempt, the ZenoBench commit, and the Harnes
 | `application/execution/` | Execution layer: subgraph to contract batches |
 | `application/planning_service.py`, `application/input_builder.py`, `prompts/` | One-shot planning with validation feedback |
 | `cli.py`, `plan_inputs.py` | Read local inputs, construct dependencies, write results |
+| `application/orchestration/` | Orchestration layer: closed-loop episodes, batch runs, trajectory records |
+| `run_cli.py`, `harness_args.py` | `graph-manager-run` and the Harness options both commands share |
