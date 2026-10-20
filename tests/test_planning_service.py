@@ -6,7 +6,7 @@ import unittest
 from graph_manager.adapters.zenobench_library import ZenoBenchLibrary
 from graph_manager.application.errors import PlanningFailure
 from graph_manager.application.planning_service import PlanningService
-from graph_manager.domain.models import PlanningRequest
+from graph_manager.domain.models import ImageInput, PlanningRequest
 from graph_manager.ports import ModelPortError
 
 LIBRARY = ZenoBenchLibrary()
@@ -42,8 +42,8 @@ class ScriptedSession:
         self.outputs = iter(outputs)
         self.turns = []
 
-    def ask(self, text, image=None, image_mime="image/jpeg"):
-        self.turns.append((text, image, image_mime))
+    def ask(self, text, images=()):
+        self.turns.append((text, images))
         output = next(self.outputs)
         if isinstance(output, Exception):
             raise output
@@ -60,7 +60,7 @@ class PlanningServiceTest(unittest.TestCase):
 
         self.assertEqual(proposal(), result.task_plan)
         self.assertEqual("statically_validated", result.to_json()["status"])
-        self.assertEqual(b"pixels", session.turns[0][1])
+        self.assertEqual((ImageInput(b"pixels", "image/png"),), session.turns[0][1])
 
     def test_invalid_skill_sends_only_feedback_as_second_turn(self):
         session = ScriptedSession([proposal("grab"), proposal()])
@@ -68,7 +68,7 @@ class PlanningServiceTest(unittest.TestCase):
         result = PlanningService(LIBRARY, session).run(PlanningRequest("Hold apple"))
 
         self.assertEqual(2, len(result.attempts))
-        self.assertIsNone(session.turns[1][1])
+        self.assertEqual((), session.turns[1][1])
         feedback = json.loads(session.turns[1][0])
         self.assertEqual("unknown_skill", feedback["errors"][0]["code"])
         self.assertEqual("$.subgraphs[0].nodes[0].skill", feedback["errors"][0]["path"])

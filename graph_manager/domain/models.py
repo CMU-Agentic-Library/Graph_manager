@@ -2,6 +2,22 @@
 
 from dataclasses import dataclass
 
+IMAGE_MIMES = frozenset({"image/jpeg", "image/png", "image/webp"})
+
+
+@dataclass(frozen=True)
+class ImageInput:
+    """One image attached to a model turn."""
+
+    data: bytes
+    mime: str = "image/png"
+
+    def __post_init__(self) -> None:
+        if not self.data:
+            raise ValueError("image data must be nonempty")
+        if self.mime not in IMAGE_MIMES:
+            raise ValueError("image mime must be image/jpeg, image/png, or image/webp")
+
 
 @dataclass(frozen=True)
 class PlanningRequest:
@@ -15,11 +31,7 @@ class PlanningRequest:
             raise ValueError("goal must be nonempty")
         if self.image is not None and not self.image:
             raise ValueError("image must be nonempty when provided")
-        if self.image is not None and self.image_mime not in {
-            "image/jpeg",
-            "image/png",
-            "image/webp",
-        }:
+        if self.image is not None and self.image_mime not in IMAGE_MIMES:
             raise ValueError("image_mime must be image/jpeg, image/png, or image/webp")
 
 

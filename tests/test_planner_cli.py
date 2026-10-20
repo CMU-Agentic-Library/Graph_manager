@@ -8,6 +8,7 @@ from unittest.mock import patch
 
 from graph_manager.adapters.zenobench_library import ZenoBenchLibrary
 from graph_manager.cli import run
+from graph_manager.domain.models import ImageInput
 
 PLAN = {
     "schema_version": 2,
@@ -47,8 +48,8 @@ class FakeHarnessSession:
     def __exit__(self, *_args):
         return None
 
-    def ask(self, text, image=None, image_mime="image/jpeg"):
-        self.turns.append((text, image, image_mime))
+    def ask(self, text, images=()):
+        self.turns.append((text, images))
         return json.dumps(PLAN)
 
 
@@ -92,8 +93,7 @@ class PlannerCliTest(unittest.TestCase):
             self.assertEqual("generated-session", saved["runtime"]["session_id"])
             session = FakeHarnessSession.created[0]
             self.assertEqual(library.skills_dir, session.kwargs["skills_dir"])
-            self.assertEqual(b"pixels", session.turns[0][1])
-            self.assertEqual("image/png", session.turns[0][2])
+            self.assertEqual((ImageInput(b"pixels", "image/png"),), session.turns[0][1])
 
 
 if __name__ == "__main__":

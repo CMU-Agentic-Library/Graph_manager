@@ -7,10 +7,13 @@ only the new user turn; it never replays previous messages from Python.
 import base64
 import json
 import math
+import os
+import tempfile
 import threading
 import uuid
 from pathlib import Path
 
+from ..domain.models import ImageInput
 from ..ports import ModelPortError
 
 PLANNER_PATCH = Path(__file__).resolve().parents[1] / "harness_profile" / "cordis.patch.yml"
@@ -111,16 +114,34 @@ class DeepSeekHarnessSession:
         if harness is not None:
             harness.close()
 
-    def ask(self, text: str, image: bytes | None = None, image_mime: str = "image/jpeg") -> str:
+    def _write_skills_patch(self) -> None:
+        """Concurrent sessions share dsh_home, so replace the patch atomically:
+        a Harness starting meanwhile reads either the old or the new file, never a
+        half-written one."""
+        self.skills_patch.parent.mkdir(parents=True, exist_ok=True)
+        body = json.dumps(skills_patch(self.skills_dir), indent=2) + "\n"
+        with tempfile.NamedTemporaryFile(
+            "w",
+            encoding="utf-8",
+            dir=self.skills_patch.parent,
+            prefix=f".{SKILLS_PATCH_NAME}.",
+            suffix=".tmp",
+            delete=False,
+        ) as handle:
+            handle.write(body)
+        try:
+            os.replace(handle.name, self.skills_patch)
+        except BaseException:
+            Path(handle.name).unlink(missing_ok=True)
+            raise
+
+    def ask(self, text: str, images: tuple[ImageInput, ...] = ()) -> str:
         if self._closed:
             raise RuntimeError("Harness session is closed")
         if not text.strip():
             raise ValueError("Harness prompt must be nonempty")
         if self._session is None:
-            self.skills_patch.parent.mkdir(parents=True, exist_ok=True)
-            self.skills_patch.write_text(
-                json.dumps(skills_patch(self.skills_dir), indent=2) + "\n", encoding="utf-8"
-            )
+            self._write_skills_patch()
             harness_class = _load_harness_class()
             self._harness = harness_class(
                 dsh_home=str(self.dsh_home),
@@ -139,14 +160,14 @@ class DeepSeekHarnessSession:
                 self.close()
                 raise
         content: str | list[dict] = text
-        if image is not None:
-            content = [
-                {"type": "text", "text": text},
+        if images:
+            content = [{"type": "text", "text": text}] + [
                 {
                     "type": "image",
-                    "data": base64.b64encode(image).decode("ascii"),
-                    "mimeType": image_mime,
-                },
+                    "data": base64.b64encode(image.data).decode("ascii"),
+                    "mimeType": image.mime,
+                }
+                for image in images
             ]
         runtime_session = self._session
         timed_out = threading.Event()

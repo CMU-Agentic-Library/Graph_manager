@@ -4,7 +4,7 @@ import json
 import unittest
 
 from graph_manager.application.input_builder import PlanningInputBuilder
-from graph_manager.domain.models import PlanningRequest, ValidationIssue
+from graph_manager.domain.models import ImageInput, PlanningRequest, ValidationIssue
 
 
 class PlanningInputBuilderTest(unittest.TestCase):
@@ -24,22 +24,21 @@ class PlanningInputBuilderTest(unittest.TestCase):
         self.assertIn("Apple on the table", turn.text)
         self.assertIn("A current scene image is attached.", turn.text)
         self.assertNotIn("skill.json", turn.text)
-        self.assertEqual(b"image-bytes", turn.image)
-        self.assertEqual("image/png", turn.image_mime)
+        self.assertEqual((ImageInput(b"image-bytes", "image/png"),), turn.images)
 
     def test_absent_optional_sources_are_not_invented(self):
         turn = PlanningInputBuilder().initial(PlanningRequest("Hold apple"))
 
         self.assertNotIn("Current observation", turn.text)
         self.assertNotIn("image is attached", turn.text)
-        self.assertIsNone(turn.image)
+        self.assertEqual((), turn.images)
 
     def test_feedback_turn_contains_only_errors_and_no_image(self):
         issue = ValidationIssue("$.subgraphs[0].nodes[0].skill", "unknown_skill", "unknown")
 
         turn = PlanningInputBuilder().feedback((issue,))
 
-        self.assertIsNone(turn.image)
+        self.assertEqual((), turn.images)
         body = json.loads(turn.text)
         self.assertEqual("validation_feedback", body["kind"])
         self.assertEqual("$.subgraphs[0].nodes[0].skill", body["errors"][0]["path"])

@@ -35,7 +35,7 @@ class PlanningService:
 
         for attempt_number in range(self.max_attempts):
             try:
-                raw_text = self.session.ask(turn.text, turn.image, turn.image_mime)
+                raw_text = self.session.ask(turn.text, turn.images)
             except ModelPortError as exc:
                 issue = ValidationIssue(
                     "$",

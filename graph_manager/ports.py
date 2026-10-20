@@ -3,6 +3,7 @@
 from typing import Protocol
 
 from .domain.env_types import ContractCall, ExecutionReply, ExpStatus, GoalCheck, StartedTask
+from .domain.models import ImageInput
 from .domain.skills import SkillCatalog
 
 
@@ -11,7 +12,7 @@ class PlanningSessionPort(Protocol):
 
     session_id: str
 
-    def ask(self, text: str, image: bytes | None = None, image_mime: str = "image/jpeg") -> str:
+    def ask(self, text: str, images: tuple[ImageInput, ...] = ()) -> str:
         raise NotImplementedError
 
 

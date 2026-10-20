@@ -1,6 +1,7 @@
 """The SDK adapter lets Harness own all conversation history."""
 
 import json
+import tempfile
 import threading
 import unittest
 from pathlib import Path
@@ -11,7 +12,7 @@ from graph_manager.adapters.deepseek_harness_sdk import DeepSeekHarnessSession
 from graph_manager.adapters.zenobench_library import ZenoBenchLibrary
 from graph_manager.application.errors import PlanningFailure
 from graph_manager.application.planning_service import PlanningService
-from graph_manager.domain.models import PlanningRequest
+from graph_manager.domain.models import ImageInput, PlanningRequest
 from graph_manager.ports import ModelPortError
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -98,7 +99,7 @@ class DeepSeekHarnessSessionTest(unittest.TestCase):
     def test_image_and_feedback_use_one_persistent_sdk_session(self):
         FakeHarness.outputs = ["first response", "second response"]
         with self.session() as session:
-            first = session.ask("Hold apple", b"image-bytes", "image/png")
+            first = session.ask("Hold apple", (ImageInput(b"image-bytes", "image/png"),))
             second = session.ask('{"kind":"validation_feedback"}')
         harness = FakeHarness.instances[0]
         self.assertEqual(("first response", "second response"), (first, second))
@@ -121,6 +122,20 @@ class DeepSeekHarnessSessionTest(unittest.TestCase):
         )
         self.assertEqual('{"kind":"validation_feedback"}', harness.session.inputs[1])
         self.assertTrue(harness.closed)
+
+    def test_several_images_follow_the_text_in_order(self):
+        FakeHarness.outputs = ["ok"]
+        with self.session() as session:
+            session.ask("Look", (ImageInput(b"head"), ImageInput(b"left", "image/jpeg")))
+        blocks = FakeHarness.instances[0].session.inputs[0]
+        self.assertEqual(
+            [
+                {"type": "text", "text": "Look"},
+                {"type": "image", "data": "aGVhZA==", "mimeType": "image/png"},
+                {"type": "image", "data": "bGVmdA==", "mimeType": "image/jpeg"},
+            ],
+            blocks,
+        )
 
     def test_planner_sends_validation_error_without_replaying_history(self):
         FakeHarness.outputs = [
@@ -202,6 +217,19 @@ class DeepSeekHarnessSessionTest(unittest.TestCase):
         ).read_text()
         for component in ("id: skill\n", "id: skill-filesystem\n", "id: tool-skill\n"):
             self.assertNotIn(component, planner_profile)
+
+    def test_skills_patch_write_leaves_no_temporary_files(self):
+        FakeHarness.outputs = ["ok"]
+        with tempfile.TemporaryDirectory() as directory:
+            dsh_home = Path(directory)
+            with DeepSeekHarnessSession(
+                dsh_home=dsh_home, cwd=ROOT, skills_dir=SKILLS, model="local-vlm"
+            ) as session:
+                session.ask("Go")
+            self.assertEqual([], list(dsh_home.glob("*.tmp")) + list(dsh_home.glob(".*.tmp")))
+            self.assertEqual(
+                ["graph-manager-skills.patch.yml"], sorted(p.name for p in dsh_home.iterdir())
+            )
 
     def test_skills_dir_must_exist(self):
         with self.assertRaisesRegex(ValueError, "skills directory"):
