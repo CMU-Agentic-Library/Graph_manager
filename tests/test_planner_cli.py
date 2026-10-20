@@ -64,7 +64,7 @@ class PlannerCliTest(unittest.TestCase):
             image.write_bytes(b"pixels")
             output = root / "plan.json"
 
-            with patch("graph_manager.cli.DeepSeekHarnessSession", FakeHarnessSession):
+            with patch("graph_manager.harness_args.DeepSeekHarnessSession", FakeHarnessSession):
                 exit_code = run(
                     [
                         "--goal",

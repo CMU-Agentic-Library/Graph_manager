@@ -2,14 +2,13 @@
 
 import argparse
 import json
-import os
 import sys
 from pathlib import Path
 
-from .adapters.deepseek_harness_sdk import DeepSeekHarnessSession
 from .adapters.zenobench_library import DEFAULT_ROOT, ZenoBenchLibrary
 from .application.errors import PlanningFailure
 from .application.planning_service import PlanningService
+from .harness_args import add_harness_arguments, check_patches, open_session
 from .plan_inputs import add_request_arguments, read_request
 
 
@@ -19,42 +18,17 @@ def run(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--zenobench-root", type=Path, default=DEFAULT_ROOT, help="synced ZenoBench library"
     )
-    parser.add_argument(
-        "--dsh-home", required=True, type=Path, help="local Harness state directory"
-    )
-    parser.add_argument("--workspace", type=Path, default=Path.cwd())
-    parser.add_argument("--provider", default="deepseek-official")
-    parser.add_argument("--model", required=True)
-    parser.add_argument("--profile", choices=("sdk",), default="sdk")
-    parser.add_argument("--patch", action="append", type=Path, default=[], help="profile patch")
-    parser.add_argument("--base-url", help="optional DeepSeek-compatible endpoint override")
+    add_harness_arguments(parser)
     parser.add_argument("--session-id", help="Harness session ID; use a fresh ID per invocation")
-    parser.add_argument("--max-tokens", type=int)
-    parser.add_argument("--turn-timeout-seconds", type=float, default=300)
     parser.add_argument("--max-attempts", type=int, default=3)
     parser.add_argument("--output", required=True, type=Path)
     args = parser.parse_args(argv)
 
     try:
         request = read_request(args)
-        for patch_file in args.patch:
-            if not patch_file.is_file():
-                raise ValueError(f"Harness patch does not exist: {patch_file}")
+        check_patches(args)
         library = ZenoBenchLibrary(args.zenobench_root)
-        with DeepSeekHarnessSession(
-            dsh_home=args.dsh_home,
-            cwd=args.workspace,
-            skills_dir=library.skills_dir,
-            model=args.model,
-            provider=args.provider,
-            profile=args.profile,
-            patches=tuple(args.patch),
-            base_url=args.base_url,
-            api_key=os.getenv("GRAPH_MANAGER_API_KEY"),
-            max_tokens=args.max_tokens,
-            session_id=args.session_id,
-            turn_timeout_seconds=args.turn_timeout_seconds,
-        ) as session:
+        with open_session(args, library.skills_dir, args.session_id) as session:
             service = PlanningService(library, session, args.max_attempts)
             try:
                 result = service.run(request).to_json()
