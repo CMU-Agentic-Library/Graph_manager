@@ -15,6 +15,7 @@ from graph_manager.domain.models import PlanningRequest
 from graph_manager.ports import ModelPortError
 
 ROOT = Path(__file__).resolve().parents[1]
+SKILLS = ROOT / "graph_manager" / "vendor" / "zenobench" / "skills"
 
 
 def valid_plan(skill_id="skill_004"):
@@ -84,6 +85,7 @@ class DeepSeekHarnessSessionTest(unittest.TestCase):
         return DeepSeekHarnessSession(
             dsh_home=ROOT / "run" / "dsh-home",
             cwd=ROOT,
+            skills_dir=SKILLS,
             model="local-vlm",
             provider="lab-vlm",
             profile="sdk",
@@ -101,8 +103,11 @@ class DeepSeekHarnessSessionTest(unittest.TestCase):
         self.assertEqual(["plan-1"], harness.session_ids)
         self.assertEqual("lab-vlm", harness.kwargs["provider"])
         self.assertEqual("sdk", harness.kwargs["profile"])
-        self.assertEqual(2, len(harness.kwargs["patches"]))
-        planner_patch, route_patch = harness.kwargs["patches"]
+        self.assertEqual(3, len(harness.kwargs["patches"]))
+        planner_patch, skills_patch, route_patch = harness.kwargs["patches"]
+        self.assertEqual(
+            str(ROOT / "run" / "dsh-home" / "graph-manager-skills.patch.yml"), skills_patch
+        )
         self.assertEqual(str(ROOT / "planner.patch.yml"), route_patch)
         self.assertTrue(Path(planner_patch).is_file())
         self.assertIn("graph_manager", Path(planner_patch).parts)
@@ -147,6 +152,7 @@ class DeepSeekHarnessSessionTest(unittest.TestCase):
             DeepSeekHarnessSession(
                 dsh_home=ROOT / "run" / "dsh-home",
                 cwd=ROOT,
+                skills_dir=SKILLS,
                 model="local-vlm",
                 profile="sdk-minimal",
             )
@@ -157,6 +163,7 @@ class DeepSeekHarnessSessionTest(unittest.TestCase):
                 DeepSeekHarnessSession(
                     dsh_home=ROOT / "run" / "dsh-home",
                     cwd=ROOT,
+                    skills_dir=SKILLS,
                     model="local-vlm",
                     turn_timeout_seconds=deadline,
                 )
@@ -166,8 +173,42 @@ class DeepSeekHarnessSessionTest(unittest.TestCase):
             DeepSeekHarnessSession(
                 dsh_home=ROOT / "run" / "dsh-home",
                 cwd=ROOT,
+                skills_dir=SKILLS,
                 model="local-vlm",
                 turn_timeout_seconds=1e308,
+            )
+
+    def test_skills_patch_exposes_only_the_zenobench_skills(self):
+        FakeHarness.outputs = ["ok"]
+        with self.session() as session:
+            session.ask("Go")
+        written = json.loads(Path(FakeHarness.instances[0].kwargs["patches"][1]).read_text())
+        self.assertEqual(
+            [
+                {
+                    "id": "skill-filesystem",
+                    "config": {
+                        "includeDefaultRoots": False,
+                        "watch": False,
+                        "customSkillDirs": [str(SKILLS.resolve())],
+                    },
+                }
+            ],
+            written,
+        )
+        planner_profile = (
+            ROOT / "graph_manager" / "harness_profile" / "cordis.patch.yml"
+        ).read_text()
+        for component in ("id: skill\n", "id: skill-filesystem\n", "id: tool-skill\n"):
+            self.assertNotIn(component, planner_profile)
+
+    def test_skills_dir_must_exist(self):
+        with self.assertRaisesRegex(ValueError, "skills directory"):
+            DeepSeekHarnessSession(
+                dsh_home=ROOT / "run" / "dsh-home",
+                cwd=ROOT,
+                model="local-vlm",
+                skills_dir=ROOT / "no-such-skills",
             )
 
     def test_stalled_turn_closes_harness_after_deadline(self):
@@ -193,6 +234,7 @@ class DeepSeekHarnessSessionTest(unittest.TestCase):
             with DeepSeekHarnessSession(
                 dsh_home=ROOT / "run" / "dsh-home",
                 cwd=ROOT,
+                skills_dir=SKILLS,
                 model="local-vlm",
                 turn_timeout_seconds=0.05,
             ) as session:

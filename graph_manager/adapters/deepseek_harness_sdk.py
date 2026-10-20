@@ -5,6 +5,7 @@ only the new user turn; it never replays previous messages from Python.
 """
 
 import base64
+import json
 import math
 import threading
 import uuid
@@ -13,6 +14,22 @@ from pathlib import Path
 from ..ports import ModelPortError
 
 PLANNER_PATCH = Path(__file__).resolve().parents[1] / "harness_profile" / "cordis.patch.yml"
+SKILLS_PATCH_NAME = "graph-manager-skills.patch.yml"
+
+
+def skills_patch(skills_dir: Path) -> list[dict]:
+    """Expose only the synced ZenoBench skills: Harness lists each name and description
+    and loads a SKILL.md body when the model asks for it."""
+    return [
+        {
+            "id": "skill-filesystem",
+            "config": {
+                "includeDefaultRoots": False,
+                "watch": False,
+                "customSkillDirs": [str(skills_dir)],
+            },
+        }
+    ]
 
 
 def _load_harness_class():
@@ -30,6 +47,7 @@ class DeepSeekHarnessSession:
         dsh_home: Path,
         model: str,
         cwd: Path,
+        skills_dir: Path,
         provider: str = "deepseek-official",
         profile: str = "sdk",
         patches: tuple[Path, ...] = (),
@@ -58,10 +76,14 @@ class DeepSeekHarnessSession:
             raise ValueError("turn_timeout_seconds cannot exceed one day")
         self.dsh_home = Path(dsh_home).resolve()
         self.cwd = Path(cwd).resolve()
+        self.skills_dir = Path(skills_dir).resolve()
+        if not self.skills_dir.is_dir():
+            raise ValueError(f"skills directory does not exist: {self.skills_dir}")
+        self.skills_patch = self.dsh_home / SKILLS_PATCH_NAME
         self.model = model
         self.provider = provider
         self.profile = profile
-        self.patches = (str(PLANNER_PATCH),) + tuple(
+        self.patches = (str(PLANNER_PATCH), str(self.skills_patch)) + tuple(
             str(Path(patch).resolve()) for patch in patches
         )
         self.base_url = base_url
@@ -95,6 +117,10 @@ class DeepSeekHarnessSession:
         if not text.strip():
             raise ValueError("Harness prompt must be nonempty")
         if self._session is None:
+            self.skills_patch.parent.mkdir(parents=True, exist_ok=True)
+            self.skills_patch.write_text(
+                json.dumps(skills_patch(self.skills_dir), indent=2) + "\n", encoding="utf-8"
+            )
             harness_class = _load_harness_class()
             self._harness = harness_class(
                 dsh_home=str(self.dsh_home),

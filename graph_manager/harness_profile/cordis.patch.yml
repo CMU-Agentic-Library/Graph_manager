@@ -1,4 +1,5 @@
-# Keep Harness session persistence and compaction, but give the planner no tools.
+# Keep Harness session persistence and compaction and its skill loader, but give the
+# planner no other tools. The skill root is set per session by the adapter.
 # A later patch may explicitly opt in to additional capabilities.
 - id: system-prompt
   config:
@@ -12,10 +13,6 @@
   disabled: true
 - id: agent-instructions
   disabled: true
-- id: skill
-  disabled: true
-- id: skill-filesystem
-  disabled: true
 - id: tool-bash
   disabled: true
 - id: tool-pwsh
@@ -25,8 +22,6 @@
 - id: tool-fs
   disabled: true
 - id: tool-fs-search
-  disabled: true
-- id: tool-skill
   disabled: true
 - id: plan-mode
   disabled: true
