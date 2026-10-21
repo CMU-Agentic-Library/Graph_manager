@@ -54,7 +54,7 @@ uv sync --locked --extra dev
 .venv/bin/ruff format --check .
 ```
 
-Copy the local vision-model route and edit its `baseURL` and model ID to match the served model. Skill loading is a tool call, so the served model must support tool calling (for vLLM, `--enable-auto-tool-choice` with the model's `--tool-call-parser`).
+Copy the local vision-model route and edit its `baseURL` and model ID to match the served model. Skill loading is a tool call, so the served model must support tool calling (for vLLM, `--enable-auto-tool-choice` with the model's `--tool-call-parser`). `examples/vllm-qwen3.5-4b.compose.yml` serves Qwen3.5-4B this way on port 8001.
 
 ```bash
 mkdir -p run

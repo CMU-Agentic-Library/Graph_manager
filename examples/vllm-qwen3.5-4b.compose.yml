@@ -1,0 +1,33 @@
+# Example vLLM server for Qwen3.5-4B, matching examples/harness-local-vlm.patch.yml.
+# This runs the model server, not Graph Manager. Edit the weights path and memory limits before use.
+#   docker compose -f examples/vllm-qwen3.5-4b.compose.yml up -d
+#   docker compose -f examples/vllm-qwen3.5-4b.compose.yml logs -f
+#   docker compose -f examples/vllm-qwen3.5-4b.compose.yml down
+services:
+  vllm:
+    image: vllm/vllm-openai:v0.32.0
+    container_name: qwen35-4b
+    network_mode: host
+    ipc: host
+    restart: unless-stopped
+    volumes:
+      - /data/ckpts:/models:ro
+      - /data/cache/vllm:/root/.cache
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    # Skill loading is a tool call, so tool choice and the Qwen3.5 tool-call parser are required.
+    # The simulator runs elsewhere, so the server takes vLLM's default share of the GPU.
+    command:
+      - --model=/models/Qwen3.5-4B
+      - --served-model-name=qwen3.5-4b
+      - --port=8001
+      - --gpu-memory-utilization=0.90
+      - --max-model-len=32768
+      - --reasoning-parser=qwen3
+      - --enable-auto-tool-choice
+      - --tool-call-parser=qwen3_coder
