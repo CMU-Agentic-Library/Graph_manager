@@ -221,7 +221,7 @@ class EpisodeRunnerTest(unittest.TestCase):
         self.assertIn("model_output_incomplete", session.turns[1][0])
 
     def test_time_budget_stops_before_running(self):
-        clock = itertools.chain([0.0], itertools.repeat(3500.0)).__next__
+        clock = itertools.chain([0.0], itertools.repeat(1620.0)).__next__
         environment = Environment()
         session = Session(plan("a"))
 

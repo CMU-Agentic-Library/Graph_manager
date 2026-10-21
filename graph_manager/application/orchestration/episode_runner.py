@@ -31,7 +31,7 @@ class _ModelError(Exception):
 class EpisodeLimits:
     max_replans: int = 5
     max_attempts_per_turn: int = 3
-    max_duration_s: float = 3600  # the environment's wall-clock limit per exp
+    max_duration_s: float = 1800  # the environment's wall-clock limit per exp (30 minutes)
     finish_reserve_s: float = 180  # call check_task once less than this is left
 
 
