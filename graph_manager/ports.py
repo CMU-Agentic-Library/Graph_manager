@@ -1,4 +1,4 @@
-"""Small interfaces between planning and external adapters."""
+"""Small interfaces between the application and its model, library, and environment adapters."""
 
 from typing import Protocol
 

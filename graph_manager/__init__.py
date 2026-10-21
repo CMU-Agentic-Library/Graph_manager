@@ -1,1 +1,1 @@
-"""Task-conditioned planning interfaces for the Skill Library."""
+"""Task-conditioned skill graph planning and execution for ZenoBench."""

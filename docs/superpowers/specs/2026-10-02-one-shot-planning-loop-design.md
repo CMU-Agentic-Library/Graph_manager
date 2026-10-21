@@ -1,5 +1,7 @@
 # One-shot planning loop design
 
+> **Historical:** this document records an earlier design and is superseded. See README.md for the current behavior (schema 2, vendored ZenoBench skills, `graph-manager-run`).
+
 ## Goal
 
 Graph Manager asks a VLM for one complete `task_plan` containing every semantic Subgoal and exactly one Skill Subgraph for each Subgoal. It checks the output, returns a precise list of program-verifiable errors to the same model conversation, and retries a bounded number of times. The accepted plan remains a proposal; robot execution and physical verification are separate future steps.

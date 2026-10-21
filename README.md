@@ -1,10 +1,10 @@
 # Graph Manager
 
-Graph Manager focuses on task-conditioned skill graphs and the VLM interface around them. It uses visual observations, a user's task, and a skill library to propose semantic subgoals and a skill subgraph for each subgoal. This repository defines how those outputs are represented, parsed, and checked against existing skill contracts. The robot skills and benchmark scenes are maintained by collaborators in the same project.
+Graph Manager focuses on task-conditioned skill graphs and the VLM interface around them. It uses visual observations, a user's task, and a skill library to propose semantic subgoals and a skill subgraph for each subgoal. This repository defines how those outputs are represented, parsed, and checked against existing skill contracts, and executes them against the ZenoBench environment service. The robot skills and benchmark scenes are maintained by collaborators in the same project.
 
 ## Architecture
 
-These figures show the intended architecture. The current planning loop, described below, produces all Subgoals and Skill Subgraphs in one model response; the illustrated per-Subgoal execution and reassessment loop is the longer-term design.
+These figures show the architecture. `graph-manager-plan` produces all Subgoals and Skill Subgraphs in one model response. `graph-manager-run` executes one Subgoal at a time and lets the model continue, replan, or finish after each one (see Closed-loop runs). Conditional links and fallback in Figure 2 are not implemented yet.
 
 [![Figure 1: Skill-graph-based agentic task execution](docs/diagrams/graph-manager-figure1.png)](docs/diagrams/graph-manager-figure1.svg)
 
@@ -54,7 +54,7 @@ uv sync --locked --extra dev
 .venv/bin/ruff format --check .
 ```
 
-Copy the local vision-model route and edit its `baseURL` and model ID to match the served model. Skill loading is a tool call, so the served model must support tool calling (for vLLM, `--enable-auto-tool-choice` with the model's `--tool-call-parser`). `examples/vllm-qwen3.5-4b.compose.yml` serves Qwen3.5-4B this way on port 8001.
+Skill loading is a tool call, so the served model must support tool calling (for vLLM, `--enable-auto-tool-choice` with the model's `--tool-call-parser`). `examples/vllm-qwen3.5-4b.compose.yml` serves Qwen3.5-4B this way on port 8001 as `qwen3.5-4b`, and `examples/harness-local-vlm.patch.yml` points Harness at that server. For another model, edit the patch's `baseURL` and model ID; `--model` must match the model ID.
 
 ```bash
 mkdir -p run
@@ -65,7 +65,7 @@ export LAB_VLM_API_KEY=dummy
   --image scene.png \
   --dsh-home run/dsh-home \
   --provider lab-vlm \
-  --model YOUR_SERVED_VLM_NAME \
+  --model qwen3.5-4b \
   --patch run/local-vlm.patch.yml \
   --output run/plan.json
 ```
@@ -80,11 +80,11 @@ The output records the plan, every attempt, the ZenoBench commit, and the Harnes
 .venv/bin/python scripts/smoke_env.py --env-url http://HOST:8800 probe   # reachability, no simulator
 export LAB_VLM_API_KEY=dummy
 .venv/bin/graph-manager-run --all --env-url http://HOST:8800 --out runs/2026-10-21 \
-  --dsh-home run/dsh-home --provider lab-vlm --model YOUR_SERVED_VLM_NAME \
+  --dsh-home run/dsh-home --provider lab-vlm --model qwen3.5-4b \
   --patch run/local-vlm.patch.yml
 ```
 
-Each task gets `result.json` and one `attempt_N/` directory per exp with `trajectory.jsonl` and the camera images; `summary.json` gives the counts and the success rate over decided tasks. Rerunning the same command keeps decided tasks and reruns errors. A task whose model call fails without any output (a timeout, an unreachable model server) is recorded as an error, not a failure, so it is rerun as well. A released exp restarts the task in a new exp and a new Harness session (at most twice); `503 BUSY` is retried every 30 seconds for up to 15 minutes.
+`--env-url` defaults to `$ZENOBENCH_ENV_URL`. Each task gets `result.json` and one `attempt_N/` directory per exp with `trajectory.jsonl` and the camera images in `images/`; `summary.json` gives the counts and the success rate over decided tasks. Rerunning the same command keeps decided tasks and reruns errors; a rerun starts again at `attempt_1/` and appends to the existing `trajectory.jsonl`. A task whose model call fails without any output (a timeout, an unreachable model server) is recorded as an error, not a failure, so it is rerun as well. Any environment error other than `503 BUSY` (a released exp, a crash, a timeout, a transport error) restarts the task in a new exp and a new Harness session (at most twice); `503 BUSY` is retried every 30 seconds for up to 15 minutes.
 
 `adapters/env_http.py` is the environment client. `application/execution/graph_executor.py` sends a Subgoal's nodes in dependency order as `do_contract` batches and fills `from` arguments from earlier outputs. `application/orchestration/` holds the episode loop, the batch runner, and the trajectory records.
 
@@ -96,7 +96,8 @@ Each task gets `result.json` and one `attempt_N/` directory per exp with `trajec
 | `ports.py` | Interfaces to the model session, skill library, and environment |
 | `adapters/` | DeepSeek Harness session, ZenoBench library files, environment HTTP client |
 | `application/execution/` | Execution layer: subgraph to contract batches |
-| `application/planning_service.py`, `application/input_builder.py`, `prompts/` | One-shot planning with validation feedback |
+| `application/planning_service.py`, `application/input_builder.py`, `prompts/task_plan.py` | One-shot planning with validation feedback |
 | `cli.py`, `plan_inputs.py` | Read local inputs, construct dependencies, write results |
-| `application/orchestration/` | Orchestration layer: closed-loop episodes, batch runs, trajectory records |
+| `application/orchestration/`, `prompts/episode.py` | Orchestration layer: closed-loop episodes and their prompts, batch runs, trajectory records |
+| `harness_profile/`, `vendor/zenobench/` | Harness profile patch; vendored ZenoBench skills and tasks |
 | `run_cli.py`, `harness_args.py` | `graph-manager-run` and the Harness options both commands share |

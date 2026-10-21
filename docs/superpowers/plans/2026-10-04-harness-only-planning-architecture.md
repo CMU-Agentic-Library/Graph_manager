@@ -1,5 +1,7 @@
 # Harness-Only Planning Architecture Implementation Plan
 
+> **Historical:** this document records an earlier design and is superseded. See README.md for the current behavior (schema 2, vendored ZenoBench skills, `graph-manager-run`).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Make DeepSeek Harness the sole model runtime and keep one clear Graph Manager planning path: build model input, validate the returned plan, and orchestrate corrective turns in one Harness session.

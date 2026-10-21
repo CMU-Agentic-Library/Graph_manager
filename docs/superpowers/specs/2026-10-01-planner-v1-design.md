@@ -1,5 +1,7 @@
 # Planner v1 design
 
+> **Historical:** this document records an earlier design and is superseded. See README.md for the current behavior (schema 2, vendored ZenoBench skills, `graph-manager-run`).
+
 ## Scope
 
 Graph Manager accepts a task goal, an optional image or observation text, the complete public Skill Library, and an optional GT entity catalog. A model first returns every semantic subgoal as JSON. It then returns one JSON Skill Subgraph per subgoal. Graph Manager parses and checks these proposals. No robot action is executed in this version.

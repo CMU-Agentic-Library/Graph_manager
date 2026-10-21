@@ -1,5 +1,7 @@
 # One-shot Planning Loop Implementation Plan
 
+> **Historical:** this document records an earlier design and is superseded. See README.md for the current behavior (schema 2, vendored ZenoBench skills, `graph-manager-run`).
+
 > **For agentic workers:** Use the test-driven-development workflow to implement each task inline. The user has already requested this refactor.
 
 **Goal:** Generate a complete task plan in one model response, return precise validation feedback in the same conversation, and keep planning layers separately maintainable.

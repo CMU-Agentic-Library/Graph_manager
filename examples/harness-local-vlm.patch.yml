@@ -1,4 +1,5 @@
-# Example DeepSeek Harness profile patch. Copy and edit the model ID before use.
+# Example DeepSeek Harness profile patch for the server in examples/vllm-qwen3.5-4b.compose.yml.
+# Copy it and edit baseURL and the model ID if you serve a different model.
 # This configures Harness, not the Skill Library or a task graph.
 - id: llm-pi-ai
   config:
@@ -6,10 +7,10 @@
       lab-vlm:
         apiKeyEnv: LAB_VLM_API_KEY
         api: openai-completions
-        baseURL: http://127.0.0.1:8000/v1
+        baseURL: http://127.0.0.1:8001/v1
         compat:
           supportsDeveloperRole: false
           maxTokensField: max_tokens
         models:
-          - id: REPLACE_WITH_SERVED_MODEL_ID
+          - id: qwen3.5-4b
             input: [text, image]
