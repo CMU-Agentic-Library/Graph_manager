@@ -1,4 +1,4 @@
-"""The HTTP client sends interface v2 requests and maps every failure to one error type."""
+"""The HTTP client sends interface v3 requests and maps every failure to one error type."""
 
 import io
 import json
@@ -6,10 +6,15 @@ import unittest
 import urllib.error
 
 from graph_manager.adapters.env_http import HttpEnvironment
-from graph_manager.domain.env_types import ContractCall
+from graph_manager.domain.env_types import ContractCall, TaskRequest
 from graph_manager.ports import EnvironmentPortError
 
 OBSERVATION = {"images": [], "objects": [], "robot": {}, "task_status": []}
+PROFILE = {
+    "name": "gt",
+    "observation": ["images", "objects", "robot", "task_status"],
+    "max_calls": 40,
+}
 
 
 class FakeResponse:
@@ -55,17 +60,18 @@ class HttpEnvironmentTest(unittest.TestCase):
             {
                 "exp_id": "e1",
                 "task": {"task_id": "collect_fruits", "name": "collect_fruits", "description": "d"},
+                "profile": PROFILE,
                 "observation": OBSERVATION,
             }
         )
         started = HttpEnvironment("http://env:8800/", urlopen=recorder).initial_task(
-            "collect_fruits"
+            TaskRequest("collect_fruits", profile="gt", seed=3)
         )
 
         request, timeout = recorder.requests[0]
         self.assertEqual("http://env:8800/initial_task", request.full_url)
         self.assertEqual("POST", request.get_method())
-        self.assertEqual({"task_id": "collect_fruits"}, recorder.body())
+        self.assertEqual({"task_id": "collect_fruits", "profile": "gt", "seed": 3}, recorder.body())
         self.assertEqual(900, timeout)
         self.assertEqual("e1", started.exp_id)
 
@@ -92,7 +98,7 @@ class HttpEnvironmentTest(unittest.TestCase):
 
     def test_check_task_and_observe(self):
         recorder = Recorder(
-            {"exp_id": "e1", "success": False, "goal": []},
+            {"exp_id": "e1", "success": False, "goal": [], "dropped": [], "episode": {}},
             {"exp_id": "e1", "state": "ready", "calls_used": 4, "observation": OBSERVATION},
         )
         environment = HttpEnvironment("http://env", urlopen=recorder)
@@ -134,8 +140,6 @@ class HttpEnvironmentTest(unittest.TestCase):
 
     def test_arguments_are_checked_before_sending(self):
         environment = HttpEnvironment("http://env", urlopen=Recorder())
-        with self.assertRaisesRegex(ValueError, "task_id"):
-            environment.initial_task(" ")
         with self.assertRaisesRegex(ValueError, "calls"):
             environment.do_contract("e1", [])
         with self.assertRaisesRegex(ValueError, "http"):

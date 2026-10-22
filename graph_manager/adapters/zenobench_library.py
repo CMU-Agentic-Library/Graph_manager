@@ -1,11 +1,22 @@
 """Read the ZenoBench Skill Library files synced into this package."""
 
 import json
+from dataclasses import dataclass
 from pathlib import Path
 
 from ..domain.skills import SkillCatalog, SkillSpec
 
 DEFAULT_ROOT = Path(__file__).resolve().parents[1] / "vendor" / "zenobench"
+
+
+@dataclass(frozen=True)
+class TaskEntry:
+    """One task of the synced index: never its goal, routes, or variant descriptions."""
+
+    task_id: str
+    catalog: str  # the ZenoBench catalog file, such as benchmark/v3/tasks.json
+    default_profile: str
+    variants: dict[str, str]  # variant name -> difficulty (easy, medium, hard, diagnostic)
 
 
 class ZenoBenchLibrary:
@@ -28,9 +39,12 @@ class ZenoBenchLibrary:
             tuple(SkillSpec.from_json(json.loads(p.read_text(encoding="utf-8"))) for p in paths)
         )
 
-    def task_ids(self) -> tuple[str, ...]:
+    def tasks(self) -> dict[str, TaskEntry]:
         data = json.loads((self.root / "tasks.json").read_text(encoding="utf-8"))
-        return tuple(task["id"] for task in data["tasks"])
+        return {task["task_id"]: TaskEntry(**task) for task in data["tasks"]}
+
+    def task_ids(self) -> tuple[str, ...]:
+        return tuple(self.tasks())
 
     def predicate_meanings(self) -> dict[str, str]:
         """Predicate name -> plain-language meaning, from every skill's conditions."""

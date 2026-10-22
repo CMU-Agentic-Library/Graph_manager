@@ -2,7 +2,14 @@
 
 from typing import Protocol
 
-from .domain.env_types import ContractCall, ExecutionReply, ExpStatus, GoalCheck, StartedTask
+from .domain.env_types import (
+    ContractCall,
+    ExecutionReply,
+    ExpStatus,
+    GoalCheck,
+    StartedTask,
+    TaskRequest,
+)
 from .domain.models import ImageInput
 from .domain.skills import SkillCatalog
 
@@ -30,9 +37,9 @@ class ModelPortError(RuntimeError):
 
 
 class EnvironmentPort(Protocol):
-    """The ZenoBench environment service (interface v2); one exp_id is one simulator."""
+    """The ZenoBench environment service (interface v3); one exp_id is one simulator."""
 
-    def initial_task(self, task_id: str) -> StartedTask:
+    def initial_task(self, request: TaskRequest) -> StartedTask:
         raise NotImplementedError
 
     def do_contract(self, exp_id: str, calls: list[ContractCall]) -> ExecutionReply:
@@ -64,3 +71,8 @@ class EnvironmentPortError(RuntimeError):
     def exp_gone(self) -> bool:
         """The service released the exp; only a new exp can continue the task."""
         return self.error_code in EXP_GONE_CODES
+
+    @property
+    def bad_request(self) -> bool:
+        """The service refused the request itself (400): retrying the same request cannot help."""
+        return self.http_status == 400

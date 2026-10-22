@@ -20,6 +20,7 @@ sys.path.insert(0, str(ROOT))
 from graph_manager.adapters.env_http import HttpEnvironment  # noqa: E402
 from graph_manager.adapters.zenobench_library import ZenoBenchLibrary  # noqa: E402
 from graph_manager.application.execution.graph_executor import GraphExecutor  # noqa: E402
+from graph_manager.domain.env_types import TaskRequest  # noqa: E402
 from graph_manager.domain.subgraph import validate_subgraph  # noqa: E402
 from graph_manager.ports import EnvironmentPortError  # noqa: E402
 
@@ -44,7 +45,7 @@ def save_images(observation, out: Path, step: str) -> None:
         (out / f"{step}_{image.camera}.png").write_bytes(image.png)
 
 
-def run(environment: HttpEnvironment, task_id: str, out: Path) -> int:
+def run(environment: HttpEnvironment, task_id: str, profile: str | None, out: Path) -> int:
     graph = json.loads((PLANS / f"{task_id}.skill_subgraph.json").read_text())
     catalog = ZenoBenchLibrary().load()
     issues = validate_subgraph(graph, catalog)
@@ -54,9 +55,9 @@ def run(environment: HttpEnvironment, task_id: str, out: Path) -> int:
     out.mkdir(parents=True, exist_ok=True)
 
     print(f"initial_task {task_id} (may take up to 13 minutes) ...")
-    started = environment.initial_task(task_id)
+    started = environment.initial_task(TaskRequest(task_id, profile=profile))
     print(f"exp {started.exp_id}: {started.task.description}")
-    print("objects:", [o.name for o in started.observation.objects])
+    print(f"profile {started.profile.name}: {list(started.profile.observation)}")
     save_images(started.observation, out, "00_initial")
 
     try:
@@ -77,7 +78,8 @@ def run(environment: HttpEnvironment, task_id: str, out: Path) -> int:
 
     # check_task also releases the simulator, so it runs even after a failed contract.
     check = environment.check_task(started.exp_id)
-    print(f"check_task success={check.success}")
+    print(f"check_task success={check.success} dropped={list(check.dropped)}")
+    print(f"  episode: {check.episode}")
     for atom in check.goal:
         print(f"  {atom}")
     print(f"images saved to {out}")
@@ -90,7 +92,8 @@ def main(argv: list[str] | None = None) -> int:
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("probe", help="check reachability; starts no simulator")
     run_parser = commands.add_parser("run", help="run one reference plan on a real simulator")
-    run_parser.add_argument("task_id")
+    run_parser.add_argument("task_id", help="a task with a reference plan (skill_library)")
+    run_parser.add_argument("--env-profile", choices=("gt", "benchmark"))
     run_parser.add_argument("--out", type=Path, default=ROOT / "run" / "smoke-env")
     args = parser.parse_args(argv)
 
@@ -98,7 +101,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command == "probe":
             return probe(environment)
-        return run(environment, args.task_id, args.out / args.task_id)
+        return run(environment, args.task_id, args.env_profile, args.out / args.task_id)
     except EnvironmentPortError as exc:
         print(f"environment error: {exc}", file=sys.stderr)
         return 1

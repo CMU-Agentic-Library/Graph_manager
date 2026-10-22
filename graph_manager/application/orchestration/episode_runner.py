@@ -6,7 +6,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from ...domain.decision import Decision, validate_decision
-from ...domain.env_types import Observation, StartedTask
+from ...domain.env_types import Observation, StartedTask, TaskRequest
 from ...domain.models import ImageInput, ProposalValidationError, ValidationIssue
 from ...domain.skills import SkillCatalog
 from ...domain.task_plan import validate_task_plan
@@ -37,7 +37,10 @@ class EpisodeLimits:
 
 @dataclass(frozen=True)
 class EpisodeResult:
-    task_id: str
+    """Everything a later summary may need about one episode."""
+
+    request: dict  # the initial_task request
+    profile: dict  # the profile the service ran: name, observation fields, max_calls
     exp_id: str
     session_id: str
     status: str  # "success" or "failure", from check_task
@@ -46,8 +49,13 @@ class EpisodeResult:
     # replan_limit, time_budget, or limit_exceeded
     reason: str
     goal: tuple[dict, ...]
+    dropped: tuple
+    env_episode: dict  # check_task's episode: variant, difficulty, seed, hashes
     replans: int
     subgoal_runs: int
+    contract_calls: int
+    model_turns: int  # every question sent to the model, retries included
+    invalid_replies: int  # replies refused by validation or cut short
     elapsed_s: float
 
     def to_json(self) -> dict:
@@ -88,16 +96,20 @@ class EpisodeRunner:
         self.clock = clock
         self.executor = GraphExecutor(environment, catalog)
 
-    def run(self, task_id: str) -> EpisodeResult:
-        started = self.environment.initial_task(task_id)
+    def run(self, request: TaskRequest) -> EpisodeResult:
+        started = self.environment.initial_task(request)
         self._started_at = self.clock()
         self._replans = 0
         self._subgoal_runs = 0
+        self._contract_calls = 0
+        self._model_turns = 0
+        self._invalid_replies = 0
         self._observation = started.observation
         self.recorder.event(
             "started",
             {
-                "task_id": task_id,
+                "request": request.to_json(),
+                "profile": dataclasses.asdict(started.profile),
                 "exp_id": started.exp_id,
                 "session_id": self.session.session_id,
                 "task": dataclasses.asdict(started.task),
@@ -120,14 +132,20 @@ class EpisodeRunner:
             raise
         self.recorder.event("check", {"reason": reason, **dataclasses.asdict(check)})
         return EpisodeResult(
-            task_id=task_id,
+            request=request.to_json(),
+            profile=dataclasses.asdict(started.profile),
             exp_id=started.exp_id,
             session_id=self.session.session_id,
             status="success" if check.success else "failure",
             reason=reason,
             goal=check.goal,
+            dropped=check.dropped,
+            env_episode=check.episode,
             replans=self._replans,
             subgoal_runs=self._subgoal_runs,
+            contract_calls=self._contract_calls,
+            model_turns=self._model_turns,
+            invalid_replies=self._invalid_replies,
             elapsed_s=self.clock() - self._started_at,
         )
 
@@ -149,6 +167,7 @@ class EpisodeRunner:
             subgoal, graph = pending[0]
             run = self.executor.run(started.exp_id, graph)
             self._subgoal_runs += 1
+            self._contract_calls += len(run.runs)
             if run.observation is not None:
                 self._observation = run.observation
             self._record_run(subgoal, run)
@@ -199,6 +218,7 @@ class EpisodeRunner:
         """
         for _ in range(self.limits.max_attempts_per_turn):
             self.recorder.event("model_turn", {"text": turn.text, "images": len(turn.images)})
+            self._model_turns += 1
             try:
                 raw_text = self.session.ask(turn.text, turn.images)
             except ModelPortError as exc:
@@ -207,6 +227,7 @@ class EpisodeRunner:
                 )
                 if exc.partial_output is None:
                     raise _ModelError(str(exc)) from exc
+                self._invalid_replies += 1
                 issue = ValidationIssue("$", "model_output_incomplete", str(exc))
                 turn = ModelTurn(feedback((issue,)))
                 continue
@@ -219,6 +240,7 @@ class EpisodeRunner:
             except ProposalValidationError as exc:
                 issues = [issue.to_json() for issue in exc.issues]
                 self.recorder.event("model_reply", {"raw_text": raw_text, "issues": issues})
+                self._invalid_replies += 1
                 turn = ModelTurn(feedback(exc.issues))
                 continue
             self.recorder.event(

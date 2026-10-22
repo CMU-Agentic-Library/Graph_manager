@@ -1,826 +1,645 @@
 {
- "schema_version": 2,
- "kind": "task_catalog",
- "note": "Goals are GT predicate atoms; skill_library/planner.py proves each task decomposes into SkillNodes.",
- "tasks": [
-  {
-   "id": "collect_fruits",
-   "annotation": "tasks/collect_fruits/annotation.json",
-   "task_json": "tasks/collect_fruits/task.json",
-   "description": "Collect both fruits into the basket on the bookcase.",
-   "entities": [
-    "apple",
-    "orange",
-    "fruit_basket",
-    "repair/dining_table_top",
-    "SimpleBookcaseFactory_6105320_spawn_asset_9196243/surface_3"
-   ],
-   "goal": [
-    [
-     "inside",
-     "apple",
-     "fruit_basket"
-    ],
-    [
-     "inside",
-     "orange",
-     "fruit_basket"
-    ]
-   ]
-  },
-  {
-   "id": "tidy_toys",
-   "annotation": "tasks/tidy_toys/annotation.json",
-   "task_json": "tasks/tidy_toys/task.json",
-   "description": "Store the toys (two on the floor) in the storage basket.",
-   "entities": [
-    "toy_car",
-    "toy_block",
-    "rubber_duck",
-    "storage_basket",
-    "TVStandFactory_6305370_spawn_asset_6627927/surface_1"
-   ],
-   "goal": [
-    [
-     "inside",
-     "toy_car",
-     "storage_basket"
-    ],
-    [
-     "inside",
-     "toy_block",
-     "storage_basket"
-    ],
-    [
-     "inside",
-     "rubber_duck",
-     "storage_basket"
-    ]
-   ]
-  },
-  {
-   "id": "shelve_books",
-   "annotation": "tasks/shelve_books/annotation.json",
-   "task_json": "tasks/shelve_books/task.json",
-   "description": "Shelve both flat books on bookcase tops.",
-   "entities": [
-    "book_red",
-    "book_green",
-    "SimpleDeskFactory_7424700_spawn_asset_8101679/surface_0",
-    "SimpleBookcaseFactory_6105320_spawn_asset_9196243/surface_3",
-    "SimpleBookcaseFactory_2318999_spawn_asset_8416993/surface_2"
-   ],
-   "goal": [
-    [
-     "on",
-     "book_red",
-     "SimpleBookcaseFactory_6105320_spawn_asset_9196243/surface_3"
-    ],
-    [
-     "on",
-     "book_green",
-     "SimpleBookcaseFactory_2318999_spawn_asset_8416993/surface_2"
-    ]
-   ]
-  },
-  {
-   "id": "desk_prep",
-   "annotation": "tasks/desk_prep/annotation.json",
-   "task_json": "tasks/desk_prep/task.json",
-   "description": "Bring notebook, pen and mug to the study desk.",
-   "entities": [
-    "notebook",
-    "pen",
-    "desk_mug",
-    "repair/dining_table_top",
-    "TVStandFactory_6305370_spawn_asset_6627927/surface_1",
-    "SimpleDeskFactory_7424700_spawn_asset_8101679/surface_0"
-   ],
-   "goal": [
-    [
-     "on",
-     "notebook",
-     "SimpleDeskFactory_7424700_spawn_asset_8101679/surface_0"
-    ],
-    [
-     "on",
-     "pen",
-     "SimpleDeskFactory_7424700_spawn_asset_8101679/surface_0"
-    ],
-    [
-     "on",
-     "desk_mug",
-     "SimpleDeskFactory_7424700_spawn_asset_8101679/surface_0"
-    ]
-   ]
-  },
-  {
-   "id": "breakfast_setup",
-   "annotation": "tasks/breakfast_setup/annotation.json",
-   "task_json": "tasks/breakfast_setup/task.json",
-   "description": "Set a breakfast place (plate, cup, spoon within 0.5 m).",
-   "entities": [
-    "plate",
-    "cup",
-    "spoon",
-    "repair/dining_table_top",
-    "TVStandFactory_6305370_spawn_asset_6627927/surface_1",
-    "TableDiningFactory_1437886_spawn_asset_2104395/surface_2"
-   ],
-   "goal": [
-    [
-     "grouped",
-     [
-      "plate",
-      "cup",
-      "spoon"
-     ],
-     "TableDiningFactory_1437886_spawn_asset_2104395/surface_2",
-     0.5
-    ]
-   ],
-   "composite": true,
-   "values": {
-    "object_list": [
-     [
-      "plate",
-      "cup",
-      "spoon"
-     ]
-    ]
-   }
-  },
-  {
-   "id": "heat_breakfast",
-   "annotation": "tasks/heat_breakfast/annotation.json",
-   "task_json": "tasks/heat_breakfast/task.json",
-   "description": "Fridge -> microwave -> dining table; doors closed.",
-   "entities": [
-    "oatmeal",
-    "breakfast_fridge",
-    "kitchen_microwave",
-    "breakfast_fridge/inside_shelf",
-    "kitchen_microwave/inside_floor",
-    "kitchen_microwave/start_button",
-    "TableDiningFactory_1437886_spawn_asset_2104395/surface_2"
-   ],
-   "goal": [
-    [
-     "temperature_at_least",
-     "oatmeal",
-     60.0
-    ],
-    [
-     "on",
-     "oatmeal",
-     "TableDiningFactory_1437886_spawn_asset_2104395/surface_2"
-    ],
-    [
-     "is_closed",
-     "breakfast_fridge"
-    ],
-    [
-     "is_closed",
-     "kitchen_microwave"
-    ]
-   ]
-  },
-  {
-   "id": "heat_breakfast_preloaded",
-   "annotation": "tasks/heat_breakfast_preloaded/annotation.json",
-   "task_json": "tasks/heat_breakfast_preloaded/task.json",
-   "description": "Oatmeal already in the microwave: heat it.",
-   "entities": [
-    "oatmeal",
-    "kitchen_microwave"
-   ],
-   "goal": [
-    [
-     "temperature_at_least",
-     "oatmeal",
-     60.0
-    ]
-   ],
-   "initial_facts_extra": [
-    [
-     "in_appliance",
-     "oatmeal",
-     "kitchen_microwave"
-    ]
-   ]
-  },
-  {
-   "id": "heat_breakfast_combo",
-   "annotation": "tasks/heat_breakfast_combo/annotation.json",
-   "task_json": "tasks/heat_breakfast_combo/task.json",
-   "description": "Heat oatmeal, serve milk from the fridge.",
-   "entities": [
-    "oatmeal",
-    "milk",
-    "kitchen_microwave",
-    "breakfast_fridge",
-    "TableDiningFactory_1437886_spawn_asset_2104395/surface_2",
-    "breakfast_fridge/inside_shelf"
-   ],
-   "goal": [
-    [
-     "temperature_at_least",
-     "oatmeal",
-     60.0
-    ],
-    [
-     "on",
-     "milk",
-     "TableDiningFactory_1437886_spawn_asset_2104395/surface_2"
-    ],
-    [
-     "is_closed",
-     "breakfast_fridge"
-    ]
-   ],
-   "initial_facts_extra": [
-    [
-     "in_appliance",
-     "oatmeal",
-     "kitchen_microwave"
-    ],
-    [
-     "in_appliance",
-     "milk",
-     "breakfast_fridge"
-    ]
-   ]
-  },
-  {
-   "id": "recycle_and_store",
-   "annotation": "tasks/recycle_and_store/annotation.json",
-   "task_json": "tasks/recycle_and_store/task.json",
-   "description": "Put can, carton and cube into the wide bin.",
-   "entities": [
-    "soda_can",
-    "snack_carton",
-    "foam_cube",
-    "wide_storage_bin",
-    "TVStandFactory_6305370_spawn_asset_6627927/surface_1",
-    "SimpleBookcaseFactory_6105320_spawn_asset_9196243/surface_3"
-   ],
-   "goal": [
-    [
-     "inside",
-     "soda_can",
-     "wide_storage_bin"
-    ],
-    [
-     "inside",
-     "snack_carton",
-     "wide_storage_bin"
-    ],
-    [
-     "inside",
-     "foam_cube",
-     "wide_storage_bin"
-    ]
-   ]
-  },
-  {
-   "id": "organize_utility_items",
-   "annotation": "tasks/organize_utility_items/annotation.json",
-   "task_json": "tasks/organize_utility_items/task.json",
-   "description": "Organize utility items onto the bookcase.",
-   "entities": [
-    "juice_bottle",
-    "tissue_box",
-    "paperback_book",
-    "shallow_sorting_tray",
-    "TVStandFactory_6305370_spawn_asset_6627927/surface_1",
-    "SimpleBookcaseFactory_6105320_spawn_asset_9196243/surface_3",
-    "repair/dining_table_top"
-   ],
-   "goal": [
-    [
-     "inside",
-     "juice_bottle",
-     "shallow_sorting_tray"
-    ],
-    [
-     "on",
-     "tissue_box",
-     "SimpleBookcaseFactory_6105320_spawn_asset_9196243/surface_3"
-    ],
-    [
-     "on",
-     "paperback_book",
-     "SimpleBookcaseFactory_6105320_spawn_asset_9196243/surface_3"
-    ]
-   ]
-  },
-  {
-   "id": "cook_tomato_soup",
-   "annotation": "tasks/kitchen_skills/annotation.json",
-   "task_json": "tasks/kitchen_skills/task.json",
-   "description": "Uncover the pot, stir, pour the tomatoes in, heat on the stove, and cover it again.",
-   "entities": [
-    "mug",
-    "handled_cooking_pot",
-    "pot_lid",
-    "cherry_tomato_1",
-    "breakfast_spoon",
-    "kitchen_island/top",
-    "kitchen_stove/top",
-    "kitchen_stove"
-   ],
-   "goal": [
-    [
-     "stirred",
-     "handled_cooking_pot"
-    ],
-    [
-     "temperature_at_least",
-     "cherry_tomato_1",
-     60.0
-    ],
-    [
-     "covered",
-     "handled_cooking_pot",
-     "pot_lid"
-    ]
-   ]
-  },
-  {
-   "id": "heat_without_microwave",
-   "annotation": "tasks/kitchen_skills/annotation.json",
-   "task_json": "tasks/kitchen_skills/task.json",
-   "description": "No microwave: heat the tomatoes in the mug on the stove's free burner.",
-   "entities": [
-    "mug",
-    "cherry_tomato_2",
-    "kitchen_island/top",
-    "kitchen_stove/top",
-    "kitchen_stove"
-   ],
-   "goal": [
-    [
-     "temperature_at_least",
-     "cherry_tomato_2",
-     45.0
-    ]
-   ]
-  },
-  {
-   "id": "heat_can_in_microwave",
-   "annotation": "tasks/kitchen_skills/annotation.json",
-   "task_json": "tasks/kitchen_skills/task.json",
-   "description": "Warm the can in the microwave.",
-   "entities": [
-    "soda_can",
-    "kitchen_microwave",
-    "kitchen_microwave/inside_floor",
-    "kitchen_island/top"
-   ],
-   "goal": [
-    [
-     "temperature_at_least",
-     "soda_can",
-     40.0
-    ],
-    [
-     "is_closed",
-     "kitchen_microwave"
-    ]
-   ]
-  },
-  {
-   "id": "chill_drink",
-   "annotation": "tasks/kitchen_skills/annotation.json",
-   "task_json": "tasks/kitchen_skills/task.json",
-   "description": "Chill the can in the fridge.",
-   "entities": [
-    "soda_can",
-    "breakfast_fridge",
-    "breakfast_fridge/inside_shelf",
-    "kitchen_island/top"
-   ],
-   "goal": [
-    [
-     "temperature_at_most",
-     "soda_can",
-     8.0
-    ]
-   ]
-  },
-  {
-   "id": "throw_away_can",
-   "annotation": "tasks/kitchen_skills/annotation.json",
-   "task_json": "tasks/kitchen_skills/task.json",
-   "description": "Throw the can into the trash.",
-   "entities": [
-    "soda_can",
-    "trash_can",
-    "kitchen_island/top"
-   ],
-   "goal": [
-    [
-     "inside",
-     "soda_can",
-     "trash_can"
-    ]
-   ]
-  },
-  {
-   "id": "stack_blocks",
-   "annotation": "tasks/kitchen_skills/annotation.json",
-   "task_json": "tasks/kitchen_skills/task.json",
-   "description": "Stack the blocks.",
-   "entities": [
-    "wooden_block_a",
-    "wooden_block_b",
-    "kitchen_island/top"
-   ],
-   "goal": [
-    [
-     "on_top_of",
-     "wooden_block_b",
-     "wooden_block_a"
-    ]
-   ]
-  },
-  {
-   "id": "wipe_island",
-   "annotation": "tasks/kitchen_skills/annotation.json",
-   "task_json": "tasks/kitchen_skills/task.json",
-   "description": "Wipe the prep island and put the sponge back.",
-   "entities": [
-    "kitchen_sponge",
-    "kitchen_island/top"
-   ],
-   "goal": [
-    [
-     "wiped",
-     "kitchen_island/top"
-    ],
-    [
-     "on",
-     "kitchen_sponge",
-     "kitchen_island/top"
-    ]
-   ]
-  },
-  {
-   "id": "lay_down_bottle",
-   "annotation": "tasks/kitchen_skills/annotation.json",
-   "task_json": "tasks/kitchen_skills/task.json",
-   "description": "Lay the bottle on its side.",
-   "entities": [
-    "juice_bottle",
-    "kitchen_island/top"
-   ],
-   "goal": [
-    [
-     "lying",
-     "juice_bottle"
-    ]
-   ]
-  },
-  {
-   "id": "roll_pin",
-   "annotation": "tasks/kitchen_skills/annotation.json",
-   "task_json": "tasks/kitchen_skills/task.json",
-   "description": "Roll the rolling pin.",
-   "entities": [
-    "rolling_pin",
-    "kitchen_island/top"
-   ],
-   "goal": [
-    [
-     "object_rolled",
-     "rolling_pin"
-    ]
-   ]
-  },
-  {
-   "id": "flip_book",
-   "annotation": "tasks/kitchen_skills/annotation.json",
-   "task_json": "tasks/kitchen_skills/task.json",
-   "description": "Turn the book over.",
-   "entities": [
-    "paperback_book",
-    "kitchen_island/top"
-   ],
-   "goal": [
-    [
-     "flipped",
-     "paperback_book"
-    ]
-   ]
-  },
-  {
-   "id": "hide_block",
-   "annotation": "tasks/kitchen_skills/annotation.json",
-   "task_json": "tasks/kitchen_skills/task.json",
-   "description": "Hide the block in the covered pot.",
-   "entities": [
-    "wooden_block_b",
-    "handled_cooking_pot",
-    "pot_lid",
-    "kitchen_island/top",
-    "kitchen_stove/top"
-   ],
-   "goal": [
-    [
-     "hidden",
-     "wooden_block_b"
-    ]
-   ],
-   "composite": true
-  },
-  {
-   "id": "greet_and_point",
-   "annotation": "tasks/kitchen_skills/annotation.json",
-   "task_json": "tasks/kitchen_skills/task.json",
-   "description": "Wave, nod and point at the trash can.",
-   "entities": [
-    "trash_can"
-   ],
-   "goal": [
-    [
-     "waved"
-    ],
-    [
-     "nodded"
-    ],
-    [
-     "pointing_at",
-     "trash_can"
-    ]
-   ]
-  },
-  {
-   "id": "find_lid",
-   "annotation": "tasks/kitchen_skills/annotation.json",
-   "task_json": "tasks/kitchen_skills/task.json",
-   "description": "Find the pot lid.",
-   "entities": [
-    "pot_lid",
-    "living_room_0_0"
-   ],
-   "goal": [
-    [
-     "observed",
-     "pot_lid"
-    ]
-   ]
-  },
-  {
-   "id": "explore_living_room",
-   "annotation": "tasks/kitchen_skills/annotation.json",
-   "task_json": "tasks/kitchen_skills/task.json",
-   "description": "Explore the living room.",
-   "entities": [
-    "living_room_0_0"
-   ],
-   "goal": [
-    [
-     "room_explored",
-     "living_room_0_0"
-    ]
-   ]
-  },
-  {
-   "id": "count_tomatoes",
-   "annotation": "tasks/kitchen_skills/annotation.json",
-   "task_json": "tasks/kitchen_skills/task.json",
-   "description": "Count the cherry tomatoes.",
-   "entities": [
-    "cherry_tomato_1"
-   ],
-   "goal": [
-    [
-     "counted",
-     "cherry_tomato"
-    ]
-   ],
-   "values": {
-    "tag": [
-     "cherry_tomato"
-    ]
-   }
-  },
-  {
-   "id": "inspect_cabinet",
-   "annotation": "tasks/kitchen_skills/annotation.json",
-   "task_json": "tasks/kitchen_skills/task.json",
-   "description": "Look inside the sideboard and leave it closed.",
-   "entities": [
-    "KitchenCabinetFactory_7025538_spawn_asset_6631478"
-   ],
-   "goal": [
-    [
-     "observed",
-     "KitchenCabinetFactory_7025538_spawn_asset_6631478"
-    ],
-    [
-     "is_closed",
-     "KitchenCabinetFactory_7025538_spawn_asset_6631478"
-    ]
-   ]
-  },
-  {
-   "id": "knock_then_open",
-   "annotation": "tasks/kitchen_skills/annotation.json",
-   "task_json": "tasks/kitchen_skills/task.json",
-   "description": "Knock on the sideboard door, then open it.",
-   "entities": [
-    "KitchenCabinetFactory_7025538_spawn_asset_6631478"
-   ],
-   "goal": [
-    [
-     "knocked",
-     "KitchenCabinetFactory_7025538_spawn_asset_6631478"
-    ],
-    [
-     "is_open",
-     "KitchenCabinetFactory_7025538_spawn_asset_6631478"
-    ]
-   ]
-  },
-  {
-   "id": "square_block",
-   "annotation": "tasks/kitchen_skills/annotation.json",
-   "task_json": "tasks/kitchen_skills/task.json",
-   "description": "Square the block on the island.",
-   "entities": [
-    "wooden_block_a",
-    "kitchen_island/top"
-   ],
-   "goal": [
-    [
-     "squared",
-     "wooden_block_a"
-    ]
-   ]
-  },
-  {
-   "id": "swap_blocks",
-   "annotation": "tasks/kitchen_skills/annotation.json",
-   "task_json": "tasks/kitchen_skills/task.json",
-   "description": "Swap the block and the can.",
-   "entities": [
-    "wooden_block_a",
-    "soda_can",
-    "kitchen_island/top"
-   ],
-   "goal": [
-    [
-     "positions_swapped",
-     "wooden_block_a",
-     "soda_can"
-    ]
-   ],
-   "composite": true
-  },
-  {
-   "id": "sort_items",
-   "annotation": "tasks/kitchen_skills/annotation.json",
-   "task_json": "tasks/kitchen_skills/task.json",
-   "description": "Sort recyclables into the trash, blocks into the mug.",
-   "entities": [
-    "soda_can",
-    "wooden_block_b",
-    "trash_can",
-    "mug",
-    "kitchen_island/top"
-   ],
-   "goal": [
-    [
-     "sorted_by_category",
-     [
-      "soda_can",
-      "wooden_block_b"
-     ],
-     {
-      "recyclable": "trash_can",
-      "block": "mug"
-     }
-    ]
-   ],
-   "composite": true,
-   "values": {
-    "category_map": [
-     {
-      "recyclable": "trash_can",
-      "block": "mug"
-     }
-    ],
-    "object_list": [
-     [
-      "soda_can",
-      "wooden_block_b"
-     ]
-    ]
-   }
-  },
-  {
-   "id": "empty_mug",
-   "annotation": "tasks/kitchen_skills/annotation.json",
-   "task_json": "tasks/kitchen_skills/task.json",
-   "description": "Take the tomatoes out of the mug.",
-   "entities": [
-    "mug",
-    "kitchen_island/top"
-   ],
-   "goal": [
-    [
-     "container_empty",
-     "mug"
-    ]
-   ],
-   "composite": true
-  },
-  {
-   "id": "clear_tv_stand",
-   "annotation": "tasks/organize_utility_items/annotation.json",
-   "task_json": "tasks/organize_utility_items/task.json",
-   "description": "Clear the TV stand onto the bookcase.",
-   "entities": [
-    "juice_bottle",
-    "tissue_box",
-    "TVStandFactory_6305370_spawn_asset_6627927/surface_1",
-    "SimpleBookcaseFactory_6105320_spawn_asset_9196243/surface_3"
-   ],
-   "goal": [
-    [
-     "support_clear",
-     "TVStandFactory_6305370_spawn_asset_6627927/surface_1"
-    ]
-   ],
-   "composite": true
-  },
-  {
-   "id": "sweep_blocks",
-   "annotation": "tasks/kitchen_skills/annotation.json",
-   "task_json": "tasks/kitchen_skills/task.json",
-   "description": "Sweep the blocks together.",
-   "entities": [
-    "wooden_block_a",
-    "wooden_block_b",
-    "kitchen_island/top"
-   ],
-   "goal": [
-    [
-     "clustered",
-     [
-      "wooden_block_a",
-      "wooden_block_b"
-     ],
-     0.12
-    ]
-   ],
-   "values": {
-    "object_list": [
-     [
-      "wooden_block_a",
-      "wooden_block_b"
-     ]
-    ]
-   }
-  },
-  {
-   "id": "present_block",
-   "annotation": "tasks/kitchen_skills/annotation.json",
-   "task_json": "tasks/kitchen_skills/task.json",
-   "description": "Show the block to the camera.",
-   "entities": [
-    "wooden_block_a",
-    "kitchen_island/top"
-   ],
-   "goal": [
-    [
-     "presenting",
-     "wooden_block_a"
-    ]
-   ]
-  },
-  {
-   "id": "serve_in_left_hand",
-   "annotation": "tasks/kitchen_skills/annotation.json",
-   "task_json": "tasks/kitchen_skills/task.json",
-   "description": "Carry the block in the left hand and open the sideboard with the right.",
-   "entities": [
-    "wooden_block_a",
-    "KitchenCabinetFactory_7025538_spawn_asset_6631478",
-    "kitchen_island/top"
-   ],
-   "goal": [
-    [
-     "holding",
-     "left",
-     "wooden_block_a"
-    ],
-    [
-     "is_open",
-     "KitchenCabinetFactory_7025538_spawn_asset_6631478"
-    ]
-   ]
-  }
- ]
+  "schema_version": 1,
+  "kind": "task_index",
+  "tasks": [
+    {
+      "task_id": "collect_fruits",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "tidy_toys",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "shelve_books",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "desk_prep",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "breakfast_setup",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "heat_breakfast",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "heat_breakfast_preloaded",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "heat_breakfast_combo",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "recycle_and_store",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "organize_utility_items",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "cook_tomato_soup",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "heat_without_microwave",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "heat_can_in_microwave",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "chill_drink",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "throw_away_can",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "stack_blocks",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "wipe_island",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "lay_down_bottle",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "roll_pin",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "flip_book",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "hide_block",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "greet_and_point",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "find_lid",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "explore_living_room",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "count_tomatoes",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "inspect_cabinet",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "knock_then_open",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "square_block",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "swap_blocks",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "sort_items",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "empty_mug",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "clear_tv_stand",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "sweep_blocks",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "present_block",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "serve_in_left_hand",
+      "catalog": "skill_library/tasks.json",
+      "default_profile": "gt",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "T01_book_to_dining_table",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "overhang_ready": "easy",
+        "no_overhang": "medium",
+        "far_no_overhang": "hard"
+      }
+    },
+    {
+      "task_id": "T02_stack_blocks",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "clear": "easy",
+        "crowded": "medium",
+        "far_crowded": "hard"
+      }
+    },
+    {
+      "task_id": "T03_utensils_one_container",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "small_and_large": "medium",
+        "large_only": "easy",
+        "far_small_and_large": "hard"
+      }
+    },
+    {
+      "task_id": "T04_cup_or_mug_to_cabinet",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "cup_available": "easy",
+        "no_cup": "medium",
+        "no_cup_mug_away": "hard"
+      }
+    },
+    {
+      "task_id": "T05_pen_or_pencil_to_desk",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "pen_available": "diagnostic",
+        "no_pen": "medium",
+        "no_pen_pencil_away": "hard"
+      }
+    },
+    {
+      "task_id": "T06_block_destination_occupied",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "free": "easy",
+        "occupied": "medium",
+        "occupied_block_away": "hard"
+      }
+    },
+    {
+      "task_id": "T07_heat_oatmeal",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "microwave_works": "easy",
+        "microwave_broken": "medium",
+        "broken_oatmeal_away": "hard"
+      }
+    },
+    {
+      "task_id": "T08_wipe_island",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "sponge_on_island": "easy",
+        "sponge_on_tv_stand": "medium",
+        "far_sponge_tv": "hard"
+      }
+    },
+    {
+      "task_id": "T09_tomato_soup",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "lid_on": "medium",
+        "lid_off": "easy",
+        "lid_on_spoon_away": "hard"
+      }
+    },
+    {
+      "task_id": "T10_trash_the_can",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "can_on_island": "easy",
+        "can_in_dining_room": "medium",
+        "far_can_far": "hard"
+      }
+    },
+    {
+      "task_id": "T11_collect_fruits",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "fruits_on_table": "easy",
+        "basket_missing": "medium"
+      }
+    },
+    {
+      "task_id": "T12_tidy_toys",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "toys_out": "easy",
+        "duck_in_study": "medium"
+      }
+    },
+    {
+      "task_id": "T13_breakfast_setup",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "dishes_on_tv_stand": "easy",
+        "no_cup": "medium",
+        "bowl_on_cabinet": "medium",
+        "no_cup_bowl_on_cabinet": "hard"
+      }
+    },
+    {
+      "task_id": "T15_book_face_up",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "book_free": "easy",
+        "book_out_of_view": "medium"
+      }
+    },
+    {
+      "task_id": "T16_rolling_pin_at_edge",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "pin_free": "easy",
+        "pin_out_of_view": "medium"
+      }
+    },
+    {
+      "task_id": "T17_hide_and_seek_block",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "lid_off": "easy",
+        "lid_on": "medium",
+        "block_crowded": "medium",
+        "lid_on_crowded": "hard",
+        "far_lid_on": "hard"
+      }
+    },
+    {
+      "task_id": "T18_check_cabinet_dishes",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "at_island": "easy"
+      }
+    },
+    {
+      "task_id": "T19_recycling",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "bin_on_bookcase": "easy"
+      }
+    },
+    {
+      "task_id": "T20_juice_back_to_table",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "bottle_on_cabinet": "easy"
+      }
+    },
+    {
+      "task_id": "T14_shelve_the_book",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "book_on_desk": "medium"
+      }
+    },
+    {
+      "task_id": "P01_body_and_gesture",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "P02_perception",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "P03_rolling_pin",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "P04_bottle",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "P05_flip_book",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "P06_two_hands",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "P07_present_and_brace",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "P08_block_alignment",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "P09_sweep_blocks",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "P11_stove_cycle",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "P12_cabinet",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "P13_microwave_buttons",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "P14_restore_swap",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "P15_arrange_and_sort",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "P16_empty_mug",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "P17_pour",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "P19_spoon_dip",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "P20_hide_block",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "P21_clear_cabinet",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "P22_chill_oatmeal",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "default": "easy"
+      }
+    },
+    {
+      "task_id": "P18_floor_pick",
+      "catalog": "benchmark/v3/tasks.json",
+      "default_profile": "benchmark",
+      "variants": {
+        "default": "easy"
+      }
+    }
+  ]
 }

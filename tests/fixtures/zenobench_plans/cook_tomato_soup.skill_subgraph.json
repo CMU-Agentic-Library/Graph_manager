@@ -81,7 +81,7 @@
    "skill": "navigate",
    "args": {
     "destination": {
-     "value": "cherry_tomato_2"
+     "value": "cherry_tomato_1"
     }
    },
    "depends_on": [
@@ -165,7 +165,7 @@
    "skill": "navigate",
    "args": {
     "destination": {
-     "value": "pot_lid"
+     "value": "handled_cooking_pot"
     }
    },
    "depends_on": [
@@ -186,18 +186,6 @@
   },
   {
    "id": "n15",
-   "skill": "navigate",
-   "args": {
-    "destination": {
-     "value": "handled_cooking_pot"
-    }
-   },
-   "depends_on": [
-    "n14"
-   ]
-  },
-  {
-   "id": "n16",
    "skill": "cover",
    "args": {
     "container": {
@@ -208,7 +196,7 @@
     }
    },
    "depends_on": [
-    "n15"
+    "n14"
    ]
   }
  ]
