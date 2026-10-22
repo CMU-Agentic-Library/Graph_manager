@@ -100,6 +100,9 @@ class PlanningServiceTest(unittest.TestCase):
         self.assertEqual("unknown_skill", caught.exception.issues[0].code)
         self.assertEqual(2, caught.exception.to_json()["schema_version"])
 
+    def test_five_attempts_by_default(self):
+        self.assertEqual(5, PlanningService(LIBRARY, ScriptedSession([])).max_attempts)
+
 
 if __name__ == "__main__":
     unittest.main()

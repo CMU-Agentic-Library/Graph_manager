@@ -32,7 +32,7 @@ def run(argv: list[str] | None = None) -> int:
     add_harness_arguments(parser)
     parser.add_argument("--concurrency", type=int, default=2)
     parser.add_argument("--max-replans", type=int, default=5)
-    parser.add_argument("--max-attempts-per-turn", type=int, default=3)
+    parser.add_argument("--max-attempts-per-turn", type=int, default=5)
     args = parser.parse_args(argv)
 
     try:

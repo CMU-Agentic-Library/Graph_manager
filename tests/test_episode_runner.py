@@ -179,13 +179,13 @@ class EpisodeRunnerTest(unittest.TestCase):
 
     def test_model_gives_up_after_invalid_replies(self):
         environment = Environment(success=False)
-        session = Session("{bad", "{bad", "{bad")
+        session = Session(*["{bad"] * 5)
 
         result, _ = self.run_episode(environment, session)
 
         self.assertEqual(("failure", "model_gave_up"), (result.status, result.reason))
         self.assertEqual([], environment.batches)
-        self.assertEqual(3, len(session.turns))
+        self.assertEqual(5, len(session.turns))
         self.assertIn("json_syntax", session.turns[1][0])
 
     def test_model_error_without_output_ends_at_once(self):
@@ -212,13 +212,16 @@ class EpisodeRunnerTest(unittest.TestCase):
     def test_partial_outputs_until_attempts_run_out_give_up(self):
         environment = Environment(success=False)
         partial = ModelPortError("max tokens", partial_output='{"kind"')
-        session = Session(partial, partial, partial)
+        session = Session(*[partial] * 5)
 
         result, _ = self.run_episode(environment, session)
 
         self.assertEqual("model_gave_up", result.reason)
-        self.assertEqual(3, len(session.turns))
+        self.assertEqual(5, len(session.turns))
         self.assertIn("model_output_incomplete", session.turns[1][0])
+
+    def test_each_turn_allows_five_attempts_by_default(self):
+        self.assertEqual(5, EpisodeLimits().max_attempts_per_turn)
 
     def test_time_budget_stops_before_running(self):
         clock = itertools.chain([0.0], itertools.repeat(3500.0)).__next__

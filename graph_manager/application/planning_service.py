@@ -18,7 +18,7 @@ class PlanningService:
         self,
         repository: SkillLibraryPort,
         session: PlanningSessionPort,
-        max_attempts: int = 3,
+        max_attempts: int = 5,
         input_builder: PlanningInputBuilder | None = None,
     ):
         if type(max_attempts) is not int or max_attempts < 1:

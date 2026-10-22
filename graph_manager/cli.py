@@ -20,7 +20,7 @@ def run(argv: list[str] | None = None) -> int:
     )
     add_harness_arguments(parser)
     parser.add_argument("--session-id", help="Harness session ID; use a fresh ID per invocation")
-    parser.add_argument("--max-attempts", type=int, default=3)
+    parser.add_argument("--max-attempts", type=int, default=5)
     parser.add_argument("--output", required=True, type=Path)
     args = parser.parse_args(argv)
 
