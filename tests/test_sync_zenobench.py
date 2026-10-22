@@ -1,6 +1,7 @@
 """The sync script copies only the pinned ZenoBench files Graph Manager uses."""
 
 import importlib.util
+import json
 import subprocess
 import tempfile
 import unittest
@@ -23,7 +24,30 @@ def make_checkout(root: Path) -> None:
     (library / "plans").mkdir()
     (library / "plans" / "collect_fruits.skill_subgraph.json").write_text("{}")
     (library / "plans" / "summary.json").write_text("[]")
-    (library / "tasks.json").write_text('{"tasks": []}')
+    (library / "tasks.json").write_text(
+        '{"tasks": [{"task_id": "collect_fruits", "goal": {}, "variants": {"default": {}}}]}'
+    )
+    benchmark = root / "benchmark" / "v3"
+    benchmark.mkdir(parents=True)
+    (benchmark / "tasks.json").write_text(
+        json.dumps(
+            {
+                "tasks": [
+                    {
+                        "task_id": "T01",
+                        "goal": {"all": ["secret"]},
+                        "routes": {},
+                        "variants": {
+                            "plain": {"note": "secret"},
+                            "blocked": {"conditions": ["no_overhang"]},
+                            "far": {"conditions": ["start_elsewhere", "no_overhang"]},
+                            "probe": {"difficulty": "diagnostic"},
+                        },
+                    }
+                ]
+            }
+        )
+    )
     subprocess.run(["git", "init", "-q", str(root)], check=True)
     subprocess.run(["git", "-C", str(root), "add", "."], check=True)
     subprocess.run(
@@ -58,7 +82,30 @@ class SyncZenoBenchTest(unittest.TestCase):
         self.assertEqual(head + "\n", (self.vendor / "COMMIT").read_text())
         self.assertTrue((self.vendor / "skills" / "skill_001" / "SKILL.md").is_file())
         self.assertTrue((self.vendor / "skills" / "skill_001" / "skill.json").is_file())
-        self.assertTrue((self.vendor / "tasks.json").is_file())
+        index = json.loads((self.vendor / "tasks.json").read_text())
+        self.assertEqual(
+            [
+                {
+                    "task_id": "collect_fruits",
+                    "catalog": "skill_library/tasks.json",
+                    "default_profile": "gt",
+                    "variants": {"default": "easy"},
+                },
+                {
+                    "task_id": "T01",
+                    "catalog": "benchmark/v3/tasks.json",
+                    "default_profile": "benchmark",
+                    "variants": {
+                        "plain": "easy",
+                        "blocked": "medium",
+                        "far": "hard",
+                        "probe": "diagnostic",
+                    },
+                },
+            ],
+            index["tasks"],
+        )
+        self.assertNotIn("secret", (self.vendor / "tasks.json").read_text())
         self.assertEqual(
             ["collect_fruits.skill_subgraph.json"],
             sorted(p.name for p in self.fixtures.iterdir()),

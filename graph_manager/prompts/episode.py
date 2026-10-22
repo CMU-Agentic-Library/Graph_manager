@@ -1,7 +1,7 @@
 """Model-visible text for the closed loop: the task start and the report after each subgoal.
 
 The evaluator's task_status is never included: it would tell the model how close it is
-to the answer.
+to the answer. Coordinates are left out too: skills take scene names, not positions.
 """
 
 import json
@@ -33,6 +33,18 @@ ERROR_MEANINGS = {
     "POSTCONDITION_FAILED": "The motion finished, but its intended effect does not hold.",
     "SUBSKILL_FAILED": "One step inside this composite skill failed; see failed_step.",
     "INTERNAL_ERROR": "The simulator raised an error while running the call.",
+    "NOT_OBSERVED": (
+        "The robot has not seen this object yet, or no object has this name; the call was not "
+        "run. Find it first with search or explore, then retry."
+    ),
+    "NOT_IN_VIEW": (
+        "The object to act on is neither in the current view nor in a hand; the call was not "
+        "run. Look at it first with look, then retry."
+    ),
+    "NOT_FOUND": (
+        "The object is no longer where it was last seen; the head may have turned. Search for "
+        "it again."
+    ),
     "LIMIT_EXCEEDED": "The call or time budget for this task is used up.",
 }
 RUN_NOTES = {
@@ -53,20 +65,93 @@ LOOP_INSTRUCTION = (
     "remaining work. Start with the subgoal that failed, if one did, and leave out subgoals "
     "that already succeeded;\n"
     '- {"kind": "finish"} when the task is complete.\n'
+    "An object shown as <unobserved> is one the robot has not seen; it is not a scene name.\n"
     f"{ONLY_JSON}"
 )
+# Never shown as text: the evaluator's truth, and last_result (the subgoal report already
+# holds every call result).
+HIDDEN_FIELDS = frozenset({"task_status", "last_result"})
+SHOWN_FIELDS = ("objects", "visible_objects", "observation_cache", "known_places", "robot")
 
 
-def observation_text(observation: Observation) -> str:
-    """Objects, robot state, and camera names; never the evaluator's task_status."""
-    lines = ["Scene objects (use these exact names in refs):"]
-    lines += [f"- {o.name} ({o.kind}) at {list(o.position)}" for o in observation.objects]
-    robot = observation.robot
-    lines.append(f"Robot base pose [x, y, yaw_deg]: {robot.get('base_pose')}")
+def _where(item: dict) -> str:
+    if item.get("last_seen_in"):
+        return f"in {item['last_seen_in']}"
+    if item.get("last_seen_on"):
+        return f"on {item['last_seen_on']}"
+    return "place unknown"
+
+
+def _seen_line(item: dict) -> str:
+    """One visible_objects or observation_cache entry: name, category, and where it is."""
+    where = "held" if item.get("held") else _where(item)
+    return f"- {item.get('name')} ({item.get('category')}), {where}"
+
+
+def _places_lines(places: dict) -> list[str]:
+    """Places grouped by room; rooms first in the order given, then places with no room."""
+    rooms = {name: [] for name, place in places.items() if place.get("kind") == "room"}
+    elsewhere = []
+    for name, place in places.items():
+        if place.get("kind") == "room":
+            continue
+        entry = f"{name} ({place.get('kind')})"
+        if place.get("room") in rooms:
+            rooms[place["room"]].append(entry)
+        else:
+            elsewhere.append(entry)
+    lines = [
+        f"- {room}: {', '.join(entries) or 'nothing listed'}" for room, entries in rooms.items()
+    ]
+    if elsewhere:
+        lines.append(f"- no room given: {', '.join(elsewhere)}")
+    return lines
+
+
+def _robot_lines(robot: dict) -> list[str]:
+    lines = []
+    if robot.get("room"):
+        lines.append(f"Robot is in room: {robot['room']}")
     lines.append(
         f"Right hand holds: {robot.get('held_right') or 'nothing'}; "
         f"left hand holds: {robot.get('held_left') or 'nothing'}"
     )
+    if robot.get("temperatures_c"):
+        temperatures = ", ".join(f"{k} {v}" for k, v in robot["temperatures_c"].items())
+        lines.append(f"Temperatures of foods seen, in degrees C: {temperatures}")
+    return lines
+
+
+def observation_text(observation: Observation) -> str:
+    """Every observation field the profile turned on, except evaluator truth and coordinates.
+
+    Fields this module does not know are shown as compact JSON, so a new environment field
+    reaches the model without a code change.
+    """
+    fields = observation.fields
+    lines = []
+    if "objects" in fields:
+        lines.append("Scene objects (use these exact names in refs):")
+        lines += [f"- {o.get('name')} ({o.get('kind')})" for o in fields["objects"]]
+    if "visible_objects" in fields:
+        lines.append("Objects in view now (use these exact names in refs):")
+        lines += [_seen_line(o) for o in fields["visible_objects"]] or ["- none"]
+    if "observation_cache" in fields:
+        in_view = {o.get("name") for o in fields.get("visible_objects") or ()}
+        earlier = [o for o in fields["observation_cache"] if o.get("name") not in in_view]
+        if earlier:
+            lines.append(
+                "Objects seen earlier, by where they were last seen (they may have moved since):"
+            )
+            lines += [_seen_line(o) for o in earlier]
+    if fields.get("known_places"):
+        lines.append("Known places from the floor plan, by room:")
+        lines += _places_lines(fields["known_places"])
+    if "robot" in fields:
+        lines += _robot_lines(fields["robot"])
+    for key, value in fields.items():
+        if key not in HIDDEN_FIELDS and key not in SHOWN_FIELDS:
+            lines.append(f"{key}: {json.dumps(value, ensure_ascii=False, separators=(',', ':'))}")
     if observation.images:
         cameras = ", ".join(image.camera for image in observation.images)
         lines.append(f"Attached camera images, in order: {cameras}")

@@ -1,14 +1,22 @@
-"""HTTP client for the ZenoBench environment service (interface v2)."""
+"""HTTP client for the ZenoBench environment service (interface v3)."""
 
 import json
 import urllib.error
 import urllib.request
 from collections.abc import Callable
 
-from ..domain.env_types import ContractCall, ExecutionReply, ExpStatus, GoalCheck, StartedTask
+from ..domain.env_types import (
+    ContractCall,
+    ExecutionReply,
+    ExpStatus,
+    GoalCheck,
+    StartedTask,
+    TaskRequest,
+)
 from ..ports import EnvironmentPortError
 
-# Client timeouts in seconds, from interface v2. initial_task includes any queue wait.
+# Client timeouts in seconds, from interface v3. initial_task includes waiting for an earlier
+# simulator to start.
 TIMEOUTS = {"initial_task": 15 * 60, "do_contract": 30 * 60, "check_task": 30 * 60, "observe": 60}
 
 
@@ -37,10 +45,8 @@ class HttpEnvironment:
         self._urlopen = urlopen
         self.timeouts = {**TIMEOUTS, **(timeouts or {})}
 
-    def initial_task(self, task_id: str) -> StartedTask:
-        if not task_id.strip():
-            raise ValueError("task_id must be nonempty")
-        return self._call("initial_task", {"task_id": task_id}, StartedTask.from_json)
+    def initial_task(self, request: TaskRequest) -> StartedTask:
+        return self._call("initial_task", request.to_json(), StartedTask.from_json)
 
     def do_contract(self, exp_id: str, calls: list[ContractCall]) -> ExecutionReply:
         if not calls:

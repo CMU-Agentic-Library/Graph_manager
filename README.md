@@ -16,7 +16,7 @@ These figures show the architecture. `graph-manager-plan` produces all Subgoals 
 
 ## Skill Library
 
-Skills come from [ZenoBench](https://github.com/CMU-Agentic-Library/ZenoBench), which provides the underlying robot skills and the environment service. Graph Manager keeps no skill definitions of its own. `scripts/sync_zenobench.py` copies `skill_library/skills/*/{SKILL.md,skill.json}` and `tasks.json` from a local ZenoBench checkout into `graph_manager/vendor/zenobench/` and records the commit in `COMMIT`. The 35 reference subgraphs from `skill_library/plans/` go to `tests/fixtures/zenobench_plans/` and are used only as test data.
+Skills come from [ZenoBench](https://github.com/CMU-Agentic-Library/ZenoBench), which provides the underlying robot skills and the environment service. Graph Manager keeps no skill definitions of its own. `scripts/sync_zenobench.py` copies `skill_library/skills/*/{SKILL.md,skill.json}` from a local ZenoBench checkout into `graph_manager/vendor/zenobench/`, records the commit in `COMMIT`, and writes `tasks.json`: an index of both task catalogs (`skill_library/tasks.json` and `benchmark/v3/tasks.json`) with each task's ID, catalog, default profile, and variant difficulties. Goals, routes, and variant descriptions are not copied, because the benchmark must not show them to the planner. The 35 reference subgraphs from `skill_library/plans/` go to `tests/fixtures/zenobench_plans/` and are used only as test data.
 
 ```bash
 git -C ../ZenoBench checkout <commit>
@@ -74,7 +74,7 @@ The output records the plan, every attempt, the ZenoBench commit, and the Harnes
 
 ## Closed-loop runs
 
-`graph-manager-run` runs tasks against the ZenoBench environment service (interface v2). For each task it calls `initial_task`, asks the model for a complete plan, and runs one Subgoal at a time. After each Subgoal the model receives every contract result (error codes and false conditions explained in plain language), the new camera images, the scene objects, and the robot state. It replies with `{"kind": "continue"}`, a `task_plan` for the remaining work, or `{"kind": "finish"}`; `continue` is refused after a failure and when no Subgoal remains. The run ends with `check_task`. The evaluator's `task_status` is logged but never shown to the model.
+`graph-manager-run` runs tasks against the ZenoBench environment service (interface v3). For each task and seed it calls `initial_task` with the profile, variant or difficulty, and seed, asks the model for a complete plan, and runs one Subgoal at a time. After each Subgoal the model receives every contract result (error codes and false conditions explained in plain language, with how to recover from `NOT_OBSERVED`, `NOT_IN_VIEW`, and `NOT_FOUND`), the new camera images, and the observation fields the profile turned on: scene objects (`gt`), or objects in view, objects seen earlier, and known places (`benchmark`), plus the robot state. Coordinates are left out, because skills take scene names; an observation field Graph Manager does not know is shown as compact JSON. It replies with `{"kind": "continue"}`, a `task_plan` for the remaining work, or `{"kind": "finish"}`; `continue` is refused after a failure and when no Subgoal remains. The run ends with `check_task`. The evaluator's `task_status` is logged but never shown to the model.
 
 ```bash
 .venv/bin/python scripts/smoke_env.py --env-url http://HOST:8800 probe   # reachability, no simulator
@@ -82,9 +82,15 @@ export LAB_VLM_API_KEY=dummy
 .venv/bin/graph-manager-run --all --env-url http://HOST:8800 --out runs/2026-10-21 \
   --dsh-home run/dsh-home --provider lab-vlm --model qwen3.5-4b \
   --patch run/local-vlm.patch.yml
+# benchmark tasks, medium variants picked by seed, evaluation seeds 10-19
+.venv/bin/graph-manager-run --all --catalog benchmark/v3/tasks.json --difficulty medium \
+  --seed 10-19 --env-url http://HOST:8800 --out runs/2026-10-22-bench \
+  --dsh-home run/dsh-home --provider lab-vlm --model qwen3.5-4b \
+  --patch run/local-vlm.patch.yml
+.venv/bin/graph-manager-summary runs/2026-10-22-bench --by difficulty --by variant
 ```
 
-`--env-url` defaults to `$ZENOBENCH_ENV_URL`. Each task gets `result.json` and one `attempt_N/` directory per exp with `trajectory.jsonl` and the camera images in `images/`; `summary.json` gives the counts and the success rate over decided tasks. Rerunning the same command keeps decided tasks and reruns errors; a rerun starts again at `attempt_1/` and appends to the existing `trajectory.jsonl`. A task whose model call fails without any output (a timeout, an unreachable model server) is recorded as an error, not a failure, so it is rerun as well. Any environment error other than `503 BUSY` (a released exp, a crash, a timeout, a transport error) restarts the task in a new exp and a new Harness session (at most twice); `503 BUSY` is retried every 30 seconds for up to 15 minutes.
+`--env-url` defaults to `$ZENOBENCH_ENV_URL`. `--env-profile` (`gt` or `benchmark`) defaults to the profile of the task's catalog; `--variant` names one variant, `--difficulty` lets the service pick one of that tier by seed (tasks without that tier are skipped), and `--seed` takes a seed or a range and repeats. Each request gets `<task_id>/<profile>/<variant, difficulty-<tier>, or any>/seed_<seed>/` with `result.json` and one `attempt_N/` directory per exp holding `trajectory.jsonl` and the camera images in `images/`. `result.json` keeps the request, the profile, `check_task`'s `goal`, `dropped`, and `episode` as sent, the end reason, and counts of replans, subgoal runs, contract calls, model turns, and invalid replies. `graph-manager-summary RUN_DIR [--by KEY]` reads those files at any time and writes `summary.json`; `graph-manager-run` calls it at the end, grouped by profile and difficulty. The environment's own statistics (SPL, side effects) come from ZenoBench `benchmark/evaluate.py` over the service's `runs/env_service`. Rerunning the same command keeps decided runs and reruns errors; a rerun starts again at `attempt_1/` and appends to the existing `trajectory.jsonl`. A task whose model call fails without any output (a timeout, an unreachable model server) is recorded as an error, not a failure, so it is rerun as well. A `400` reply (unknown task, variant, or profile) is an error and is not retried. Any other environment error except `503 BUSY` (a released exp, a crash, a timeout, a transport error) restarts the task in a new exp and a new Harness session (at most twice); `503 BUSY` is retried every 30 seconds for up to 15 minutes.
 
 `adapters/env_http.py` is the environment client. `application/execution/graph_executor.py` sends a Subgoal's nodes in dependency order as `do_contract` batches and fills `from` arguments from earlier outputs. `application/orchestration/` holds the episode loop, the batch runner, and the trajectory records.
 
@@ -99,5 +105,6 @@ export LAB_VLM_API_KEY=dummy
 | `application/planning_service.py`, `application/input_builder.py`, `prompts/task_plan.py` | One-shot planning with validation feedback |
 | `cli.py`, `plan_inputs.py` | Read local inputs, construct dependencies, write results |
 | `application/orchestration/`, `prompts/episode.py` | Orchestration layer: closed-loop episodes and their prompts, batch runs, trajectory records |
-| `harness_profile/`, `vendor/zenobench/` | Harness profile patch; vendored ZenoBench skills and tasks |
+| `harness_profile/`, `vendor/zenobench/` | Harness profile patch; vendored ZenoBench skills and task index |
 | `run_cli.py`, `harness_args.py` | `graph-manager-run` and the Harness options both commands share |
+| `summary.py` | `graph-manager-summary`: statistics from the `result.json` files of a run directory |

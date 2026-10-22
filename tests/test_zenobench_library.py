@@ -28,9 +28,15 @@ class ZenoBenchLibraryTest(unittest.TestCase):
         self.assertEqual(InputSpec("room_ref", False), search.inputs["region"])
         self.assertEqual("support_ref", search.outputs["found_on"])
 
-    def test_task_ids_and_commit(self):
-        self.assertEqual(35, len(self.library.task_ids()))
-        self.assertIn("collect_fruits", self.library.task_ids())
+    def test_task_index_and_commit(self):
+        tasks = self.library.tasks()
+        self.assertEqual(76, len(tasks))
+        fruits = tasks["collect_fruits"]
+        self.assertEqual(("gt", {"default": "easy"}), (fruits.default_profile, fruits.variants))
+        book = tasks["T01_book_to_dining_table"]
+        self.assertEqual("benchmark/v3/tasks.json", book.catalog)
+        self.assertEqual("benchmark", book.default_profile)
+        self.assertEqual("medium", book.variants["no_overhang"])
         self.assertRegex(self.library.commit, re.compile(r"^[0-9a-f]{40}$"))
         self.assertTrue((self.library.skills_dir / "skill_017" / "SKILL.md").is_file())
 

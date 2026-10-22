@@ -6,7 +6,7 @@ from graph_manager.adapters.zenobench_library import ZenoBenchLibrary
 from graph_manager.application.execution.graph_executor import GraphExecutor, plan_batches
 from graph_manager.domain.env_types import ContractResult, ExecutionReply, Observation
 
-OBSERVATION = Observation((), (), {}, ())
+OBSERVATION = Observation((), {})
 
 
 def node(node_id, skill, args, depends_on=()):

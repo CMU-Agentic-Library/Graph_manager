@@ -10,13 +10,15 @@ from graph_manager.application.orchestration.trajectory import (
     MemoryRecorder,
     observation_record,
 )
-from graph_manager.domain.env_types import CameraImage, Observation, SceneObject
+from graph_manager.domain.env_types import CameraImage, Observation
 
 OBSERVATION = Observation(
     (CameraImage("head", b"head-png"),),
-    (SceneObject("apple", "object", (1.0, 2.0, 0.5)),),
-    {"base_pose": [0, 0, 0]},
-    ({"atom": "inside(apple, fruit_basket)", "holds": False},),
+    {
+        "objects": [{"name": "apple", "kind": "object", "position": [1.0, 2.0, 0.5]}],
+        "robot": {"base_pose": [0, 0, 0]},
+        "task_status": [{"atom": "inside(apple, fruit_basket)", "holds": False}],
+    },
 )
 
 

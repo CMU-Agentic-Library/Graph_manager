@@ -17,18 +17,22 @@ from graph_manager.domain.env_types import (
     ExecutionReply,
     GoalCheck,
     Observation,
-    SceneObject,
+    Profile,
     StartedTask,
     TaskInfo,
+    TaskRequest,
 )
 from graph_manager.ports import EnvironmentPortError, ModelPortError
 
 OBS = Observation(
     (CameraImage("head", b"h"), CameraImage("left_wrist", b"l"), CameraImage("right_wrist", b"r")),
-    (SceneObject("apple", "object", (1.0, 2.0, 0.9)),),
-    {"base_pose": [0, 0, 0], "held_right": None, "held_left": None},
-    ({"atom": "inside(apple, fruit_basket)", "holds": False},),
+    {
+        "objects": [{"name": "apple", "kind": "object", "position": [1.0, 2.0, 0.9]}],
+        "robot": {"base_pose": [0, 0, 0], "held_right": None, "held_left": None},
+        "task_status": [{"atom": "inside(apple, fruit_basket)", "holds": False}],
+    },
 )
+GT = Profile("gt", ("images", "objects", "robot", "task_status"), 40)
 CONTINUE = {"kind": "continue"}
 FINISH = {"kind": "finish"}
 
@@ -82,8 +86,9 @@ class Environment:
         self.checks = []
         self.success = success
 
-    def initial_task(self, task_id):
-        return StartedTask("exp-1", TaskInfo(task_id, task_id, "Put the apple away."), OBS)
+    def initial_task(self, request):
+        task_id = request.task_id
+        return StartedTask("exp-1", TaskInfo(task_id, task_id, "Put the apple away."), GT, OBS)
 
     def do_contract(self, exp_id, calls):
         self.batches.append([c.contract for c in calls])
@@ -95,7 +100,7 @@ class Environment:
     def check_task(self, exp_id):
         self.checks.append(exp_id)
         atom = {"atom": "inside(apple, fruit_basket)", "holds": self.success}
-        return GoalCheck(exp_id, self.success, (atom,))
+        return GoalCheck(exp_id, self.success, (atom,), (), {"variant": "default", "seed": 0})
 
 
 class Session:
@@ -133,7 +138,7 @@ class EpisodeRunnerTest(unittest.TestCase):
             limits=limits,
             **({} if clock is None else {"clock": clock}),
         )
-        return runner.run("collect_fruits"), recorder
+        return runner.run(TaskRequest("collect_fruits", profile="gt")), recorder
 
     def test_plan_continue_finish(self):
         environment = Environment()
@@ -152,6 +157,11 @@ class EpisodeRunnerTest(unittest.TestCase):
             self.assertNotIn("inside(apple, fruit_basket)", text)
         self.assertEqual("session-1", result.session_id)
         self.assertEqual((2, 0), (result.subgoal_runs, result.replans))
+        self.assertEqual(
+            (2, 3, 0), (result.contract_calls, result.model_turns, result.invalid_replies)
+        )
+        self.assertEqual({"task_id": "collect_fruits", "seed": 0, "profile": "gt"}, result.request)
+        self.assertEqual(("gt", "default"), (result.profile["name"], result.env_episode["variant"]))
         self.assertIn("check", recorder.kinds())
         logged = dict(recorder.events)["subgoal_run"]["observation"]["task_status"]
         self.assertEqual("inside(apple, fruit_basket)", logged[0]["atom"])
@@ -186,6 +196,7 @@ class EpisodeRunnerTest(unittest.TestCase):
         self.assertEqual(("failure", "model_gave_up"), (result.status, result.reason))
         self.assertEqual([], environment.batches)
         self.assertEqual(5, len(session.turns))
+        self.assertEqual(5, result.invalid_replies)
         self.assertIn("json_syntax", session.turns[1][0])
 
     def test_model_error_without_output_ends_at_once(self):

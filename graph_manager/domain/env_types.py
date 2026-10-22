@@ -1,8 +1,9 @@
-"""Data exchanged with the ZenoBench environment service (interface v2)."""
+"""Data exchanged with the ZenoBench environment service (interface v3)."""
 
 import base64
 import binascii
 from dataclasses import dataclass
+from pathlib import PurePosixPath
 
 EXP_STATES = frozenset({"running", "ready", "released"})
 
@@ -50,47 +51,92 @@ class ContractResult:
 
 
 @dataclass(frozen=True)
+class TaskRequest:
+    """The initial_task request; None leaves the choice to the service.
+
+    Without a variant the service picks one by seed among the graded variants, only those of
+    difficulty when it is given.
+    """
+
+    task_id: str
+    profile: str | None = None
+    variant: str | None = None
+    difficulty: str | None = None
+    seed: int = 0
+
+    def __post_init__(self):
+        if not self.task_id.strip():
+            raise ValueError("task_id must be nonempty")
+        if self.variant is not None and self.difficulty is not None:
+            raise ValueError("give a variant or a difficulty, not both")
+
+    def to_json(self) -> dict:
+        body = {"task_id": self.task_id, "seed": self.seed}
+        for key in ("profile", "variant", "difficulty"):
+            if getattr(self, key) is not None:
+                body[key] = getattr(self, key)
+        return body
+
+    @property
+    def path(self) -> PurePosixPath:
+        """<task_id>/<profile>/<variant, difficulty-<d>, or any>/seed_<seed>."""
+        if self.variant is not None:
+            choice = self.variant
+        elif self.difficulty is not None:
+            choice = f"difficulty-{self.difficulty}"
+        else:
+            choice = "any"
+        profile = self.profile or "catalog-default"
+        return PurePosixPath(self.task_id, profile, choice, f"seed_{self.seed}")
+
+
+@dataclass(frozen=True)
 class CameraImage:
     camera: str
     png: bytes
 
 
 @dataclass(frozen=True)
-class SceneObject:
-    name: str
-    kind: str
-    position: tuple[float, ...]
-
-
-@dataclass(frozen=True)
 class Observation:
+    """Camera images plus every other top-level field the profile turned on, as sent."""
+
     images: tuple[CameraImage, ...]
-    objects: tuple[SceneObject, ...]
-    robot: dict
-    # Evaluator truth for each goal clause: keep it in logs, never show it to the model.
-    task_status: tuple[dict, ...]
+    fields: dict
+
+    @property
+    def task_status(self) -> tuple[dict, ...]:
+        """Evaluator truth for each goal clause (gt profile only): logs only, never the model."""
+        return tuple(self.fields.get("task_status") or ())
 
     @classmethod
     def from_json(cls, data: object) -> "Observation":
+        if not isinstance(data, dict):
+            raise ValueError("observation must be an object")
         images = []
-        for item in _field(data, "images", list):
+        for item in _field(data, "images", list) if "images" in data else ():
             try:
                 png = base64.b64decode(_field(item, "png_base64", str), validate=True)
             except binascii.Error as exc:
                 raise ValueError(f"invalid png_base64: {exc}") from exc
             images.append(CameraImage(_field(item, "camera", str), png))
-        objects = tuple(
-            SceneObject(
-                _field(o, "name", str), _field(o, "kind", str), tuple(_field(o, "position", list))
-            )
-            for o in _field(data, "objects", list)
-        )
-        return cls(
-            tuple(images),
-            objects,
-            _field(data, "robot", dict),
-            tuple(_field(data, "task_status", list)),
-        )
+        fields = {key: value for key, value in data.items() if key != "images"}
+        return cls(tuple(images), fields)
+
+
+@dataclass(frozen=True)
+class Profile:
+    """The profile the exp runs with: its name, observation fields, and contract call limit."""
+
+    name: str
+    observation: tuple[str, ...]
+    max_calls: int
+
+    @classmethod
+    def from_json(cls, data: object) -> "Profile":
+        observation = _field(data, "observation", list)
+        if not all(isinstance(key, str) for key in observation):
+            raise ValueError("profile observation must list field names")
+        return cls(_field(data, "name", str), tuple(observation), _field(data, "max_calls", int))
 
 
 @dataclass(frozen=True)
@@ -104,11 +150,17 @@ class TaskInfo:
 class StartedTask:
     exp_id: str
     task: TaskInfo
+    profile: Profile
     observation: Observation
 
     @classmethod
     def from_json(cls, data: object) -> "StartedTask":
         task = _field(data, "task", dict)
+        profile = Profile.from_json(_field(data, "profile", dict))
+        raw_observation = _field(data, "observation", dict)
+        missing = [key for key in profile.observation if key not in raw_observation]
+        if missing:
+            raise ValueError(f"observation lacks the profile's fields {missing}")
         return cls(
             _field(data, "exp_id", str),
             TaskInfo(
@@ -116,7 +168,8 @@ class StartedTask:
                 _field(task, "name", str),
                 _field(task, "description", str),
             ),
-            Observation.from_json(_field(data, "observation", dict)),
+            profile,
+            Observation.from_json(raw_observation),
         )
 
 
@@ -140,6 +193,9 @@ class GoalCheck:
     exp_id: str
     success: bool
     goal: tuple[dict, ...]
+    dropped: tuple
+    # Evaluation metadata (variant, seed, hashes); kept as sent for the run records.
+    episode: dict
 
     @classmethod
     def from_json(cls, data: object) -> "GoalCheck":
@@ -147,6 +203,8 @@ class GoalCheck:
             _field(data, "exp_id", str),
             _field(data, "success", bool),
             tuple(_field(data, "goal", list)),
+            tuple(_field(data, "dropped", list)),
+            _field(data, "episode", dict),
         )
 
 

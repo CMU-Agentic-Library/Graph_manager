@@ -1,6 +1,5 @@
 """Per-episode records: an append-only event log and the camera images of each step."""
 
-import dataclasses
 import json
 import time
 from pathlib import Path
@@ -11,12 +10,7 @@ from ...domain.env_types import Observation
 
 def observation_record(observation: Observation) -> dict:
     """Everything except image bytes, including the evaluator's task_status (logs only)."""
-    return {
-        "objects": [dataclasses.asdict(o) for o in observation.objects],
-        "robot": observation.robot,
-        "task_status": list(observation.task_status),
-        "cameras": [image.camera for image in observation.images],
-    }
+    return {**observation.fields, "cameras": [image.camera for image in observation.images]}
 
 
 class EpisodeRecorder(Protocol):
