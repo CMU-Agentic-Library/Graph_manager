@@ -107,6 +107,15 @@ class EpisodePromptTest(unittest.TestCase):
         self.assertEqual("kind", body["errors"][0]["code"])
         self.assertIn("finish", body["instruction"])
 
+    def test_continue_is_the_reply_when_the_remaining_plan_still_fits(self):
+        run = GraphRun((NodeRun("n1", OK),), (), None, None, OBSERVATION)
+        text = subgoal_feedback_text(
+            {"id": "a", "goal": "A"}, run, OBSERVATION, MEANINGS, [{"id": "b", "goal": "B"}], None
+        )
+        self.assertIn('Reply with {"kind": "continue"} if the remaining plan still fits', text)
+        start = episode_start_text(TaskInfo("t", "t", "Do it."), OBSERVATION)
+        self.assertIn("send a task_plan only to change the remaining work", start)
+
 
 if __name__ == "__main__":
     unittest.main()
