@@ -56,6 +56,12 @@ class PlanningInputBuilderTest(unittest.TestCase):
 
         self.assertIn('object_list input is {"value": ["apple", "orange"]}', text)
 
+    def test_instructions_keep_dependencies_inside_one_subgraph(self):
+        text = PlanningInputBuilder().initial(PlanningRequest("Hold apple")).text
+
+        self.assertIn("depends_on lists only node ids from the same subgraph", text)
+        self.assertIn("do not make one subgoal per skill call", text)
+
 
 if __name__ == "__main__":
     unittest.main()

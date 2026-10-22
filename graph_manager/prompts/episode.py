@@ -47,9 +47,11 @@ LOOP_INSTRUCTION = (
     "The robot runs your plan one subgoal at a time. After each subgoal you receive what each "
     "skill call did and a new observation with camera images. Then reply with exactly one JSON "
     "object:\n"
-    '- {"kind": "continue"} to run the next planned subgoal unchanged;\n'
-    "- a task_plan object for the remaining work only: start with the subgoal that failed, if "
-    "one did, and leave out subgoals that already succeeded;\n"
+    '- {"kind": "continue"} to run the next planned subgoal unchanged; use it whenever the '
+    "remaining plan still fits;\n"
+    "- a task_plan object for the remaining work only: send a task_plan only to change the "
+    "remaining work. Start with the subgoal that failed, if one did, and leave out subgoals "
+    "that already succeeded;\n"
     '- {"kind": "finish"} when the task is complete.\n'
     f"{ONLY_JSON}"
 )
@@ -144,8 +146,8 @@ def subgoal_feedback_text(
         plan_line = "No planned subgoals remain."
     if continue_blocked is None:
         ask = (
-            'Reply with {"kind": "continue"}, a task_plan for the remaining work, '
-            'or {"kind": "finish"}.'
+            'Reply with {"kind": "continue"} if the remaining plan still fits, a task_plan '
+            'only to change the remaining work, or {"kind": "finish"}.'
         )
     else:
         ask = (

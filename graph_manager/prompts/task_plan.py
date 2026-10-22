@@ -41,7 +41,10 @@ SYSTEM_INSTRUCTION = (
     "and a subgraphs array. Each subgoal has id and goal. "
     "Give exactly one subgraph per subgoal. Each subgraph has schema_version=2, "
     "kind=skill_subgraph, subgoal_id, and a nonempty nodes array. "
-    "Each node has id, skill, args, and depends_on. "
+    "A subgoal is one meaningful step toward the task, such as putting one object away, "
+    "and may need several nodes; do not make one subgoal per skill call. "
+    "Each node has id, skill, args, and depends_on; "
+    "depends_on lists only node ids from the same subgraph. "
     "skill is the verb from the skill's signature line, not the catalog name: "
     "the skill fetch-object has the signature fetch(object, receptacle), "
     'so write "skill": "fetch". '
