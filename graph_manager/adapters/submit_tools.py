@@ -20,7 +20,10 @@ from ..domain.submission import DECISION_SCHEMA, DECISION_TOOL, PLAN_TOOL, plan_
 from ..domain.task_plan import validate_task_plan
 from .zenobench_library import DEFAULT_ROOT, ZenoBenchLibrary
 
-ACCEPTED = "Accepted. Your answer is recorded; end your turn now."
+ACCEPTED = (
+    "Accepted. This answer is final for this turn: do not call submit_plan or "
+    "submit_decision again. End your turn now; the robot acts only after your turn ends."
+)
 DEFAULT_PROTOCOL = "2025-06-18"
 PLAN_DESCRIPTION = (
     "Submit a complete task_plan: the whole plan at the start of a task, or only the "

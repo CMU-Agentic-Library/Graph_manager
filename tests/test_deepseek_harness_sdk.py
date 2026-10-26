@@ -302,9 +302,14 @@ class DeepSeekHarnessSessionTest(unittest.TestCase):
             written,
         )
 
-    def test_last_accepted_submission_is_the_answer(self):
-        events = submitted(PLAN_TOOL, {"bad": 1}, accepted=False, call_id="c1") + submitted(
-            PLAN_TOOL, valid_plan(), call_id="c2"
+    def test_first_accepted_submission_is_the_answer(self):
+        # Seen live: the model submits a valid plan, then calls submit_decision in the same
+        # turn; the accepted plan is the answer and later submissions are ignored.
+        events = (
+            submitted(PLAN_TOOL, {"bad": 1}, accepted=False, call_id="c1")
+            + submitted(PLAN_TOOL, valid_plan(), call_id="c2")
+            + submitted(DECISION_TOOL, {"kind": "continue"}, call_id="c3")
+            + submitted(PLAN_TOOL, valid_plan("place"), call_id="c4")
         )
         FakeHarness.outputs = [turn(events)]
         with self.session() as session:

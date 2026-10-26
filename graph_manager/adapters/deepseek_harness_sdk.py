@@ -69,10 +69,13 @@ def submit_tools_patch(zenobench_root: Path) -> list[dict]:
 
 
 def submitted_answer(events) -> str | None:
-    """The arguments of the turn's last accepted submit call as JSON text.
+    """The arguments of the turn's first accepted submit call as JSON text.
 
-    Without an accepted call, the last submitted arguments are returned so the caller's
-    validator reports why they fail; None means the model submitted nothing.
+    An accepted submission is final for its turn: a model that keeps calling submit tools
+    afterwards (for example submit_decision right after an accepted plan, as Qwen3.5-4B
+    does) must not replace it. Without an accepted call, the last submitted arguments are
+    returned so the caller's validator reports why they fail; None means the model
+    submitted nothing.
     """
     calls: dict[object, object] = {}
     last = accepted = None
@@ -85,7 +88,7 @@ def submitted_answer(events) -> str | None:
             for block in (data.get("message") or {}).get("content") or ():
                 call_id = block.get("toolCallId")
                 if block.get("type") == "tool-result" and call_id in calls:
-                    if block.get("isError") is False:
+                    if block.get("isError") is False and accepted is None:
                         accepted = calls[call_id]
     answer = accepted if accepted is not None else last
     if answer is None or isinstance(answer, str):

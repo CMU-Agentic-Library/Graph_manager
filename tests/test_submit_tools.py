@@ -115,6 +115,10 @@ class SubmitToolsTest(unittest.TestCase):
         self.assertEqual([1, 2], [reply["id"] for reply in replies])
         self.assertEqual(2, len(replies[1]["result"]["tools"]))
 
+    def test_accepted_reply_tells_the_model_to_end_its_turn(self):
+        self.assertIn("final for this turn", ACCEPTED)
+        self.assertIn("End your turn now", ACCEPTED)
+
 
 if __name__ == "__main__":
     unittest.main()

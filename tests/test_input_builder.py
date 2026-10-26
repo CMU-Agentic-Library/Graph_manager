@@ -63,6 +63,12 @@ class PlanningInputBuilderTest(unittest.TestCase):
         self.assertIn("depends_on lists only node ids from the same subgraph", text)
         self.assertIn("do not make one subgoal per skill call", text)
 
+    def test_instructions_say_an_accepted_submission_ends_the_turn(self):
+        text = PlanningInputBuilder().initial(PlanningRequest("Hold apple")).text
+
+        self.assertIn("An accepted submission is final for that turn", text)
+        self.assertIn("the robot acts only after your turn ends", text)
+
 
 if __name__ == "__main__":
     unittest.main()
