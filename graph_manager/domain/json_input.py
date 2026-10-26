@@ -3,8 +3,7 @@
 import json
 
 from .models import ProposalValidationError, ValidationIssue
-
-ONLY_JSON = "Return only the JSON object: no markdown code fences and no text before or after it."
+from .submission import USE_SUBMIT_TOOLS
 
 
 def parse_json_object(raw_text: str) -> dict:
@@ -26,7 +25,7 @@ def parse_json_object(raw_text: str) -> dict:
             raw_text, object_pairs_hook=unique_object, parse_constant=reject_constant
         )
     except (json.JSONDecodeError, ValueError, TypeError) as exc:
-        message = f"{exc}. {ONLY_JSON}"
+        message = f"{exc}. {USE_SUBMIT_TOOLS}"
         raise ProposalValidationError([ValidationIssue("$", "json_syntax", message)]) from exc
     if not isinstance(value, dict):
         raise ProposalValidationError(

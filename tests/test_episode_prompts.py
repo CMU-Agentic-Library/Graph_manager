@@ -147,7 +147,7 @@ class EpisodePromptTest(unittest.TestCase):
         self.assertEqual(["n3"], report["not_run"])
         self.assertIn("Remaining planned subgoals: hold_apple (Hold the apple)", text)
         self.assertIn("The subgoal failed.", text)
-        self.assertNotIn('Reply with {"kind": "continue"}', text)
+        self.assertNotIn('"kind": "continue"', text)
         self.assertNotIn("inside(apple, fruit_basket)", text)
 
     def test_success_report_offers_continue(self):
@@ -155,7 +155,7 @@ class EpisodePromptTest(unittest.TestCase):
         text = subgoal_feedback_text(
             {"id": "a", "goal": "A"}, run, OBSERVATION, MEANINGS, [{"id": "b", "goal": "B"}], None
         )
-        self.assertIn('Reply with {"kind": "continue"}', text)
+        self.assertIn('mcp__graph__submit_decision with {"kind": "continue"}', text)
 
     def test_decision_feedback_lists_errors(self):
         body = json.loads(decision_feedback((ValidationIssue("$.kind", "kind", "bad"),)))
@@ -168,9 +168,19 @@ class EpisodePromptTest(unittest.TestCase):
         text = subgoal_feedback_text(
             {"id": "a", "goal": "A"}, run, OBSERVATION, MEANINGS, [{"id": "b", "goal": "B"}], None
         )
-        self.assertIn('Reply with {"kind": "continue"} if the remaining plan still fits', text)
+        self.assertIn('with {"kind": "continue"} if the remaining plan still fits', text)
         start = episode_start_text(TaskInfo("t", "t", "Do it."), OBSERVATION)
         self.assertIn("send a task_plan only to change the remaining work", start)
+
+    def test_every_turn_asks_for_a_tool_call(self):
+        start = episode_start_text(TaskInfo("t", "t", "Do it."), OBSERVATION)
+        self.assertIn("mcp__graph__submit_plan", start)
+        self.assertIn("mcp__graph__submit_decision", start)
+        self.assertTrue(
+            start.endswith("Submit the complete task_plan now with mcp__graph__submit_plan.")
+        )
+        body = json.loads(decision_feedback((ValidationIssue("$.kind", "kind", "bad"),)))
+        self.assertIn("mcp__graph__submit_decision", body["instruction"])
 
 
 if __name__ == "__main__":

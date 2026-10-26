@@ -2,8 +2,8 @@
 
 import json
 
-from ..domain.json_input import ONLY_JSON
 from ..domain.models import PlanningRequest, ValidationIssue
+from ..domain.submission import PLAN_TOOL_NAME
 
 # A task unlike the benchmark tasks, so the example shows the format without an answer.
 EXAMPLE_PLAN = {
@@ -36,8 +36,10 @@ EXAMPLE_PLAN = {
 SYSTEM_INSTRUCTION = (
     "You plan robot tasks with the ZenoBench skills listed in your skill catalog. "
     "Load a skill to read its full instructions before you use it in a plan. "
-    f"Return exactly one JSON object as your final answer. {ONLY_JSON} "
-    "The object has schema_version=2, kind=task_plan, a nonempty subgoals array, "
+    f"Submit the plan by calling the {PLAN_TOOL_NAME} tool with the plan object as its "
+    "arguments; do not write the plan as text. If the tool rejects the plan, fix every "
+    "listed error and call it again. "
+    "The plan object has schema_version=2, kind=task_plan, a nonempty subgoals array, "
     "and a subgraphs array. Each subgoal has id and goal. "
     "Give exactly one subgraph per subgoal. Each subgraph has schema_version=2, "
     "kind=skill_subgraph, subgoal_id, and a nonempty nodes array. "
@@ -55,7 +57,7 @@ SYSTEM_INSTRUCTION = (
     "output of an earlier node in the same subgraph; list that node in depends_on. "
     "Use scene names exactly as the observation gives them. "
     "Node dependencies must form a DAG.\n\n"
-    "Example of the format for the task 'hold the mug':\n" + json.dumps(EXAMPLE_PLAN)
+    "Example of the plan object for the task 'hold the mug':\n" + json.dumps(EXAMPLE_PLAN)
 )
 
 
@@ -74,7 +76,9 @@ def validation_feedback(issues: tuple[ValidationIssue, ...]) -> str:
             "kind": "validation_feedback",
             "accepted": False,
             "errors": [issue.to_json() for issue in issues],
-            "instruction": "Revise and resubmit the complete task_plan JSON object.",
+            "instruction": (
+                f"Fix these errors and submit the complete task_plan again with {PLAN_TOOL_NAME}."
+            ),
         },
         ensure_ascii=False,
     )

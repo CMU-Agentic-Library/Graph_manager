@@ -9,8 +9,8 @@ import re
 from typing import TYPE_CHECKING
 
 from ..domain.env_types import ContractResult, Observation, TaskInfo
-from ..domain.json_input import ONLY_JSON
 from ..domain.models import ValidationIssue
+from ..domain.submission import DECISION_TOOL_NAME, PLAN_TOOL_NAME, USE_SUBMIT_TOOLS
 from .task_plan import SYSTEM_INSTRUCTION
 
 if TYPE_CHECKING:
@@ -57,16 +57,16 @@ PREDICATE_NAME = re.compile(r"([a-z_]+)\(")
 
 LOOP_INSTRUCTION = (
     "The robot runs your plan one subgoal at a time. After each subgoal you receive what each "
-    "skill call did and a new observation with camera images. Then reply with exactly one JSON "
-    "object:\n"
-    '- {"kind": "continue"} to run the next planned subgoal unchanged; use it whenever the '
-    "remaining plan still fits;\n"
-    "- a task_plan object for the remaining work only: send a task_plan only to change the "
-    "remaining work. Start with the subgoal that failed, if one did, and leave out subgoals "
-    "that already succeeded;\n"
-    '- {"kind": "finish"} when the task is complete.\n'
+    "skill call did and a new observation with camera images. Then answer with one tool "
+    "call:\n"
+    f'- {DECISION_TOOL_NAME} with {{"kind": "continue"}} to run the next planned subgoal '
+    "unchanged; use it whenever the remaining plan still fits;\n"
+    f"- {PLAN_TOOL_NAME} with a task_plan for the remaining work only: send a task_plan only "
+    "to change the remaining work. Start with the subgoal that failed, if one did, and leave "
+    "out subgoals that already succeeded;\n"
+    f'- {DECISION_TOOL_NAME} with {{"kind": "finish"}} when the task is complete.\n'
     "An object shown as <unobserved> is one the robot has not seen; it is not a scene name.\n"
-    f"{ONLY_JSON}"
+    f"{USE_SUBMIT_TOOLS}"
 )
 # Never shown as text: the evaluator's truth, and last_result (the subgoal report already
 # holds every call result).
@@ -165,7 +165,7 @@ def episode_start_text(task: TaskInfo, observation: Observation) -> str:
             LOOP_INSTRUCTION,
             "Task:\n" + task.description,
             "Current observation:\n" + observation_text(observation),
-            "Reply now with the complete task_plan.",
+            f"Submit the complete task_plan now with {PLAN_TOOL_NAME}.",
         ]
     )
 
@@ -231,13 +231,14 @@ def subgoal_feedback_text(
         plan_line = "No planned subgoals remain."
     if continue_blocked is None:
         ask = (
-            'Reply with {"kind": "continue"} if the remaining plan still fits, a task_plan '
-            'only to change the remaining work, or {"kind": "finish"}.'
+            f'Call {DECISION_TOOL_NAME} with {{"kind": "continue"}} if the remaining plan still '
+            f"fits, {PLAN_TOOL_NAME} with a task_plan only to change the remaining work, or "
+            f'{DECISION_TOOL_NAME} with {{"kind": "finish"}}.'
         )
     else:
         ask = (
-            f"{continue_blocked} Reply with a task_plan for the remaining work "
-            'or {"kind": "finish"}.'
+            f"{continue_blocked} Call {PLAN_TOOL_NAME} with a task_plan for the remaining "
+            f'work, or {DECISION_TOOL_NAME} with {{"kind": "finish"}}.'
         )
     return "\n\n".join(
         [
@@ -256,8 +257,9 @@ def decision_feedback(issues: tuple[ValidationIssue, ...]) -> str:
             "accepted": False,
             "errors": [issue.to_json() for issue in issues],
             "instruction": (
-                'Resubmit one JSON object: {"kind": "continue"}, a task_plan for the remaining '
-                'work, or {"kind": "finish"}.'
+                f'Fix these errors, then call {DECISION_TOOL_NAME} with {{"kind": "continue"}} '
+                f'or {{"kind": "finish"}}, or {PLAN_TOOL_NAME} with a task_plan for the '
+                "remaining work."
             ),
         },
         ensure_ascii=False,

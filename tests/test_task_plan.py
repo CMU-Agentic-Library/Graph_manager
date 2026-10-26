@@ -103,10 +103,10 @@ class TaskPlanTest(unittest.TestCase):
             self.issues(value),
         )
 
-    def test_json_syntax_message_says_to_drop_markdown(self):
+    def test_json_syntax_message_says_to_use_the_submit_tools(self):
         with self.assertRaises(ProposalValidationError) as caught:
-            validate_task_plan("```json\n" + json.dumps(plan()) + "\n```", self.catalog)
-        self.assertIn("no markdown code fences", caught.exception.issues[0].message)
+            validate_task_plan("Here is my plan.", self.catalog)
+        self.assertIn("mcp__graph__submit_plan", caught.exception.issues[0].message)
 
     def test_prompt_example_is_a_valid_plan(self):
         self.assertEqual(EXAMPLE_PLAN, validate_task_plan(json.dumps(EXAMPLE_PLAN), self.catalog))

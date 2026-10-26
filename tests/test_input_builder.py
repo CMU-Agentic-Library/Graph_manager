@@ -18,7 +18,7 @@ class PlanningInputBuilderTest(unittest.TestCase):
 
         turn = PlanningInputBuilder().initial(request)
 
-        self.assertIn("Return exactly one JSON object", turn.text)
+        self.assertIn("mcp__graph__submit_plan", turn.text)
         self.assertIn("schema_version=2", turn.text)
         self.assertIn("Hold apple", turn.text)
         self.assertIn("Apple on the table", turn.text)
@@ -42,6 +42,7 @@ class PlanningInputBuilderTest(unittest.TestCase):
         body = json.loads(turn.text)
         self.assertEqual("validation_feedback", body["kind"])
         self.assertEqual("$.subgraphs[0].nodes[0].skill", body["errors"][0]["path"])
+        self.assertIn("mcp__graph__submit_plan", body["instruction"])
 
     def test_instructions_explain_verbs_and_show_an_example(self):
         text = PlanningInputBuilder().initial(PlanningRequest("Hold apple")).text
@@ -49,7 +50,7 @@ class PlanningInputBuilderTest(unittest.TestCase):
         self.assertIn('"skill": "fetch"', text)
         self.assertIn("not the catalog name", text)
         self.assertIn('{"ref": "mug"}', text)
-        self.assertIn("no markdown code fences", text)
+        self.assertIn("do not write the plan as text", text)
 
     def test_instructions_show_how_to_write_an_object_list(self):
         text = PlanningInputBuilder().initial(PlanningRequest("Hold apple")).text
