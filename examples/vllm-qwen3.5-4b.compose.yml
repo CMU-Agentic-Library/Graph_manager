@@ -20,7 +20,7 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
-    # Skill loading is a tool call, so tool choice and the Qwen3.5 tool-call parser are required.
+    # Skill loading and answer submission are tool calls: tool choice, the Qwen3.5 tool-call parser, and strict tool arguments are required.
     # The simulator runs elsewhere, so the server takes vLLM's default share of the GPU.
     command:
       - --model=/models/Qwen3.5-4B
@@ -31,3 +31,4 @@ services:
       - --reasoning-parser=qwen3
       - --enable-auto-tool-choice
       - --tool-call-parser=qwen3_coder
+      - --tool-strict-level=parameter

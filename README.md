@@ -27,7 +27,7 @@ The model sees the skills through DeepSeek Harness's skill loader: the catalog l
 
 ## Planning
 
-Graph Manager accepts a Goal, an optional scene image, and optional observation text. One model response proposes all Subgoals and one ZenoBench schema 2 skill subgraph for each Subgoal:
+Graph Manager accepts a Goal, an optional scene image, and optional observation text. The model proposes all Subgoals and one ZenoBench schema 2 skill subgraph for each Subgoal, and submits them as the arguments of a tool call:
 
 ```json
 {
@@ -45,6 +45,8 @@ Graph Manager accepts a Goal, an optional scene image, and optional observation 
 
 An argument is `{"ref": scene name}`, `{"value": literal}`, or `{"from": "<node>.<output>"}` for a measured output of an ancestor node in the same subgraph. The validator applies the rules of ZenoBench `skill_library/graph.py` (skill verb, required and allowed inputs, value types, `from` references, DAG) and reports every issue with a JSON path, such as `$.subgraphs[0].nodes[0].skill`. It does not check whether a scene name exists or whether preconditions hold; the environment decides both. Rejected proposals receive the issues as feedback in the same Harness session.
 
+The model hands in every answer by calling one of two tools from a small MCP server (`adapters/submit_tools.py`) that each Harness session starts: `submit_plan` takes a task plan, and in the closed loop `submit_decision` takes `{"kind": "continue"}` or `{"kind": "finish"}`. The tools' JSON Schemas (`domain/submission.py`) fix the field names, the argument forms, and the skill verbs. vLLM started with `--tool-strict-level parameter` generates tool arguments that always match them, so an answer is never malformed JSON. `submit_plan` runs the validator inside the tool and returns every issue as a tool error, so the model can fix a plan within the same turn.
+
 ### Install and run
 
 ```bash
@@ -54,7 +56,7 @@ uv sync --locked --extra dev
 .venv/bin/ruff format --check .
 ```
 
-Skill loading is a tool call, so the served model must support tool calling (for vLLM, `--enable-auto-tool-choice` with the model's `--tool-call-parser`). `examples/vllm-qwen3.5-4b.compose.yml` serves Qwen3.5-4B this way on port 8001 as `qwen3.5-4b`, and `examples/harness-local-vlm.patch.yml` points Harness at that server. For another model, edit the patch's `baseURL` and model ID; `--model` must match the model ID.
+Skill loading is a tool call, so the served model must support tool calling (for vLLM, `--enable-auto-tool-choice` with the model's `--tool-call-parser`, plus `--tool-strict-level parameter` so that tool arguments follow their schemas). `examples/vllm-qwen3.5-4b.compose.yml` serves Qwen3.5-4B this way on port 8001 as `qwen3.5-4b`, and `examples/harness-local-vlm.patch.yml` points Harness at that server. For another model, edit the patch's `baseURL` and model ID; `--model` must match the model ID.
 
 ```bash
 mkdir -p run
@@ -108,3 +110,4 @@ export LAB_VLM_API_KEY=dummy
 | `harness_profile/`, `vendor/zenobench/` | Harness profile patch; vendored ZenoBench skills and task index |
 | `run_cli.py`, `harness_args.py` | `graph-manager-run` and the Harness options both commands share |
 | `summary.py` | `graph-manager-summary`: statistics from the `result.json` files of a run directory |
+| `domain/submission.py`, `adapters/submit_tools.py` | Submit tools: argument schemas and the stdio MCP server each Harness session starts |
