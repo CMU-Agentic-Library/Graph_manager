@@ -20,7 +20,6 @@ from .domain.env_types import TaskRequest
 from .harness_args import add_harness_arguments, check_patches, open_session
 from .summary import write_summary
 
-PROFILES = ("gt", "benchmark")
 DIFFICULTIES = ("easy", "medium", "hard")
 
 
@@ -80,7 +79,9 @@ def run(argv: list[str] | None = None) -> int:
         help="with --all: only this catalog's tasks",
     )
     parser.add_argument(
-        "--env-profile", choices=PROFILES, help="environment profile; default: the task catalog's"
+        "--env-profile",
+        help="a profile the service offers, such as gt, benchmark, or gt_sticky; "
+        "default: the task catalog's",
     )
     choice = parser.add_mutually_exclusive_group()
     choice.add_argument("--variant", help="variant name; default: the service picks by seed")

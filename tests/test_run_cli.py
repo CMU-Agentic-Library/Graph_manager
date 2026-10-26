@@ -136,7 +136,7 @@ class RunCliTest(unittest.TestCase):
             "--seed",
             "10-11",
             "--env-profile",
-            "gt",
+            "gt_sticky",
             "--env-url",
             "http://env",
         )
@@ -144,7 +144,7 @@ class RunCliTest(unittest.TestCase):
         self.assertEqual(0, exit_code)
         requests = FakeEnvironment.requests
         self.assertEqual(24, len(requests))  # 12 tasks with a hard variant, 2 seeds each
-        self.assertEqual({"gt"}, {r.profile for r in requests})
+        self.assertEqual({"gt_sticky"}, {r.profile for r in requests})
         self.assertEqual({10, 11}, {r.seed for r in requests})
         self.assertNotIn("T11_collect_fruits", {r.task_id for r in requests})
         self.assertTrue(
@@ -152,7 +152,7 @@ class RunCliTest(unittest.TestCase):
                 self.root
                 / "runs"
                 / "T06_block_destination_occupied"
-                / "gt"
+                / "gt_sticky"
                 / "difficulty-hard"
                 / "seed_10"
                 / "result.json"
