@@ -8,16 +8,20 @@ import base64
 import json
 import math
 import os
+import sys
 import tempfile
 import threading
 import uuid
 from pathlib import Path
 
 from ..domain.models import ImageInput
+from ..domain.submission import DECISION_TOOL_NAME, PLAN_TOOL_NAME, SERVER_NAME
 from ..ports import ModelPortError
 
 PLANNER_PATCH = Path(__file__).resolve().parents[1] / "harness_profile" / "cordis.patch.yml"
 SKILLS_PATCH_NAME = "graph-manager-skills.patch.yml"
+SUBMIT_PATCH_NAME = "graph-manager-submit.patch.yml"
+SUBMIT_TOOL_NAMES = frozenset({PLAN_TOOL_NAME, DECISION_TOOL_NAME})
 
 
 def skills_patch(skills_dir: Path) -> list[dict]:
@@ -33,6 +37,60 @@ def skills_patch(skills_dir: Path) -> list[dict]:
             },
         }
     ]
+
+
+def submit_tools_patch(zenobench_root: Path) -> list[dict]:
+    """Start the submit tool server (adapters/submit_tools.py) inside each Harness session.
+
+    A patch adds a plugin through an insert list; this Python runs the server, so it sees
+    the same graph_manager package and vendored skills."""
+    return [
+        {
+            "insert": [
+                {
+                    "id": "mcp-graph-submit",
+                    "name": "@deepseek-ai/dsh-mcp-client",
+                    "config": {
+                        "serverName": SERVER_NAME,
+                        "transport": "stdio",
+                        "command": sys.executable,
+                        "args": [
+                            "-m",
+                            "graph_manager.adapters.submit_tools",
+                            "--zenobench-root",
+                            str(zenobench_root),
+                        ],
+                        "failOnStartupError": True,
+                    },
+                }
+            ]
+        }
+    ]
+
+
+def submitted_answer(events) -> str | None:
+    """The arguments of the turn's last accepted submit call as JSON text.
+
+    Without an accepted call, the last submitted arguments are returned so the caller's
+    validator reports why they fail; None means the model submitted nothing.
+    """
+    calls: dict[object, object] = {}
+    last = accepted = None
+    for event in events:
+        data = event.get("data") or {}
+        if event.get("type") == "tool/call" and data.get("name") in SUBMIT_TOOL_NAMES:
+            calls[data.get("callId")] = data.get("arguments")
+            last = data.get("arguments")
+        elif event.get("type") == "tool/result":
+            for block in (data.get("message") or {}).get("content") or ():
+                call_id = block.get("toolCallId")
+                if block.get("type") == "tool-result" and call_id in calls:
+                    if block.get("isError") is False:
+                        accepted = calls[call_id]
+    answer = accepted if accepted is not None else last
+    if answer is None or isinstance(answer, str):
+        return answer
+    return json.dumps(answer)
 
 
 def _load_harness_class():
@@ -83,10 +141,11 @@ class DeepSeekHarnessSession:
         if not self.skills_dir.is_dir():
             raise ValueError(f"skills directory does not exist: {self.skills_dir}")
         self.skills_patch = self.dsh_home / SKILLS_PATCH_NAME
+        self.submit_patch = self.dsh_home / SUBMIT_PATCH_NAME
         self.model = model
         self.provider = provider
         self.profile = profile
-        self.patches = (str(PLANNER_PATCH), str(self.skills_patch)) + tuple(
+        self.patches = (str(PLANNER_PATCH), str(self.skills_patch), str(self.submit_patch)) + tuple(
             str(Path(patch).resolve()) for patch in patches
         )
         self.base_url = base_url
@@ -114,23 +173,22 @@ class DeepSeekHarnessSession:
         if harness is not None:
             harness.close()
 
-    def _write_skills_patch(self) -> None:
-        """Concurrent sessions share dsh_home, so replace the patch atomically:
-        a Harness starting meanwhile reads either the old or the new file, never a
-        half-written one."""
-        self.skills_patch.parent.mkdir(parents=True, exist_ok=True)
-        body = json.dumps(skills_patch(self.skills_dir), indent=2) + "\n"
+    def _write_patch(self, path: Path, entries: list[dict]) -> None:
+        """Concurrent sessions share dsh_home, so replace a patch atomically: a Harness
+        starting meanwhile reads either the old or the new file, never a half-written one."""
+        path.parent.mkdir(parents=True, exist_ok=True)
+        body = json.dumps(entries, indent=2) + "\n"
         with tempfile.NamedTemporaryFile(
             "w",
             encoding="utf-8",
-            dir=self.skills_patch.parent,
-            prefix=f".{SKILLS_PATCH_NAME}.",
+            dir=path.parent,
+            prefix=f".{path.name}.",
             suffix=".tmp",
             delete=False,
         ) as handle:
             handle.write(body)
         try:
-            os.replace(handle.name, self.skills_patch)
+            os.replace(handle.name, path)
         except BaseException:
             Path(handle.name).unlink(missing_ok=True)
             raise
@@ -141,7 +199,8 @@ class DeepSeekHarnessSession:
         if not text.strip():
             raise ValueError("Harness prompt must be nonempty")
         if self._session is None:
-            self._write_skills_patch()
+            self._write_patch(self.skills_patch, skills_patch(self.skills_dir))
+            self._write_patch(self.submit_patch, submit_tools_patch(self.skills_dir.parent))
             harness_class = _load_harness_class()
             self._harness = harness_class(
                 dsh_home=str(self.dsh_home),
@@ -202,6 +261,9 @@ class DeepSeekHarnessSession:
             raise ModelPortError(
                 f"Harness turn timed out after {self.turn_timeout_seconds:g} seconds"
             )
+        answer = submitted_answer(getattr(result, "events", None) or ())
+        if answer is not None:
+            return answer
         raw_text = result.final_response
         if result.finish_reason != "completed":
             raise ModelPortError(

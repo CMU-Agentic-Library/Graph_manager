@@ -1,6 +1,7 @@
 """The SDK adapter lets Harness own all conversation history."""
 
 import json
+import sys
 import tempfile
 import threading
 import unittest
@@ -8,7 +9,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from graph_manager.adapters.deepseek_harness_sdk import DeepSeekHarnessSession
+from graph_manager.adapters.deepseek_harness_sdk import DeepSeekHarnessSession, submitted_answer
 from graph_manager.adapters.zenobench_library import ZenoBenchLibrary
 from graph_manager.application.errors import PlanningFailure
 from graph_manager.application.planning_service import PlanningService
@@ -40,6 +41,41 @@ def valid_plan(skill="pick"):
             }
         ],
     }
+
+
+def submitted(name, arguments, accepted=True, call_id="call-1"):
+    """Harness events for one submit tool call and its result."""
+    return [
+        {
+            "type": "tool/call",
+            "data": {"callId": call_id, "name": name, "arguments": json.dumps(arguments)},
+        },
+        {
+            "type": "tool/result",
+            "data": {
+                "message": {
+                    "content": [
+                        {
+                            "type": "tool-result",
+                            "toolCallId": call_id,
+                            "content": [{"type": "text", "text": "result"}],
+                            "isError": not accepted,
+                        }
+                    ]
+                }
+            },
+        },
+    ]
+
+
+def turn(events, final_response="Done.", finish_reason="completed"):
+    return SimpleNamespace(
+        final_response=final_response, finish_reason=finish_reason, events=events
+    )
+
+
+PLAN_TOOL = "mcp__graph__submit_plan"
+DECISION_TOOL = "mcp__graph__submit_decision"
 
 
 class FakeSession:
@@ -106,8 +142,11 @@ class DeepSeekHarnessSessionTest(unittest.TestCase):
         self.assertEqual(["plan-1"], harness.session_ids)
         self.assertEqual("lab-vlm", harness.kwargs["provider"])
         self.assertEqual("sdk", harness.kwargs["profile"])
-        self.assertEqual(3, len(harness.kwargs["patches"]))
-        planner_patch, skills_patch, route_patch = harness.kwargs["patches"]
+        self.assertEqual(4, len(harness.kwargs["patches"]))
+        planner_patch, skills_patch, submit_patch, route_patch = harness.kwargs["patches"]
+        self.assertEqual(
+            str(ROOT / "run" / "dsh-home" / "graph-manager-submit.patch.yml"), submit_patch
+        )
         self.assertEqual(
             str(ROOT / "run" / "dsh-home" / "graph-manager-skills.patch.yml"), skills_patch
         )
@@ -228,8 +267,90 @@ class DeepSeekHarnessSessionTest(unittest.TestCase):
                 session.ask("Go")
             self.assertEqual([], list(dsh_home.glob("*.tmp")) + list(dsh_home.glob(".*.tmp")))
             self.assertEqual(
-                ["graph-manager-skills.patch.yml"], sorted(p.name for p in dsh_home.iterdir())
+                ["graph-manager-skills.patch.yml", "graph-manager-submit.patch.yml"],
+                sorted(p.name for p in dsh_home.iterdir()),
             )
+
+    def test_submit_patch_starts_the_mcp_server_with_this_python(self):
+        FakeHarness.outputs = ["ok"]
+        with self.session() as session:
+            session.ask("Go")
+        written = json.loads(Path(FakeHarness.instances[0].kwargs["patches"][2]).read_text())
+        self.assertEqual(
+            [
+                {
+                    "insert": [
+                        {
+                            "id": "mcp-graph-submit",
+                            "name": "@deepseek-ai/dsh-mcp-client",
+                            "config": {
+                                "serverName": "graph",
+                                "transport": "stdio",
+                                "command": sys.executable,
+                                "args": [
+                                    "-m",
+                                    "graph_manager.adapters.submit_tools",
+                                    "--zenobench-root",
+                                    str(SKILLS.resolve().parent),
+                                ],
+                                "failOnStartupError": True,
+                            },
+                        }
+                    ]
+                }
+            ],
+            written,
+        )
+
+    def test_last_accepted_submission_is_the_answer(self):
+        events = submitted(PLAN_TOOL, {"bad": 1}, accepted=False, call_id="c1") + submitted(
+            PLAN_TOOL, valid_plan(), call_id="c2"
+        )
+        FakeHarness.outputs = [turn(events)]
+        with self.session() as session:
+            answer = session.ask("Go")
+        self.assertEqual(valid_plan(), json.loads(answer))
+
+    def test_rejected_submission_is_returned_for_validation(self):
+        FakeHarness.outputs = [turn(submitted(PLAN_TOOL, valid_plan("grab"), accepted=False))]
+        with self.session() as session:
+            answer = session.ask("Go")
+        self.assertEqual(valid_plan("grab"), json.loads(answer))
+
+    def test_decision_submission_is_the_answer(self):
+        FakeHarness.outputs = [turn(submitted(DECISION_TOOL, {"kind": "finish"}))]
+        with self.session() as session:
+            self.assertEqual({"kind": "finish"}, json.loads(session.ask("Next?")))
+
+    def test_without_a_submission_the_final_text_is_returned(self):
+        skill_call = [
+            {
+                "type": "tool/call",
+                "data": {"callId": "s", "name": "skill", "arguments": '{"name": "pick-object"}'},
+            }
+        ]
+        FakeHarness.outputs = [turn(skill_call, final_response="plain text")]
+        with self.session() as session:
+            self.assertEqual("plain text", session.ask("Go"))
+
+    def test_accepted_submission_wins_over_an_unfinished_turn(self):
+        FakeHarness.outputs = [
+            turn(submitted(PLAN_TOOL, valid_plan()), final_response="", finish_reason="max-tokens")
+        ]
+        with self.session() as session:
+            self.assertEqual(valid_plan(), json.loads(session.ask("Go")))
+
+    def test_submitted_answer_ignores_other_tools(self):
+        events = [
+            {"type": "tool/call", "data": {"callId": "x", "name": "skill", "arguments": "{}"}}
+        ]
+        self.assertIsNone(submitted_answer(events))
+
+    def test_planner_uses_the_submitted_plan(self):
+        FakeHarness.outputs = [turn(submitted(PLAN_TOOL, valid_plan()))]
+        with self.session() as session:
+            result = PlanningService(ZenoBenchLibrary(), session).run(PlanningRequest("Hold apple"))
+        self.assertEqual(valid_plan(), result.task_plan)
 
     def test_skills_dir_must_exist(self):
         with self.assertRaisesRegex(ValueError, "skills directory"):
