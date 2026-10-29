@@ -23,6 +23,8 @@ git -C ../ZenoBench checkout <commit>
 .venv/bin/python scripts/sync_zenobench.py ../ZenoBench
 ```
 
+That repository copy serves `graph-manager-plan`, the tests, and runs that ask for it. `graph-manager-run` pulls the latest ZenoBench before every run instead: it fetches `--zenobench-ref` (default `HEAD`) of `--zenobench-repo` into the clone at `--zenobench-checkout` (default `~/.cache/graph-manager/ZenoBench`), copies the same files into `OUT/zenobench/`, and records the commit in `run.json`. Git refuses a pull that would overwrite local changes in that clone. A run directory holds one Skill Library: rerunning into it with another ZenoBench commit is refused, so start a new `--out`, or resume with `--zenobench-root OUT/zenobench`. `--zenobench-root DIR` uses a synced copy, such as `graph_manager/vendor/zenobench`, and pulls nothing.
+
 The model sees the skills through DeepSeek Harness's skill loader: the catalog lists each skill's `name` and `description`, and the model loads a full `SKILL.md` when it needs one. The validator reads the matching `skill.json` files.
 
 ## Planning
@@ -108,6 +110,7 @@ export LAB_VLM_API_KEY=dummy
 | `cli.py`, `plan_inputs.py` | Read local inputs, construct dependencies, write results |
 | `application/orchestration/`, `prompts/episode.py` | Orchestration layer: closed-loop episodes and their prompts, batch runs, trajectory records |
 | `harness_profile/`, `vendor/zenobench/` | Harness profile patch; vendored ZenoBench skills and task index |
+| `adapters/zenobench_sync.py` | Pull ZenoBench and copy its Skill Library; used by `graph-manager-run` and `scripts/sync_zenobench.py` |
 | `run_cli.py`, `harness_args.py` | `graph-manager-run` and the Harness options both commands share |
 | `summary.py` | `graph-manager-summary`: statistics from the `result.json` files of a run directory |
 | `domain/submission.py`, `adapters/submit_tools.py` | Submit tools: argument schemas and the stdio MCP server each Harness session starts |

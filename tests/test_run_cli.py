@@ -1,12 +1,14 @@
 """graph-manager-run wires the environment, Harness sessions, and the batch runner."""
 
 import json
+import shutil
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from graph_manager.adapters.zenobench_library import ZenoBenchLibrary
+from graph_manager.adapters.zenobench_library import DEFAULT_ROOT, ZenoBenchLibrary
 from graph_manager.domain.env_types import (
     CameraImage,
     ContractResult,
@@ -90,7 +92,7 @@ class RunCliTest(unittest.TestCase):
         self.addCleanup(directory.cleanup)
         self.root = Path(directory.name)
 
-    def invoke(self, *extra):
+    def invoke(self, *extra, library=("--zenobench-root", str(DEFAULT_ROOT))):
         argv = [
             "--out",
             str(self.root / "runs"),
@@ -98,6 +100,7 @@ class RunCliTest(unittest.TestCase):
             str(self.root / "dsh"),
             "--model",
             "local-vlm",
+            *library,
             *extra,
         ]
         with (
@@ -173,6 +176,95 @@ class RunCliTest(unittest.TestCase):
         )
         with patch.dict("os.environ", {"ZENOBENCH_ENV_URL": ""}):
             self.assertEqual(2, self.invoke("--task", "collect_fruits"))
+
+    def pulling(self, upstream: Path):
+        return (
+            "--zenobench-repo",
+            str(upstream),
+            "--zenobench-checkout",
+            str(self.root / "cache" / "ZenoBench"),
+        )
+
+    def test_pulls_the_latest_zenobench_into_the_run_directory(self):
+        upstream = self.root / "upstream"
+        make_upstream(upstream)
+
+        exit_code = self.invoke(
+            "--task", "collect_fruits", "--env-url", "http://env", library=self.pulling(upstream)
+        )
+
+        self.assertEqual(0, exit_code)
+        runs = self.root / "runs"
+        info = json.loads((runs / "run.json").read_text())
+        self.assertEqual(head(upstream), info["zenobench_commit"])
+        self.assertEqual(head(upstream) + "\n", (runs / "zenobench" / "COMMIT").read_text())
+        session = FakeHarnessSession.created[0]
+        self.assertEqual((runs / "zenobench" / "skills").resolve(), session.kwargs["skills_dir"])
+
+    def test_refuses_to_resume_with_another_zenobench_commit(self):
+        upstream = self.root / "upstream"
+        make_upstream(upstream)
+        args = ("--task", "collect_fruits", "--env-url", "http://env")
+        self.assertEqual(0, self.invoke(*args, library=self.pulling(upstream)))
+        copy = self.root / "runs" / "zenobench"
+        before = (copy / "COMMIT").read_text()
+        (upstream / "skill_library" / "plans" / "note.txt").write_text("new")
+        commit_all(upstream, "update")
+
+        self.assertEqual(2, self.invoke(*args, library=self.pulling(upstream)))
+        self.assertEqual(before, (copy / "COMMIT").read_text())
+        self.assertEqual(2, self.invoke(*args))  # the repository copy is another commit too
+
+    def test_reports_a_failed_pull(self):
+        exit_code = self.invoke(
+            "--task",
+            "collect_fruits",
+            "--env-url",
+            "http://env",
+            library=self.pulling(self.root / "missing"),
+        )
+
+        self.assertEqual(2, exit_code)
+        self.assertFalse((self.root / "runs" / "run.json").exists())
+
+
+def git(root: Path, *args: str) -> str:
+    return subprocess.run(
+        ["git", "-C", str(root), "-c", "user.name=t", "-c", "user.email=t@t", *args],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+
+
+def commit_all(root: Path, message: str = "x") -> None:
+    git(root, "add", ".")
+    git(root, "commit", "-qm", message)
+
+
+def head(root: Path) -> str:
+    return git(root, "rev-parse", "HEAD")
+
+
+def make_upstream(root: Path) -> None:
+    """A ZenoBench repository holding the skills and tasks of the repository copy."""
+    library = root / "skill_library"
+    shutil.copytree(DEFAULT_ROOT / "skills", library / "skills")
+    (library / "plans").mkdir()
+    index = json.loads((DEFAULT_ROOT / "tasks.json").read_text())
+    for catalog in ("skill_library/tasks.json", "benchmark/v3/tasks.json"):
+        tasks = [
+            {
+                "task_id": task["task_id"],
+                "variants": {name: {"difficulty": tier} for name, tier in task["variants"].items()},
+            }
+            for task in index["tasks"]
+            if task["catalog"] == catalog
+        ]
+        (root / catalog).parent.mkdir(parents=True, exist_ok=True)
+        (root / catalog).write_text(json.dumps({"tasks": tasks}))
+    subprocess.run(["git", "init", "-q", str(root)], check=True)
+    commit_all(root)
 
 
 if __name__ == "__main__":

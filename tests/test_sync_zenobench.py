@@ -1,18 +1,37 @@
-"""The sync script copies only the pinned ZenoBench files Graph Manager uses."""
+"""Sync copies only the pinned ZenoBench files Graph Manager uses; pull updates a clone."""
 
-import importlib.util
 import json
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-SPEC = importlib.util.spec_from_file_location(
-    "sync_zenobench", ROOT / "scripts" / "sync_zenobench.py"
-)
-sync_zenobench = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(sync_zenobench)
+from graph_manager.adapters import zenobench_sync
+
+
+def commit_all(root: Path, message: str = "x") -> None:
+    subprocess.run(["git", "-C", str(root), "add", "."], check=True)
+    subprocess.run(
+        [
+            "git",
+            "-C",
+            str(root),
+            "-c",
+            "user.name=t",
+            "-c",
+            "user.email=t@t",
+            "commit",
+            "-qm",
+            message,
+        ],
+        check=True,
+    )
+
+
+def head(root: Path) -> str:
+    return subprocess.run(
+        ["git", "-C", str(root), "rev-parse", "HEAD"], check=True, capture_output=True, text=True
+    ).stdout.strip()
 
 
 def make_checkout(root: Path) -> None:
@@ -49,11 +68,7 @@ def make_checkout(root: Path) -> None:
         )
     )
     subprocess.run(["git", "init", "-q", str(root)], check=True)
-    subprocess.run(["git", "-C", str(root), "add", "."], check=True)
-    subprocess.run(
-        ["git", "-C", str(root), "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "x"],
-        check=True,
-    )
+    commit_all(root)
 
 
 class SyncZenoBenchTest(unittest.TestCase):
@@ -66,20 +81,14 @@ class SyncZenoBenchTest(unittest.TestCase):
         self.fixtures = self.root / "fixtures"
         make_checkout(self.source)
 
-    def sync(self):
-        return sync_zenobench.sync(self.source, self.vendor, self.fixtures)
+    def sync(self, fixtures=True):
+        return zenobench_sync.sync(self.source, self.vendor, self.fixtures if fixtures else None)
 
     def test_copies_skills_tasks_plans_and_commit(self):
         commit = self.sync()
 
-        head = subprocess.run(
-            ["git", "-C", str(self.source), "rev-parse", "HEAD"],
-            check=True,
-            capture_output=True,
-            text=True,
-        ).stdout.strip()
-        self.assertEqual(head, commit)
-        self.assertEqual(head + "\n", (self.vendor / "COMMIT").read_text())
+        self.assertEqual(head(self.source), commit)
+        self.assertEqual(commit + "\n", (self.vendor / "COMMIT").read_text())
         self.assertTrue((self.vendor / "skills" / "skill_001" / "SKILL.md").is_file())
         self.assertTrue((self.vendor / "skills" / "skill_001" / "skill.json").is_file())
         index = json.loads((self.vendor / "tasks.json").read_text())
@@ -126,6 +135,53 @@ class SyncZenoBenchTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "uncommitted"):
             self.sync()
         self.assertFalse(self.vendor.exists())
+
+    def test_without_fixtures_copies_no_plans(self):
+        self.sync(fixtures=False)
+
+        self.assertTrue((self.vendor / "COMMIT").is_file())
+        self.assertFalse(self.fixtures.exists())
+
+
+class PullZenoBenchTest(unittest.TestCase):
+    def setUp(self):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        self.root = Path(directory.name)
+        self.upstream = self.root / "upstream"
+        self.checkout = self.root / "cache" / "ZenoBench"
+        make_checkout(self.upstream)
+
+    def pull(self):
+        return zenobench_sync.pull(self.checkout, str(self.upstream))
+
+    def test_clones_then_follows_new_upstream_commits(self):
+        self.assertEqual(head(self.upstream), self.pull())
+
+        (self.upstream / "skill_library" / "skills" / "skill_001" / "skill.json").write_text("[]")
+        commit_all(self.upstream, "update")
+
+        self.assertEqual(head(self.upstream), self.pull())
+        self.assertEqual(head(self.upstream), head(self.checkout))
+
+    def test_pulls_a_named_ref(self):
+        first = head(self.upstream)
+        subprocess.run(["git", "-C", str(self.upstream), "tag", "pinned"], check=True)
+        (self.upstream / "skill_library" / "skills" / "skill_001" / "skill.json").write_text("[]")
+        commit_all(self.upstream, "update")
+
+        self.assertEqual(first, zenobench_sync.pull(self.checkout, str(self.upstream), "pinned"))
+
+    def test_keeps_local_changes_that_a_pull_would_overwrite(self):
+        self.pull()
+        skill_json = self.checkout / "skill_library" / "skills" / "skill_001" / "skill.json"
+        skill_json.write_text("local")
+        (self.upstream / "skill_library" / "skills" / "skill_001" / "skill.json").write_text("[]")
+        commit_all(self.upstream, "update")
+
+        with self.assertRaises(subprocess.CalledProcessError):
+            self.pull()
+        self.assertEqual("local", skill_json.read_text())
 
 
 if __name__ == "__main__":

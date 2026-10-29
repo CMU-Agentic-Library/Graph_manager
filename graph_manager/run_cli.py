@@ -3,12 +3,14 @@
 import argparse
 import json
 import os
+import subprocess
 import sys
 import uuid
 from pathlib import Path
 
 from .adapters.env_http import HttpEnvironment
-from .adapters.zenobench_library import DEFAULT_ROOT, TaskEntry, ZenoBenchLibrary
+from .adapters.zenobench_library import TaskEntry, ZenoBenchLibrary
+from .adapters.zenobench_sync import DEFAULT_CHECKOUT, DEFAULT_REPO, pull, sync
 from .application.orchestration.batch_runner import BatchConfig, BatchRunner
 from .application.orchestration.episode_runner import (
     EpisodeLimits,
@@ -33,6 +35,29 @@ def seeds(text: str) -> list[int]:
     if high < low:
         raise argparse.ArgumentTypeError(f"empty seed range: {text!r}")
     return list(range(low, high + 1))
+
+
+def prepare_library(args) -> Path:
+    """Pull the latest ZenoBench and copy its Skill Library into the run directory."""
+    commit = pull(args.zenobench_checkout, args.zenobench_repo, args.zenobench_ref)
+    check_resume(args.out, commit)
+    root = args.out / "zenobench"
+    sync(args.zenobench_checkout, root)
+    print(f"using ZenoBench {commit}", file=sys.stderr)
+    return root
+
+
+def check_resume(out: Path, commit: str) -> None:
+    """A run directory keeps finished tasks, so all of them must use one Skill Library."""
+    info_path = out / "run.json"
+    if not info_path.is_file():
+        return
+    previous = json.loads(info_path.read_text()).get("zenobench_commit")
+    if previous and previous != commit:
+        raise ValueError(
+            f"{out} was run with ZenoBench {previous}, but this run would use {commit}; "
+            "use a new --out, or --zenobench-root with the earlier copy to resume"
+        )
 
 
 def build_requests(args, tasks: dict[str, TaskEntry]) -> list[TaskRequest]:
@@ -98,7 +123,22 @@ def run(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--out", required=True, type=Path, help="run directory; finished tasks are kept"
     )
-    parser.add_argument("--zenobench-root", type=Path, default=DEFAULT_ROOT)
+    parser.add_argument(
+        "--zenobench-root",
+        type=Path,
+        help="use this synced Skill Library copy, such as graph_manager/vendor/zenobench, "
+        "instead of pulling the latest ZenoBench into OUT/zenobench",
+    )
+    parser.add_argument("--zenobench-repo", default=DEFAULT_REPO, help="ZenoBench git URL to pull")
+    parser.add_argument(
+        "--zenobench-ref", default="HEAD", help="branch, tag, or commit to pull (default: HEAD)"
+    )
+    parser.add_argument(
+        "--zenobench-checkout",
+        type=Path,
+        default=DEFAULT_CHECKOUT,
+        help=f"local clone used for pulling (default: {DEFAULT_CHECKOUT})",
+    )
     add_harness_arguments(parser)
     parser.add_argument("--concurrency", type=int, default=2)
     parser.add_argument("--max-replans", type=int, default=5)
@@ -112,7 +152,8 @@ def run(argv: list[str] | None = None) -> int:
         check_patches(args)
         if args.catalog and not args.all:
             raise ValueError("--catalog needs --all")
-        library = ZenoBenchLibrary(args.zenobench_root)
+        library = ZenoBenchLibrary(args.zenobench_root or prepare_library(args))
+        check_resume(args.out, library.commit)
         requests = build_requests(args, library.tasks())
         environment = HttpEnvironment(env_url)
         catalog = library.load()
@@ -120,6 +161,15 @@ def run(argv: list[str] | None = None) -> int:
         limits = EpisodeLimits(
             max_replans=args.max_replans, max_attempts_per_turn=args.max_attempts_per_turn
         )
+    except subprocess.CalledProcessError as exc:
+        detail = (exc.stderr or "").strip() or str(exc)
+        print(
+            f"could not pull ZenoBench: {detail}\n"
+            "use --zenobench-root graph_manager/vendor/zenobench to run with the copy "
+            "kept in the repository",
+            file=sys.stderr,
+        )
+        return 2
     except (OSError, ValueError) as exc:
         print(f"input error: {exc}", file=sys.stderr)
         return 2
