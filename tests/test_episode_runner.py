@@ -37,7 +37,7 @@ CONTINUE = {"kind": "continue"}
 FINISH = {"kind": "finish"}
 
 
-def plan(*subgoal_ids):
+def plan(*subgoal_ids, skill="pick", arg="object"):
     return {
         "schema_version": 2,
         "kind": "task_plan",
@@ -50,8 +50,8 @@ def plan(*subgoal_ids):
                 "nodes": [
                     {
                         "id": "n1",
-                        "skill": "pick",
-                        "args": {"object": {"ref": "apple"}},
+                        "skill": skill,
+                        "args": {arg: {"ref": "apple"}},
                         "depends_on": [],
                     }
                 ],
@@ -142,12 +142,12 @@ class EpisodeRunnerTest(unittest.TestCase):
 
     def test_plan_continue_finish(self):
         environment = Environment()
-        session = Session(plan("a", "b"), CONTINUE, FINISH)
+        session = Session(plan("a", "b", skill="navigate", arg="destination"), CONTINUE, FINISH)
 
         result, recorder = self.run_episode(environment, session)
 
         self.assertEqual(("success", "model_finished"), (result.status, result.reason))
-        self.assertEqual([["pick"], ["pick"]], environment.batches)
+        self.assertEqual([["navigate"], ["navigate"]], environment.batches)
         self.assertEqual(["exp-1"], environment.checks)
         self.assertEqual(3, len(session.turns))
         self.assertTrue(all(len(images) == 3 for _, images in session.turns))
@@ -177,6 +177,32 @@ class EpisodeRunnerTest(unittest.TestCase):
         self.assertEqual(2, len(environment.batches))
         self.assertIn("The given gripper holds nothing.", session.turns[1][0])
         self.assertIn("continue_not_allowed", session.turns[2][0])
+
+    def test_plan_that_picks_with_a_full_hand_is_refused_before_it_runs(self):
+        environment = Environment()
+        session = Session(plan("a", "b"), plan("a"), FINISH)
+
+        result, recorder = self.run_episode(environment, session)
+
+        self.assertEqual(("success", "model_finished"), (result.status, result.reason))
+        self.assertEqual([["pick"]], environment.batches)  # the refused plan never ran
+        self.assertEqual((0, 1), (result.replans, result.invalid_replies))
+        feedback = session.turns[1][0]
+        self.assertIn("hand_not_empty", feedback)
+        self.assertIn("right hand will still hold apple (node n1 leaves it there)", feedback)
+
+    def test_hands_are_not_checked_without_the_robot_field(self):
+        environment = Environment()
+        no_robot = Observation(OBS.images, {k: v for k, v in OBS.fields.items() if k != "robot"})
+        environment.initial_task = lambda request: StartedTask(
+            "exp-1", TaskInfo("t", "t", "Put the apple away."), GT, no_robot
+        )
+        session = Session(plan("a", "b"), CONTINUE, FINISH)
+
+        result, _ = self.run_episode(environment, session)
+
+        self.assertEqual(0, result.invalid_replies)
+        self.assertEqual([["pick"]], environment.batches[:1])
 
     def test_replan_limit(self):
         environment = Environment(fail(), fail())

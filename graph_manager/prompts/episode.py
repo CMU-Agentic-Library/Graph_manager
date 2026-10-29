@@ -171,17 +171,42 @@ def episode_start_text(task: TaskInfo, observation: Observation) -> str:
 
 
 def _false_conditions(result: ContractResult, meanings: dict[str, str]) -> list[dict]:
+    """Each unmet condition as the fact, its meaning, and its value now and as needed.
+
+    A negated condition such as "not container_empty(container=mug)" is reported as
+    container_empty(container=mug), now true and needed false: the meaning describes the
+    fact itself, so a double negative would contradict it."""
     reports = []
     for condition in (*result.preconditions, *result.postconditions):
         if condition.get("holds") is not False:
             continue
         atom = str(condition.get("atom"))
-        report = {"atom": atom}
-        match = PREDICATE_NAME.search(atom)
+        negated = atom.startswith("not ")
+        fact = atom[len("not ") :] if negated else atom
+        report = {"atom": fact}
+        match = PREDICATE_NAME.search(fact)
         if match and meanings.get(match.group(1)):
             report["meaning"] = meanings[match.group(1)]
+        report["now"], report["needed"] = ("true", "false") if negated else ("false", "true")
         reports.append(report)
     return reports
+
+
+def _held_note(observation: Observation) -> str | None:
+    """After a failure, say first what the hands still hold: plans often forget it."""
+    robot = observation.fields.get("robot")
+    if not isinstance(robot, dict):
+        return None
+    held = [(hand, robot.get(f"held_{hand}")) for hand in ("right", "left")]
+    held = [(hand, obj) for hand, obj in held if obj]
+    if not held:
+        return None
+    lines = [
+        f"Note: the {hand} hand still holds {obj}. A call that needs an empty {hand} hand, such "
+        f"as pick, fails until {obj} is put down, for example with place."
+        for hand, obj in held
+    ]
+    return "\n".join(lines)
 
 
 def call_report(node_run: "NodeRun", meanings: dict[str, str]) -> dict:
@@ -240,13 +265,17 @@ def subgoal_feedback_text(
             f"{continue_blocked} Call {PLAN_TOOL_NAME} with a task_plan for the remaining "
             f'work, or {DECISION_TOOL_NAME} with {{"kind": "finish"}}.'
         )
+    note = None if run.succeeded else _held_note(observation)
     return "\n\n".join(
-        [
+        part
+        for part in (
             json.dumps(report, ensure_ascii=False),
+            note,
             "Current observation:\n" + observation_text(observation),
             plan_line,
             ask,
-        ]
+        )
+        if part
     )
 
 

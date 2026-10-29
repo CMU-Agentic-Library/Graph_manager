@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from ...domain.decision import Decision, validate_decision
 from ...domain.env_types import Observation, StartedTask, TaskRequest
 from ...domain.models import ImageInput, ProposalValidationError, ValidationIssue
+from ...domain.plan_state import hand_issues
 from ...domain.skills import SkillCatalog
 from ...domain.task_plan import validate_task_plan
 from ...ports import EnvironmentPort, EnvironmentPortError, ModelPortError, PlanningSessionPort
@@ -155,7 +156,9 @@ class EpisodeRunner:
         )
         decision = self._ask(
             first,
-            lambda raw: Decision("task_plan", validate_task_plan(raw, self.catalog)),
+            lambda raw: self._check_hands(
+                Decision("task_plan", validate_task_plan(raw, self.catalog))
+            ),
             validation_feedback,
         )
         if decision is None:
@@ -191,7 +194,7 @@ class EpisodeRunner:
             )
             decision = self._ask(
                 turn,
-                lambda raw: validate_decision(raw, self.catalog, blocked),
+                lambda raw: self._check_hands(validate_decision(raw, self.catalog, blocked)),
                 decision_feedback,
             )
             if decision is None:
@@ -203,6 +206,18 @@ class EpisodeRunner:
                 if self._replans > self.limits.max_replans:
                     return "replan_limit"
                 pending = _pending(decision.plan)
+
+    def _check_hands(self, decision: Decision) -> Decision:
+        """Refuse a plan that breaks its own hand preconditions, before the robot moves.
+
+        Profiles without the robot field do not say what the hands hold, so nothing is
+        checked there."""
+        robot = self._observation.fields.get("robot")
+        if decision.kind == "task_plan" and isinstance(robot, dict):
+            issues = hand_issues(decision.plan, self.catalog, robot)
+            if issues:
+                raise ProposalValidationError(issues)
+        return decision
 
     def _ask(
         self,

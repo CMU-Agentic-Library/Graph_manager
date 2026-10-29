@@ -83,7 +83,7 @@ class FakeSession:
         self.outputs = iter(outputs)
         self.inputs = []
 
-    def run(self, value):
+    def run(self, value, on_notification=None):
         self.inputs.append(value)
         output = next(self.outputs)
         if isinstance(output, str):
@@ -374,7 +374,7 @@ class DeepSeekHarnessSessionTest(unittest.TestCase):
                 super().__init__(**kwargs)
                 self.session = self
 
-            def run(self, _value):
+            def run(self, _value, on_notification=None):
                 released.wait(1)
                 return SimpleNamespace(final_response="late", finish_reason="completed")
 
@@ -396,6 +396,79 @@ class DeepSeekHarnessSessionTest(unittest.TestCase):
                 with self.assertRaisesRegex(ModelPortError, "timed out"):
                     session.ask("Reply once")
         self.assertTrue(BlockingHarness.instances[-1].closed)
+
+    def test_turn_that_goes_on_after_an_accepted_submission_is_stopped(self):
+        # Seen live: after an accepted plan, Qwen3.5-4B kept calling the submit tools until
+        # the 300-second turn timeout, and the accepted plan was lost.
+        released = threading.Event()
+
+        class LoopingHarness(FakeHarness):
+            first_inputs = []
+
+            def __init__(self, **kwargs):
+                super().__init__(**kwargs)
+                self.session = self
+
+            def start_session(self, session_id):
+                self.session_ids.append(session_id)
+                return self
+
+            def run(self, value, on_notification=None):
+                LoopingHarness.first_inputs.append(value)
+                if len(LoopingHarness.instances) > 1:
+                    return turn(submitted(DECISION_TOOL, {"kind": "finish"}))
+                for event in submitted(PLAN_TOOL, valid_plan(), call_id="c1") + submitted(
+                    DECISION_TOOL, {"kind": "continue"}, call_id="c2"
+                ):
+                    on_notification(
+                        SimpleNamespace(
+                            method="session.event",
+                            payload={"sessionId": self.session_ids[-1], "event": event},
+                        )
+                    )
+                released.wait(5)
+                raise RuntimeError("runtime stdout closed")
+
+            def close(self):
+                released.set()
+                super().close()
+
+        with patch(
+            "graph_manager.adapters.deepseek_harness_sdk._load_harness_class",
+            return_value=LoopingHarness,
+        ):
+            with DeepSeekHarnessSession(
+                dsh_home=ROOT / "run" / "dsh-home",
+                cwd=ROOT,
+                skills_dir=SKILLS,
+                model="local-vlm",
+                session_id="plan-1",
+                accept_grace_seconds=0.05,
+            ) as session:
+                self.assertEqual(valid_plan(), json.loads(session.ask("Plan it")))
+                self.assertTrue(LoopingHarness.instances[0].closed)
+                self.assertEqual(1, session.restarts)
+
+                self.assertEqual({"kind": "finish"}, json.loads(session.ask("Subgoal done.")))
+
+        second = LoopingHarness.instances[1]
+        self.assertEqual(["plan-1-r1"], second.session_ids)
+        restarted = LoopingHarness.first_inputs[1]
+        self.assertIn("This conversation was restarted", restarted)
+        self.assertIn("--- Earlier message 1 ---\nPlan it", restarted)
+        self.assertIn(json.dumps(valid_plan()), restarted)
+        self.assertTrue(restarted.endswith("--- Current message ---\nSubgoal done."))
+
+    def test_accept_grace_must_be_a_finite_number(self):
+        for grace in (-1, float("inf"), True):
+            with self.assertRaisesRegex(ValueError, "accept_grace_seconds"):
+                DeepSeekHarnessSession(
+                    dsh_home=ROOT / "run" / "dsh-home",
+                    cwd=ROOT,
+                    skills_dir=SKILLS,
+                    model="local-vlm",
+                    accept_grace_seconds=grace,
+                )
 
     def test_late_timer_callback_does_not_close_completed_session(self):
         timers = []

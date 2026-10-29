@@ -19,6 +19,13 @@ def add_harness_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--base-url", help="optional DeepSeek-compatible endpoint override")
     parser.add_argument("--max-tokens", type=int)
     parser.add_argument("--turn-timeout-seconds", type=float, default=300)
+    parser.add_argument(
+        "--accept-grace-seconds",
+        type=float,
+        default=30,
+        help="after an accepted submission, stop a turn the model has not ended within this "
+        "many seconds and continue in a new Harness session (default: 30)",
+    )
 
 
 def check_patches(args: argparse.Namespace) -> None:
@@ -43,4 +50,5 @@ def open_session(
         max_tokens=args.max_tokens,
         session_id=session_id,
         turn_timeout_seconds=args.turn_timeout_seconds,
+        accept_grace_seconds=args.accept_grace_seconds,
     )

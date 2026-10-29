@@ -141,14 +141,49 @@ class EpisodePromptTest(unittest.TestCase):
         self.assertEqual("PRECONDITION_FAILED", failed["error_code"])
         self.assertIn("robot did not move", failed["meaning"])
         self.assertEqual(
-            [{"atom": "hand_empty(hand=right)", "meaning": "The given gripper holds nothing."}],
+            [
+                {
+                    "atom": "hand_empty(hand=right)",
+                    "meaning": "The given gripper holds nothing.",
+                    "now": "false",
+                    "needed": "true",
+                }
+            ],
             failed["false_conditions"],
         )
         self.assertEqual(["n3"], report["not_run"])
+        note = text.split("\n\n")[1]
+        self.assertTrue(note.startswith("Note: the right hand still holds orange."), note)
         self.assertIn("Remaining planned subgoals: hold_apple (Hold the apple)", text)
         self.assertIn("The subgoal failed.", text)
         self.assertNotIn('"kind": "continue"', text)
         self.assertNotIn("inside(apple, fruit_basket)", text)
+
+    def test_negated_condition_is_reported_without_a_double_negative(self):
+        result = ContractResult(
+            "pour",
+            {"source": "mug", "target": "pot"},
+            False,
+            "PRECONDITION_FAILED",
+            "not container_empty(container=mug) is false (contains [])",
+            ({"atom": "not container_empty(container=mug)", "holds": False},),
+            (),
+            {},
+            None,
+        )
+        meanings = {"container_empty": "No annotated object is inside the container."}
+        report = call_report(NodeRun("n3", result), meanings)
+        self.assertEqual(
+            [
+                {
+                    "atom": "container_empty(container=mug)",
+                    "meaning": "No annotated object is inside the container.",
+                    "now": "true",
+                    "needed": "false",
+                }
+            ],
+            report["false_conditions"],
+        )
 
     def test_success_report_offers_continue(self):
         run = GraphRun((NodeRun("n1", OK),), (), None, None, OBSERVATION)
@@ -156,6 +191,7 @@ class EpisodePromptTest(unittest.TestCase):
             {"id": "a", "goal": "A"}, run, OBSERVATION, MEANINGS, [{"id": "b", "goal": "B"}], None
         )
         self.assertIn('mcp__graph__submit_decision with {"kind": "continue"}', text)
+        self.assertNotIn("Note: the right hand", text)  # only after a failure
 
     def test_decision_feedback_lists_errors(self):
         body = json.loads(decision_feedback((ValidationIssue("$.kind", "kind", "bad"),)))
