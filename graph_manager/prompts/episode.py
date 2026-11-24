@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 from ..domain.env_types import ContractResult, Observation, TaskInfo
 from ..domain.models import ValidationIssue
 from ..domain.submission import DECISION_TOOL_NAME, PLAN_TOOL_NAME, USE_SUBMIT_TOOLS
+from . import reveal
 from .task_plan import SYSTEM_INSTRUCTION
 
 if TYPE_CHECKING:
@@ -96,6 +97,9 @@ def _places_lines(places: dict) -> list[str]:
         if place.get("kind") == "room":
             continue
         entry = f"{name} ({place.get('kind')})"
+        tags = reveal.surface_tags(name) if place.get("kind") == "support" else ""
+        if tags:  # SHIFT_REVEAL=full only
+            entry = f"{name} ({place.get('kind')}: {tags})"
         if place.get("room") in rooms:
             rooms[place["room"]].append(entry)
         else:
@@ -144,6 +148,7 @@ def observation_text(observation: Observation) -> str:
                 "Objects seen earlier, by where they were last seen (they may have moved since):"
             )
             lines += [_seen_line(o) for o in earlier]
+    lines += reveal.object_lines(fields)  # SHIFT_REVEAL=objects/full only
     if fields.get("known_places"):
         lines.append("Known places from the floor plan, by room:")
         lines += _places_lines(fields["known_places"])
@@ -159,15 +164,15 @@ def observation_text(observation: Observation) -> str:
 
 
 def episode_start_text(task: TaskInfo, observation: Observation) -> str:
-    return "\n\n".join(
-        [
-            SYSTEM_INSTRUCTION,
-            LOOP_INSTRUCTION,
-            "Task:\n" + task.description,
-            "Current observation:\n" + observation_text(observation),
-            f"Submit the complete task_plan now with {PLAN_TOOL_NAME}.",
-        ]
-    )
+    parts = [
+        SYSTEM_INSTRUCTION,
+        LOOP_INSTRUCTION,
+        reveal.system_note(),  # SHIFT_REVEAL=objects/full only
+        "Task:\n" + task.description,
+        "Current observation:\n" + observation_text(observation),
+        f"Submit the complete task_plan now with {PLAN_TOOL_NAME}.",
+    ]
+    return "\n\n".join(part for part in parts if part)
 
 
 def _false_conditions(result: ContractResult, meanings: dict[str, str]) -> list[dict]:

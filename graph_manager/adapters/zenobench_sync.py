@@ -14,6 +14,7 @@ DEFAULT_REPO = "https://github.com/CMU-Agentic-Library/ZenoBench.git"
 DEFAULT_CHECKOUT = Path.home() / ".cache" / "graph-manager" / "ZenoBench"
 # catalog -> default profile, as in ZenoBench episode/catalog.py DEFAULT_CATALOGS
 CATALOGS = {"skill_library/tasks.json": "gt", "benchmark/v3/tasks.json": "benchmark"}
+REVEAL_CARD = "baseline/reveal_card.json"
 
 
 def git(source: Path, *args: str) -> str:
@@ -86,6 +87,9 @@ def sync(source: Path, vendor: Path, fixtures: Path | None = None) -> str:
         out.mkdir(parents=True)
         for name in ("SKILL.md", "skill.json"):
             shutil.copy2(skill_dir / name, out / name)
+    card = source / REVEAL_CARD  # registry facts for the SHIFT_REVEAL ablation (prompts/reveal.py)
+    if card.is_file():
+        shutil.copy2(card, vendor / "reveal_card.json")
     (vendor / "tasks.json").write_text(
         json.dumps(index, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )

@@ -25,6 +25,7 @@ graph_manager = [
     "harness_profile/*.yml",
     "vendor/zenobench/COMMIT",
     "vendor/zenobench/tasks.json",
+    "vendor/zenobench/reveal_card.json",
     "vendor/zenobench/skills/*/*",
 ]
 
