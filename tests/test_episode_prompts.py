@@ -14,6 +14,8 @@ from graph_manager.domain.models import ValidationIssue
 from graph_manager.prompts.episode import (
     call_report,
     decision_feedback,
+    FAILURE_RULE,
+    FINISH_RULE,
     episode_start_text,
     observation_text,
     subgoal_feedback_text,
@@ -117,6 +119,20 @@ class EpisodePromptTest(unittest.TestCase):
         self.assertIn('{"kind": "continue"}', text)
         self.assertIn("Collect fruits.", text)
         self.assertNotIn("inside(apple, fruit_basket)", text)
+
+    def test_start_and_failure_ask_to_try_another_way_before_finishing(self):
+        task = TaskInfo("collect_fruits", "collect_fruits", "Collect fruits.")
+        start = episode_start_text(task, OBSERVATION)
+        self.assertIn(FAILURE_RULE, start)
+        self.assertIn(FINISH_RULE, start)
+        run = GraphRun((NodeRun("n1", FAILED),), (), "n1", "contract_failed", OBSERVATION)
+        text = subgoal_feedback_text(
+            {"id": "hold_apple", "goal": "Hold the apple"}, run, OBSERVATION, MEANINGS, [],
+            "Failed.",
+        )
+        ask = text.rsplit("\n\n", 1)[1]
+        self.assertIn(FAILURE_RULE, ask)
+        self.assertIn("only if the task is already done", ask)
 
     def test_failed_subgoal_report_explains_the_error_and_conditions(self):
         run = GraphRun(
