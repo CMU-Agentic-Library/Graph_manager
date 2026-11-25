@@ -55,6 +55,17 @@ RUN_NOTES = {
 }
 PREDICATE_NAME = re.compile(r"([a-z_]+)\(")
 
+# the same two rules, word for word, as the ZenoBench baseline prompt (baseline/prompt.py)
+FAILURE_RULE = (
+    "A skill call can fail, and that is normal. Read its error code and what was false, then try "
+    "another way before you give up: for example another grasp, another position for the robot, "
+    "or looking or searching again for what you need."
+)
+FINISH_RULE = (
+    "Finish only when the task is done, or when you have tried other ways and are sure it cannot "
+    "be done. Finishing ends the episode, and the result is judged at that moment."
+)
+
 LOOP_INSTRUCTION = (
     "The robot runs your plan one subgoal at a time. After each subgoal you receive what each "
     "skill call did and a new observation with camera images. Then answer with one tool "
@@ -65,6 +76,7 @@ LOOP_INSTRUCTION = (
     "to change the remaining work. Start with the subgoal that failed, if one did, and leave "
     "out subgoals that already succeeded;\n"
     f'- {DECISION_TOOL_NAME} with {{"kind": "finish"}} when the task is complete.\n'
+    f"{FAILURE_RULE} {FINISH_RULE}\n"
     "An object shown as <unobserved> is one the robot has not seen; it is not a scene name.\n"
     f"{USE_SUBMIT_TOOLS}"
 )
@@ -265,6 +277,13 @@ def subgoal_feedback_text(
             f"{continue_blocked} Call {PLAN_TOOL_NAME} with a task_plan for the remaining "
             f'work, or {DECISION_TOOL_NAME} with {{"kind": "finish"}}.'
         )
+        if not run.succeeded:
+            ask = (
+                f"{continue_blocked} {FAILURE_RULE} Call {PLAN_TOOL_NAME} with a task_plan for "
+                f'the remaining work. Call {DECISION_TOOL_NAME} with {{"kind": "finish"}} only if '
+                "the task is already done, or you have tried other ways and are sure it cannot be "
+                "done: finishing ends the episode and it is judged at that moment."
+            )
     note = None if run.succeeded else _held_note(observation)
     return "\n\n".join(
         part

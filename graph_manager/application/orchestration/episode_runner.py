@@ -18,9 +18,7 @@ from ..execution.graph_executor import GraphExecutor, GraphRun
 from ..input_builder import ModelTurn
 from .trajectory import EpisodeRecorder, observation_record
 
-AFTER_FAILURE = (
-    "The subgoal failed, so continue is not allowed: replan starting from it, or finish."
-)
+AFTER_FAILURE = "The subgoal failed, so continue is not allowed: replan starting from it."
 ALL_DONE = "Every planned subgoal has run, so continue is not allowed: plan more work, or finish."
 
 
